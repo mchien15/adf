@@ -119,10 +119,9 @@ temperature: 0.1
 - `all`: Can be invoked as main or sub agent
 
 **Model Selection**:
-- `anthropic/claude-sonnet-4-5` - Fast, efficient (most agents)
-- `anthropic/claude-opus-4-1` - Advanced reasoning (planner-researcher)
-- `google/gemini-2.5-flash` - Cost-effective (docs-manager)
-- `grok-code` - Specialized (git-manager)
+- Source `.claude/agents/*.md` keeps abstract model tiers such as `opus`, `sonnet`, `haiku`, and `inherit`
+- OpenCode generated subagents map those tiers to explicit GitHub Copilot model IDs
+- Default OpenCode fallback for `inherit` or missing model is `github-copilot/claude-sonnet-4.6`
 
 #### 2.3 Agent Communication Protocol
 

@@ -609,12 +609,12 @@ function example() {
 name: agent-name
 description: Brief description of agent purpose and when to use it
 mode: subagent | all
-model: anthropic/claude-sonnet-4-5
+model: github-copilot/claude-sonnet-4.6
 temperature: 0.1
 ---
 ```
 
-Prefer stable provider aliases in generated OpenCode agent configs, not dated model snapshots that may be unavailable in some provider catalogs.
+For OpenCode-generated agents, prefer explicit `provider/model` IDs when the project needs deterministic provider routing across subagents.
 
 **Required Sections**:
 1. Agent role and responsibilities

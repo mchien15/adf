@@ -1,7 +1,7 @@
 ---
 description: "Simplifies and refines code for clarity, consistency, and maintainability while preserving all functionality. Focuses on recently modified code unless instructed otherwise."
 mode: subagent
-model: anthropic/claude-opus-4-1
+model: github-copilot/gpt-5.4
 tools:
   glob: true
   grep: true

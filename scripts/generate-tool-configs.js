@@ -45,16 +45,14 @@ const SKIP_TOOLS = new Set([
   'KillBash', 'BashOutput',
 ]);
 
-// Claude shorthand → OpenCode full model ID
+// Claude shorthand → OpenCode GitHub Copilot model IDs
 const MODEL_MAP = {
-  // Use stable OpenCode model aliases instead of dated/provider-specific
-  // snapshots that may disappear and trigger ProviderModelNotFoundError.
-  opus:   'anthropic/claude-opus-4-1',
-  sonnet: 'anthropic/claude-sonnet-4-5',
-  haiku:  'anthropic/claude-haiku-4-5',
-  inherit:'anthropic/claude-sonnet-4-5',
+  opus: 'github-copilot/gpt-5.4',
+  sonnet: 'github-copilot/claude-sonnet-4.6',
+  haiku: 'github-copilot/claude-haiku-4.5',
+  inherit: 'github-copilot/claude-sonnet-4.6',
 };
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-5';
+const DEFAULT_MODEL = 'github-copilot/claude-sonnet-4.6';
 
 // ─── Parsers ──────────────────────────────────────────────────────────────────
 

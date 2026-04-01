@@ -1,7 +1,7 @@
 ---
 description: "Comprehensive code review with scout-based edge case detection. Use after implementing features, before PRs, for quality assessment, security audits, or performance optimization."
 mode: subagent
-model: anthropic/claude-sonnet-4-5
+model: github-copilot/claude-sonnet-4.6
 tools:
   glob: true
   grep: true
