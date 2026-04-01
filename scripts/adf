@@ -1,14 +1,16 @@
 #!/bin/bash
 #
 # adf - Copy ADF config to target repositories
-# Version: 1.1.0
+# Version: 1.2.0
 #
 # Usage: adf [command]
-#   adf         - Copy .claude/ + CLAUDE.md (default, for Claude Code)
-#   adf claude  - Same as default
-#   adf ag      - Copy .agent/ + AGENTS.md (for Antigravity)
-#   adf all     - Copy both Claude + Antigravity configs
-#   adf help    - Show this help
+#   adf           - Copy .claude/ + CLAUDE.md (default, for Claude Code)
+#   adf claude    - Same as default
+#   adf ag        - Copy .agent/ + AGENTS.md (for Antigravity)
+#   adf opencode  - Copy .claude/ + opencode.json + CLAUDE.md + AGENTS.md + .opencode/
+#   adf codex     - Copy .claude/ + .codex/ + AGENTS.md + create .agents symlink
+#   adf all       - Copy all tool configs (Claude, Antigravity, OpenCode, Codex)
+#   adf help      - Show this help
 #
 # Setup: Set ADF_HOME env var or edit below
 #
@@ -53,12 +55,14 @@ ADF - Copy ADF config to target repositories
 Usage: adf [command]
 
 Commands:
-  adf         Copy .claude/ + CLAUDE.md (default, for Claude Code)
-  adf claude  Same as default
-  adf ag      Copy .agent/ + AGENTS.md (for Antigravity)
-  adf all     Copy both Claude + Antigravity configs
-  adf --update Self-update this script from ADF_HOME
-  adf help    Show this help
+  adf           Copy .claude/ + CLAUDE.md (default, for Claude Code)
+  adf claude    Same as default
+  adf ag        Copy .agent/ + AGENTS.md (for Antigravity)
+  adf opencode  Copy .claude/ + opencode.json + CLAUDE.md + AGENTS.md + .opencode/
+  adf codex     Copy .claude/ + .codex/ + AGENTS.md + create .agents symlink
+  adf all       Copy all tool configs (Claude, Antigravity, OpenCode, Codex)
+  adf --update  Self-update this script from ADF_HOME
+  adf help      Show this help
 
 Setup:
   1. Set ADF_HOME env var OR edit this script
@@ -169,6 +173,103 @@ cmd_antigravity() {
     log_success "Done! Antigravity config copied"
 }
 
+cmd_opencode() {
+    validate_write_permission
+    log_info "Copying OpenCode config to $TARGET"
+    local failed=0
+
+    # .claude/
+    if cp -r "$ADF_HOME/.claude" "$TARGET/"; then
+        log_info "  ✓ .claude/"
+    else
+        log_error "  ✗ .claude/"
+        ((failed++))
+    fi
+
+    # CLAUDE.md
+    if [[ -f "$ADF_HOME/CLAUDE.md" ]] && cp "$ADF_HOME/CLAUDE.md" "$TARGET/"; then
+        log_info "  ✓ CLAUDE.md"
+    fi
+
+    # AGENTS.md
+    if [[ -f "$ADF_HOME/AGENTS.md" ]] && cp "$ADF_HOME/AGENTS.md" "$TARGET/"; then
+        log_info "  ✓ AGENTS.md"
+    fi
+
+    # opencode.json
+    if [[ -f "$ADF_HOME/opencode.json" ]]; then
+        if cp "$ADF_HOME/opencode.json" "$TARGET/"; then
+            log_info "  ✓ opencode.json"
+        else
+            log_warn "  ✗ opencode.json (skipped)"
+        fi
+    fi
+
+    # .opencode/
+    if [[ -d "$ADF_HOME/.opencode" ]]; then
+        if cp -r "$ADF_HOME/.opencode" "$TARGET/"; then
+            log_info "  ✓ .opencode/"
+        else
+            log_warn "  ✗ .opencode/ (skipped)"
+        fi
+    fi
+
+    if [[ $failed -gt 0 ]]; then
+        log_warn "Completed with $failed error(s)"
+        exit 1
+    fi
+    log_success "Done! OpenCode config copied"
+}
+
+cmd_codex() {
+    validate_write_permission
+    log_info "Copying Codex config to $TARGET"
+    local failed=0
+
+    # .claude/
+    if cp -r "$ADF_HOME/.claude" "$TARGET/"; then
+        log_info "  ✓ .claude/"
+    else
+        log_error "  ✗ .claude/"
+        ((failed++))
+    fi
+
+    # .codex/
+    if [[ -d "$ADF_HOME/.codex" ]]; then
+        if cp -r "$ADF_HOME/.codex" "$TARGET/"; then
+            log_info "  ✓ .codex/"
+        else
+            log_error "  ✗ .codex/"
+            ((failed++))
+        fi
+    else
+        log_warn "  ✗ .codex/ not found in ADF_HOME"
+        ((failed++))
+    fi
+
+    # AGENTS.md
+    if [[ -f "$ADF_HOME/AGENTS.md" ]] && cp "$ADF_HOME/AGENTS.md" "$TARGET/"; then
+        log_info "  ✓ AGENTS.md"
+    fi
+
+    # .agents symlink → .claude
+    if [[ ! -e "$TARGET/.agents" ]]; then
+        if ln -s .claude "$TARGET/.agents"; then
+            log_info "  ✓ .agents → .claude (symlink)"
+        else
+            log_warn "  ✗ .agents symlink (skipped)"
+        fi
+    else
+        log_warn "  ~ .agents already exists (skipped)"
+    fi
+
+    if [[ $failed -gt 0 ]]; then
+        log_warn "Completed with $failed error(s)"
+        exit 1
+    fi
+    log_success "Done! Codex config copied"
+}
+
 cmd_all() {
     validate_write_permission
     log_info "Copying all ADF config to $TARGET"
@@ -197,6 +298,31 @@ cmd_all() {
 
     if [[ -f "$ADF_HOME/AGENTS.md" ]] && cp "$ADF_HOME/AGENTS.md" "$TARGET/"; then
         log_info "  ✓ AGENTS.md"
+    fi
+
+    # OpenCode
+    if [[ -f "$ADF_HOME/opencode.json" ]] && cp "$ADF_HOME/opencode.json" "$TARGET/" 2>/dev/null; then
+        log_info "  ✓ opencode.json"
+    fi
+
+    if [[ -d "$ADF_HOME/.opencode" ]] && cp -r "$ADF_HOME/.opencode" "$TARGET/" 2>/dev/null; then
+        log_info "  ✓ .opencode/"
+    fi
+
+    # Codex
+    if [[ -d "$ADF_HOME/.codex" ]]; then
+        if cp -r "$ADF_HOME/.codex" "$TARGET/"; then
+            log_info "  ✓ .codex/"
+        else
+            log_warn "  ✗ .codex/ (skipped)"
+        fi
+    fi
+
+    # .agents symlink → .claude (Codex skill discovery)
+    if [[ ! -e "$TARGET/.agents" ]]; then
+        ln -s .claude "$TARGET/.agents" 2>/dev/null && log_info "  ✓ .agents → .claude (symlink)"
+    else
+        log_warn "  ~ .agents already exists (skipped)"
     fi
 
     # Optional files
@@ -235,6 +361,14 @@ case "$CMD" in
     ag|antigravity)
         validate_adf_home
         cmd_antigravity
+        ;;
+    opencode|oc)
+        validate_adf_home
+        cmd_opencode
+        ;;
+    codex)
+        validate_adf_home
+        cmd_codex
         ;;
     all)
         validate_adf_home

@@ -54,14 +54,22 @@ node scripts/generate-tool-configs.js
 git clone https://github.com/sotatek-dev/adf.git /tmp/adf
 ```
 
-### Step 2: Setup for Your Tool
+### Step 2: Install the `adf` CLI (once)
+
+```bash
+cp /tmp/adf/scripts/adf ~/bin/adf && chmod +x ~/bin/adf
+export ADF_HOME=/tmp/adf   # add to ~/.bashrc to persist
+```
+
+Ensure `~/bin` is in your `PATH`.
+
+### Step 3: Setup for Your Tool
 
 #### Option A: Claude Code
 
 ```bash
-# Copy Claude Code config + instruction file
-cp -r /tmp/adf/.claude /path/to/your-project/
-cp /tmp/adf/CLAUDE.md /path/to/your-project/
+cd /path/to/your-project
+adf claude
 ```
 
 Then launch:
@@ -74,9 +82,8 @@ Claude Code reads `CLAUDE.md` and loads the full agent/skill ecosystem automatic
 #### Option B: Antigravity
 
 ```bash
-# Copy Antigravity config + instruction file (dereference resolves symlinks to real files)
-cp -rL /tmp/adf/.agent /path/to/your-project/
-cp /tmp/adf/AGENTS.md /path/to/your-project/
+cd /path/to/your-project
+adf ag
 ```
 
 Then open your project in Antigravity IDE. The workflows (slash commands) are available immediately.
@@ -84,10 +91,8 @@ Then open your project in Antigravity IDE. The workflows (slash commands) are av
 #### Option C: OpenCode
 
 ```bash
-cp -r /tmp/adf/.claude /path/to/your-project/
-cp /tmp/adf/opencode.json /path/to/your-project/
-cp /tmp/adf/CLAUDE.md /path/to/your-project/
-cp /tmp/adf/AGENTS.md /path/to/your-project/
+cd /path/to/your-project
+adf opencode
 ```
 
 Then launch:
@@ -100,11 +105,8 @@ OpenCode reads `.claude/skills/` natively and `.opencode/agents/` for agent conf
 #### Option D: OpenAI Codex
 
 ```bash
-cp -r /tmp/adf/.claude /path/to/your-project/
-cp -r /tmp/adf/.codex /path/to/your-project/
-cp /tmp/adf/AGENTS.md /path/to/your-project/
-# Create symlink for skill discovery
-ln -s .claude .agents
+cd /path/to/your-project
+adf codex
 ```
 
 Then launch:
@@ -117,19 +119,13 @@ Codex discovers skills via `.agents/skills/` and agents via `.agents/agents/`.
 #### Option E: All tools (recommended for teams)
 
 ```bash
-# Copy everything — use whichever tool you prefer
-cp -r /tmp/adf/.claude /path/to/your-project/
-cp -r /tmp/adf/.agent /path/to/your-project/
-cp -r /tmp/adf/.codex /path/to/your-project/
-cp /tmp/adf/opencode.json /path/to/your-project/
-cp /tmp/adf/CLAUDE.md /path/to/your-project/
-cp /tmp/adf/AGENTS.md /path/to/your-project/
-ln -s .claude .agents   # Codex skill discovery
+cd /path/to/your-project
+adf all
 ```
 
 > **Note:** `.claude/` is the canonical source of truth. `.agent/`, `.agents`, `.codex/agents/`, and `.opencode/agents/` are all derived from it — via symlinks or the generator script (`node scripts/generate-tool-configs.js`). Zero duplication.
 
-> **Upgrading?** Back up your `.claude/` and `.agent/` directories first if you have custom settings.
+> **Upgrading?** Run `adf --update` to pull the latest CLI, then re-run `adf <tool>` in your project.
 
 ---
 
