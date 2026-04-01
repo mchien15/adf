@@ -1,6 +1,6 @@
 # Agentic Development Framework - Project Roadmap
 
-**Last Updated:** 2026-03-29
+**Last Updated:** 2026-04-01
 **Current Version:** 0.0.1
 **Repository:** https://github.com/sotatek-dev/adf
 
@@ -62,6 +62,7 @@ First public release. Includes full agent orchestration, skills library, hook sy
   - **Cleanup**: removed profiles feature, config validate/doctor, zombie config fields (nuclei section, dast.severity, sonar.sources/exclusions); leaned SKILL.md commands
 
 ### Near-term
+- Codex and OpenCode support integration improvements
 - Community feedback and bug fixes
 - Documentation improvements and tutorials
 - Performance optimization (token efficiency, parallel execution)

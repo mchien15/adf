@@ -2,7 +2,7 @@
 
 **Project Name**: Agentic Development Framework
 **Version**: 0.0.1
-**Last Updated**: 2026-03-30
+**Last Updated**: 2026-04-01
 **Status**: Active Development
 **Repository**: https://github.com/sotatek-dev/adf
 
@@ -99,7 +99,7 @@ Command behavior is implemented via skill directories:
 - `code-review/` - Code review workflows
 - `test/` - Testing and validation workflows
 
-### 3. Extensive Skills Library (43+ Skills, Shared Across Tools)
+### 3. Extensive Skills Library (44 Skills, Shared Across Tools)
 
 **Location**: `.claude/skills/` (canonical source)
 **Available in**: Claude Code AND Antigravity (via `.agent/skills/` symlinks)

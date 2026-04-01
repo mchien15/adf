@@ -1,6 +1,7 @@
 # ClaudeKit Skills Interconnection Map
 
-> 54 skills · 80+ connections · 1 ecosystem
+> 44 skills · 80+ connections · 1 ecosystem
+> **Last Updated**: 2026-04-01
 
 ## Core Architecture
 
@@ -65,8 +66,9 @@ Pure capability providers — referenced by hub skills but don't call other skil
 | **problem-solving** | Structured problem decomposition | debug, fix |
 | **ai-multimodal** | Image/video/audio analysis | frontend-design, test, copywriting, brainstorm |
 | **chrome-devtools** | Browser automation | debug, test |
-| **repomix** | Repository packing | debug, gkg |
+| **repomix** | Repository packing | debug |
 | **context-engineering** | Token management | git, fix |
+| **quality-gates** | Security and quality gates | code-review |
 | **mermaidjs-v11** | Diagram generation | plan |
 | **ui-ux-pro-max** | Design intelligence | cook, frontend-design |
 | **media-processing** | FFmpeg/ImageMagick | frontend-design |

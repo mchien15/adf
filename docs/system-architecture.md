@@ -1,6 +1,6 @@
 # System Architecture
 
-**Last Updated**: 2026-03-16
+**Last Updated**: 2026-04-01
 **Version**: 0.0.1
 **Project**: Agentic Development Framework
 
@@ -119,8 +119,8 @@ temperature: 0.1
 - `all`: Can be invoked as main or sub agent
 
 **Model Selection**:
-- `claude-sonnet-4-20250514` - Fast, efficient (most agents)
-- `claude-opus-4-1-20250805` - Advanced reasoning (planner-researcher)
+- `claude-sonnet-4-6` - Fast, efficient (most agents)
+- `claude-opus-4-6` - Advanced reasoning (planner-researcher)
 - `google/gemini-2.5-flash` - Cost-effective (docs-manager)
 - `grok-code` - Specialized (git-manager)
 
@@ -316,7 +316,7 @@ Planner incorporates into plan
 
 ### 6. Integration Layer
 
-#### 6.1 Hook System (8 Core Hooks)
+#### 6.1 Hook System (13 Core Hooks)
 
 **Purpose**: Intercept and control Claude Code operations for performance, context management, and security
 
@@ -328,6 +328,11 @@ All hooks located in `.claude/hooks/` with consistent patterns - fail-safe exit 
 - `descriptive-name.cjs` - Naming conventions enforcement
 - `post-edit-simplify-reminder.cjs` - Post-edit optimization hints
 - `usage-context-awareness.cjs` - Context-aware usage patterns
+- `cook-after-plan-reminder.cjs` - Cook workflow guidance
+- `skill-dedup.cjs` - Skill deduplication
+- `team-context-inject.cjs` - Team coordination context
+- `task-completed-handler.cjs` - Task completion monitoring
+- `teammate-idle-handler.cjs` - Teammate idle state detection
 
 **1. Session-Init Hook** (`session-init.cjs`)
 - **Trigger**: Session startup

@@ -1,6 +1,6 @@
 # Codebase Summary
 
-**Last Updated**: 2026-03-30
+**Last Updated**: 2026-04-01
 **Version**: 0.0.1
 **Repository**: [sotatek-dev/adf](https://github.com/sotatek-dev/adf)
 
@@ -143,7 +143,7 @@ agentic-development-framework/
 - Setup wizard: stack-aware — infers exclude patterns, selects nuclei tags, composes gitleaks.toml + sonar-project.properties per detected stack
 - Removed: profiles feature, config validate/doctor, zombie config fields (nuclei block, dast.severity, sonar.sources/exclusions)
 
-### 4. Hook System (8 Core Hooks)
+### 4. Hook System (13 Core Hooks)
 
 **Location**: `.claude/hooks/`
 
@@ -178,6 +178,11 @@ agentic-development-framework/
 6. **descriptive-name.cjs** - Naming conventions enforcement
 7. **post-edit-simplify-reminder.cjs** - Post-edit optimization hints
 8. **usage-context-awareness.cjs** - Context-aware usage patterns
+9. **cook-after-plan-reminder.cjs** - Cook workflow guidance
+10. **skill-dedup.cjs** - Skill deduplication
+11. **team-context-inject.cjs** - Team coordination context
+12. **task-completed-handler.cjs** - Task completion monitoring
+13. **teammate-idle-handler.cjs** - Teammate idle state detection
 
 **Hook Features:**
 - Fail-Safe: All hooks exit 0 (non-blocking) - graceful degradation
@@ -312,8 +317,8 @@ Types:
 
 **Framework Components**:
 - 16 specialized agent definitions
-- 43+ skills in organized categories
-- 8 core hooks with cross-platform support
+- 44 skills in organized categories
+- 13 core hooks with cross-platform support
 - 13 Antigravity workflow proxy files
 - Complete documentation system
 

@@ -1,7 +1,7 @@
 # Agent Teams — Orchestration Guide
 
 > Status: Experimental
-> Source: https://code.claude.com/docs/en/agent-teams | Last synced: Feb 5, 2026
+> Source: https://code.claude.com/docs/en/agent-teams | Last synced: 2026-04-01
 > Skill version: v2.1.0 — event-driven hooks, agent memory, Task restrictions
 
 ## Overview

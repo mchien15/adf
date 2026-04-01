@@ -1,7 +1,7 @@
 # Skills Dependency Graph
 
-**Last Updated**: 2026-03-16
-**Total Skills**: 39
+**Last Updated**: 2026-04-01
+**Total Skills**: 44
 
 ## ASCII Overview
 
@@ -73,6 +73,7 @@ graph TD
         ai["ai-multimodal"]
         chrome["chrome-devtools"]
         docs_seeker["docs-seeker"]
+        quality_gates["quality-gates"]
     end
 
     subgraph Project Management
@@ -198,7 +199,7 @@ graph TD
     class test,code_review,debug quality
     class brainstorm,ask,research,scout intel
     class seq,prob,ctx support
-    class ai,chrome,docs_seeker support
+    class ai,chrome,docs_seeker,quality_gates support
     class pm,docs,git,journal finalize
     class preview,md_viewer,kanban,mermaid viz
     class team,skill_creator finalize
