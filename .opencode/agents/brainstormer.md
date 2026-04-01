@@ -1,7 +1,7 @@
 ---
 description: ">-"
 mode: subagent
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-4-5
 tools:
   glob: true
   grep: true

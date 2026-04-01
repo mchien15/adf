@@ -1,7 +1,7 @@
 ---
 description: "Stage, commit, and push code changes with conventional commits. Use when user says \"commit\", \"push\", or finishes a feature/fix."
 mode: subagent
-model: anthropic/claude-haiku-4-5-20251001
+model: anthropic/claude-haiku-4-5
 tools:
   glob: true
   grep: true

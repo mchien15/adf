@@ -47,11 +47,14 @@ const SKIP_TOOLS = new Set([
 
 // Claude shorthand → OpenCode full model ID
 const MODEL_MAP = {
-  opus:   'anthropic/claude-opus-4-6',
-  sonnet: 'anthropic/claude-sonnet-4-6',
-  haiku:  'anthropic/claude-haiku-4-5-20251001',
+  // Use stable OpenCode model aliases instead of dated/provider-specific
+  // snapshots that may disappear and trigger ProviderModelNotFoundError.
+  opus:   'anthropic/claude-opus-4-1',
+  sonnet: 'anthropic/claude-sonnet-4-5',
+  haiku:  'anthropic/claude-haiku-4-5',
+  inherit:'anthropic/claude-sonnet-4-5',
 };
-const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-6';
+const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-5';
 
 // ─── Parsers ──────────────────────────────────────────────────────────────────
 

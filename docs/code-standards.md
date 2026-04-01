@@ -609,10 +609,12 @@ function example() {
 name: agent-name
 description: Brief description of agent purpose and when to use it
 mode: subagent | all
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-4-5
 temperature: 0.1
 ---
 ```
+
+Prefer stable provider aliases in generated OpenCode agent configs, not dated model snapshots that may be unavailable in some provider catalogs.
 
 **Required Sections**:
 1. Agent role and responsibilities

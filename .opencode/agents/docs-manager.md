@@ -1,7 +1,7 @@
 ---
 description: "Use this agent when you need to manage technical documentation, establish implementation standards, analyze and update existing documentation based on code changes, write or update Product Development Requirements (PDRs), organize documentation for developer productivity, or produce documentation summary reports. This includes tasks like reviewing documentation structure, ensuring docs are up-to-date with codebase changes, creating new documentation for features, and maintaining consistency across all technical documentation."
 mode: subagent
-model: anthropic/claude-haiku-4-5-20251001
+model: anthropic/claude-haiku-4-5
 tools:
   glob: true
   grep: true

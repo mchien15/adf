@@ -119,8 +119,8 @@ temperature: 0.1
 - `all`: Can be invoked as main or sub agent
 
 **Model Selection**:
-- `claude-sonnet-4-6` - Fast, efficient (most agents)
-- `claude-opus-4-6` - Advanced reasoning (planner-researcher)
+- `anthropic/claude-sonnet-4-5` - Fast, efficient (most agents)
+- `anthropic/claude-opus-4-1` - Advanced reasoning (planner-researcher)
 - `google/gemini-2.5-flash` - Cost-effective (docs-manager)
 - `grok-code` - Specialized (git-manager)
 

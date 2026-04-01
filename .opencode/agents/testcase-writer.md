@@ -1,7 +1,7 @@
 ---
 description: "Test case generation specialist. Creates test cases from FSD and use case documents. Supports export to CSV/JSON. Use when generating test cases, updating test coverage, or exporting test documentation.\\n\\n<example>\\nContext: User wants to generate test cases from existing use cases.\\nuser: \"Generate test cases for all our use cases\"\\nassistant: \"I'll use the testcase-writer agent to create test cases from the use case documentation\"\\n<commentary>\\nTest case generation from BA docs requires the testcase-writer agent.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User wants to export test cases for manual QA.\\nuser: \"Export test cases to CSV for the QA team\"\\nassistant: \"I'll use the testcase-writer agent to export all test cases to CSV format\"\\n<commentary>\\nTest case export is handled by the testcase-writer agent.\\n</commentary>\\n</example>"
 mode: subagent
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-4-5
 tools:
   glob: true
   grep: true

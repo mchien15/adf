@@ -1,7 +1,7 @@
 ---
 description: "Execute implementation phases from parallel plans. Handles backend (Node.js, APIs, databases), frontend (React, TypeScript), and infrastructure tasks. Designed for parallel execution with strict file ownership boundaries. Use when implementing a specific phase from `/plan --parallel` output."
 mode: subagent
-model: anthropic/claude-sonnet-4-6
+model: anthropic/claude-sonnet-4-5
 tools:
   glob: true
   grep: true
