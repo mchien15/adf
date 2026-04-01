@@ -57,11 +57,25 @@ git clone https://github.com/sotatek-dev/adf.git /tmp/adf
 ### Step 2: Install the `adf` CLI (once)
 
 ```bash
+mkdir -p ~/bin
 cp /tmp/adf/scripts/adf ~/bin/adf && chmod +x ~/bin/adf
-export ADF_HOME=/tmp/adf   # add to ~/.bashrc to persist
 ```
 
-Ensure `~/bin` is in your `PATH`.
+Then add `~/bin` to your PATH and set `ADF_HOME` (only needed if your ADF repo isn't at `~/adf`):
+
+**Ubuntu/Linux (bash)** — add to `~/.bashrc`:
+```bash
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
+echo 'export ADF_HOME="$HOME/adf"' >> ~/.bashrc   # optional, ~/adf is the default
+source ~/.bashrc
+```
+
+**macOS (zsh)** — add to `~/.zshrc`:
+```bash
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
+echo 'export ADF_HOME="$HOME/adf"' >> ~/.zshrc   # optional, ~/adf is the default
+source ~/.zshrc
+```
 
 ### Step 3: Setup for Your Tool
 
