@@ -1,0 +1,18 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "command": "node .codex/hooks/session-init-codex.cjs"
+    },
+    {
+      "event": "UserPromptSubmit",
+      "matcher": ".*",
+      "command": "node .codex/hooks/dev-rules-reminder-codex.cjs"
+    },
+    {
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "command": "node .codex/hooks/privacy-block-codex.cjs"
+    }
+  ]
+}

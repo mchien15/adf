@@ -1,0 +1,11 @@
+# ADF project-scoped Codex configuration
+# Codex discovers this by walking up from cwd to git root
+
+# Use AGENTS.md as primary project doc; fallback to CLAUDE.md
+project_doc_fallback_filenames = ["CLAUDE.md"]
+project_doc_max_bytes = 65536
+
+# Allow subagent nesting for ADF multi-agent workflows
+[subagents]
+max_depth = 2
+max_concurrent = 8

@@ -1,0 +1,248 @@
+#!/bin/bash
+#
+# adf - Copy ADF config to target repositories
+# Version: 1.1.0
+#
+# Usage: adf [command]
+#   adf         - Copy .claude/ + CLAUDE.md (default, for Claude Code)
+#   adf claude  - Same as default
+#   adf ag      - Copy .agent/ + AGENTS.md (for Antigravity)
+#   adf all     - Copy both Claude + Antigravity configs
+#   adf help    - Show this help
+#
+# Setup: Set ADF_HOME env var or edit below
+#
+
+# ============================================
+# CONFIGURATION
+# ============================================
+ADF_HOME="${ADF_HOME:-$HOME/projects/adf}"
+
+# ============================================
+# COLORS
+# ============================================
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# ============================================
+# HELPERS
+# ============================================
+log_info() {
+    echo -e "${BLUE}[ADF]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[ADF]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[ADF]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ADF]${NC} $1"
+}
+
+show_help() {
+    cat << EOF
+ADF - Copy ADF config to target repositories
+
+Usage: adf [command]
+
+Commands:
+  adf         Copy .claude/ + CLAUDE.md (default, for Claude Code)
+  adf claude  Same as default
+  adf ag      Copy .agent/ + AGENTS.md (for Antigravity)
+  adf all     Copy both Claude + Antigravity configs
+  adf --update Self-update this script from ADF_HOME
+  adf help    Show this help
+
+Setup:
+  1. Set ADF_HOME env var OR edit this script
+  2. Ensure ~/bin is in your PATH
+  3. Run: chmod +x ~/bin/adf
+
+Current ADF_HOME: $ADF_HOME
+EOF
+}
+
+cmd_update() {
+    local script_name="adf"
+    local source="$ADF_HOME/scripts/$script_name"
+    local target="$HOME/bin/$script_name"
+
+    if [[ ! -f "$source" ]]; then
+        log_error "Source not found: $source"
+        exit 1
+    fi
+
+    if cp "$source" "$target" && chmod +x "$target"; then
+        log_success "Updated: $target"
+        log_info "Version: $(grep '^# Version:' "$target" 2>/dev/null | cut -d: -f2 || echo 'unknown')"
+    else
+        log_error "Failed to update"
+        exit 1
+    fi
+}
+
+validate_adf_home() {
+    if [[ ! -d "$ADF_HOME" ]]; then
+        log_error "ADF_HOME not found: $ADF_HOME"
+        log_info "Set ADF_HOME env var or edit this script"
+        exit 1
+    fi
+}
+
+validate_write_permission() {
+    if [[ ! -w "$TARGET" ]]; then
+        log_error "No write permission in: $TARGET"
+        exit 1
+    fi
+}
+
+# ============================================
+# COMMANDS
+# ============================================
+cmd_claude() {
+    validate_write_permission
+    log_info "Copying Claude Code config to $TARGET"
+    local failed=0
+
+    # .claude/
+    if cp -r "$ADF_HOME/.claude" "$TARGET/"; then
+        log_info "  ✓ .claude/"
+    else
+        log_error "  ✗ .claude/"
+        ((failed++))
+    fi
+
+    # CLAUDE.md
+    if [[ -f "$ADF_HOME/CLAUDE.md" ]]; then
+        if cp "$ADF_HOME/CLAUDE.md" "$TARGET/"; then
+            log_info "  ✓ CLAUDE.md"
+        else
+            log_warn "  ✗ CLAUDE.md (skipped)"
+        fi
+    fi
+
+    if [[ $failed -gt 0 ]]; then
+        log_warn "Completed with $failed error(s)"
+        exit 1
+    fi
+    log_success "Done! Claude Code config copied"
+}
+
+cmd_antigravity() {
+    validate_write_permission
+    log_info "Copying Antigravity config to $TARGET"
+    local failed=0
+
+    # .agent/ (use -L to dereference symlinks)
+    if [[ -d "$ADF_HOME/.agent" ]]; then
+        if cp -rL "$ADF_HOME/.agent" "$TARGET/"; then
+            log_info "  ✓ .agent/"
+        else
+            log_error "  ✗ .agent/"
+            ((failed++))
+        fi
+    else
+        log_warn "  ✗ .agent/ not found in ADF_HOME"
+        ((failed++))
+    fi
+
+    # AGENTS.md
+    if [[ -f "$ADF_HOME/AGENTS.md" ]]; then
+        if cp "$ADF_HOME/AGENTS.md" "$TARGET/"; then
+            log_info "  ✓ AGENTS.md"
+        else
+            log_warn "  ✗ AGENTS.md (skipped)"
+        fi
+    fi
+
+    if [[ $failed -gt 0 ]]; then
+        log_warn "Completed with $failed error(s)"
+        exit 1
+    fi
+    log_success "Done! Antigravity config copied"
+}
+
+cmd_all() {
+    validate_write_permission
+    log_info "Copying all ADF config to $TARGET"
+    local failed=0
+
+    # Claude Code
+    if cp -r "$ADF_HOME/.claude" "$TARGET/"; then
+        log_info "  ✓ .claude/"
+    else
+        log_error "  ✗ .claude/"
+        ((failed++))
+    fi
+
+    if [[ -f "$ADF_HOME/CLAUDE.md" ]] && cp "$ADF_HOME/CLAUDE.md" "$TARGET/"; then
+        log_info "  ✓ CLAUDE.md"
+    fi
+
+    # Antigravity
+    if [[ -d "$ADF_HOME/.agent" ]]; then
+        if cp -rL "$ADF_HOME/.agent" "$TARGET/"; then
+            log_info "  ✓ .agent/"
+        else
+            log_warn "  ✗ .agent/ (skipped)"
+        fi
+    fi
+
+    if [[ -f "$ADF_HOME/AGENTS.md" ]] && cp "$ADF_HOME/AGENTS.md" "$TARGET/"; then
+        log_info "  ✓ AGENTS.md"
+    fi
+
+    # Optional files
+    for f in .gitignore .env.example README.md; do
+        if [[ -f "$ADF_HOME/$f" ]] && cp "$ADF_HOME/$f" "$TARGET/" 2>/dev/null; then
+            log_info "  ✓ $f"
+        fi
+    done
+
+    if [[ $failed -gt 0 ]]; then
+        log_warn "Completed with $failed error(s)"
+        exit 1
+    fi
+    log_success "Done! All ADF config copied"
+}
+
+# ============================================
+# MAIN
+# ============================================
+TARGET="${PWD}"
+CMD="${1:-claude}"
+
+# Route commands
+case "$CMD" in
+    help|--help|-h)
+        show_help
+        ;;
+    --update|-u|update)
+        validate_adf_home
+        cmd_update
+        ;;
+    claude|"")
+        validate_adf_home
+        cmd_claude
+        ;;
+    ag|antigravity)
+        validate_adf_home
+        cmd_antigravity
+        ;;
+    all)
+        validate_adf_home
+        cmd_all
+        ;;
+    *)
+        log_error "Unknown command: $CMD"
+        show_help
+        exit 1
+        ;;
+esac

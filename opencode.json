@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-6",
+  "theme": "opencode",
+  "autoshare": false,
+  "permissions": {
+    "edit": "ask",
+    "write": "allow",
+    "bash": "ask"
+  },
+  "keybinds": {
+    "switch_agent": "tab"
+  }
+}
