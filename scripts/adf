@@ -178,6 +178,12 @@ cmd_opencode() {
     log_info "Copying OpenCode config to $TARGET"
     local failed=0
 
+    # Clean up Antigravity files that cause .agent/ path errors in OpenCode
+    if [[ -f "$TARGET/AGENTS.md" ]]; then
+        rm -f "$TARGET/AGENTS.md"
+        log_info "  ✓ Removed AGENTS.md (not needed for OpenCode)"
+    fi
+
     # .claude/
     if cp -r "$ADF_HOME/.claude" "$TARGET/"; then
         log_info "  ✓ .claude/"
@@ -189,11 +195,6 @@ cmd_opencode() {
     # CLAUDE.md
     if [[ -f "$ADF_HOME/CLAUDE.md" ]] && cp "$ADF_HOME/CLAUDE.md" "$TARGET/"; then
         log_info "  ✓ CLAUDE.md"
-    fi
-
-    # AGENTS.md
-    if [[ -f "$ADF_HOME/AGENTS.md" ]] && cp "$ADF_HOME/AGENTS.md" "$TARGET/"; then
-        log_info "  ✓ AGENTS.md"
     fi
 
     # opencode.json
