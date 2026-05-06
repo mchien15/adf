@@ -138,6 +138,20 @@ Command behavior is implemented via skill directories:
 - `BREAKING CHANGE:` → breaking change
 - `docs:`, `refactor:`, `test:`, `ci:` → maintenance
 
+### 4.1 Profile-Based Git Convention System
+
+ADF now supports repo-install-time git convention selection through `adf <tool> --git-profile <name>`.
+
+Current behavior:
+- Default profile is `adf` when `--git-profile` is omitted
+- `cmc` profile applies company-specific branch workflow guidance after base install
+- Profile overlays affect the actual git instruction files consumed by supported tools
+
+Why this matters:
+- Teams can keep company git workflow rules without forking ADF
+- Personal and open-source repos can keep default ADF workflow
+- One installer supports multiple repo policies with small targeted overrides
+
 ### 5. Development Workflow Automation
 
 **CI/CD**:
@@ -177,6 +191,7 @@ Command behavior is implemented via skill directories:
 - Scan for secrets before commits
 - Generate professional commit messages
 - Create clean PR descriptions
+- Support installer-selected git convention overlays per repository
 
 **FR6: Project Bootstrapping**
 - Initialize git repository

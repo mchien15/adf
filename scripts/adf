@@ -7,7 +7,7 @@
 #   adf           - Copy .claude/ + CLAUDE.md (default, for Claude Code)
 #   adf claude    - Same as default
 #   adf ag        - Copy .agent/ + AGENTS.md (for Antigravity)
-#   adf opencode  - Copy .claude/ + opencode.json + CLAUDE.md + AGENTS.md + .opencode/
+#   adf opencode  - Copy .claude/ + opencode.json + CLAUDE.md + .opencode/
 #   adf codex     - Copy .claude/ + .codex/ + AGENTS.md + create .agents symlink
 #   adf all       - Copy all tool configs (Claude, Antigravity, OpenCode, Codex)
 #   adf help      - Show this help
@@ -19,6 +19,7 @@
 # CONFIGURATION
 # ============================================
 ADF_HOME="${ADF_HOME:-$HOME/adf}"
+GIT_PROFILE="adf"
 
 # ============================================
 # COLORS
@@ -52,17 +53,26 @@ show_help() {
     cat << EOF
 ADF - Copy ADF config to target repositories
 
-Usage: adf [command]
+Usage: adf [command] [--git-profile PROFILE]
 
 Commands:
   adf           Copy .claude/ + CLAUDE.md (default, for Claude Code)
   adf claude    Same as default
   adf ag        Copy .agent/ + AGENTS.md (for Antigravity)
-  adf opencode  Copy .claude/ + opencode.json + CLAUDE.md + AGENTS.md + .opencode/
+  adf opencode  Copy .claude/ + opencode.json + CLAUDE.md + .opencode/
   adf codex     Copy .claude/ + .codex/ + AGENTS.md + create .agents symlink
   adf all       Copy all tool configs (Claude, Antigravity, OpenCode, Codex)
   adf --update  Self-update this script from ADF_HOME
   adf help      Show this help
+
+Git profiles:
+  --git-profile adf   Use default ADF git convention (default)
+  --git-profile cmc   Use CMC git convention overlays
+
+Examples:
+  adf opencode
+  adf opencode --git-profile cmc
+  adf all --git-profile adf
 
 Setup:
   1. Set ADF_HOME env var OR edit this script
@@ -107,6 +117,110 @@ validate_write_permission() {
     fi
 }
 
+validate_node() {
+    if ! command -v node >/dev/null 2>&1; then
+        log_error "Node.js is required for git profile resolution"
+        exit 1
+    fi
+}
+
+resolve_git_profile_overlay() {
+    local manifest="$ADF_HOME/profiles/git-profiles.json"
+
+    if [[ ! -f "$manifest" ]]; then
+        log_error "Git profile manifest not found: $manifest"
+        exit 1
+    fi
+
+    local overlay_path
+    local node_output
+
+    if ! node_output=$(node -e 'const fs=require("fs"); const manifest=JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const profile=process.argv[2]; const config=manifest.profiles && manifest.profiles[profile]; if (!config) process.exit(2); if (profile === (manifest.defaultProfile || "adf")) process.exit(0); if (!config.overlayPath) process.exit(2); process.stdout.write(config.overlayPath);' "$manifest" "$GIT_PROFILE" 2>/dev/null); then
+        log_error "Unknown git profile: $GIT_PROFILE"
+        log_info "Available git profiles: adf, cmc"
+        exit 1
+    fi
+
+    overlay_path="$node_output"
+
+    if [[ "$GIT_PROFILE" != "adf" && -z "$overlay_path" ]]; then
+        log_error "Git profile overlay path is empty for profile: $GIT_PROFILE"
+        exit 1
+    fi
+
+    printf '%s\n' "$overlay_path"
+}
+
+validate_git_profile() {
+    validate_node
+    local overlay_rel
+    overlay_rel=$(resolve_git_profile_overlay)
+
+    if [[ "$GIT_PROFILE" != "adf" && ! -d "$ADF_HOME/$overlay_rel" ]]; then
+        log_error "Git profile overlay not found: $ADF_HOME/$overlay_rel"
+        exit 1
+    fi
+}
+
+apply_git_profile_overlay() {
+    local overlay_rel
+    overlay_rel=$(resolve_git_profile_overlay)
+    local overlay_root="$ADF_HOME/$overlay_rel"
+
+    if [[ "$GIT_PROFILE" == "adf" ]]; then
+        log_info "  ✓ Git profile: adf (default)"
+        return
+    fi
+
+    if [[ ! -d "$overlay_root" ]]; then
+        log_error "Git profile overlay not found: $overlay_root"
+        exit 1
+    fi
+
+    if [[ -d "$overlay_root/.claude" && -d "$TARGET/.claude" ]]; then
+        cp -r "$overlay_root/.claude/"* "$TARGET/.claude/"
+        log_info "  ✓ Applied .claude git overlay ($GIT_PROFILE)"
+    fi
+
+    if [[ -d "$overlay_root/.agent" && -d "$TARGET/.agent" ]]; then
+        cp -r "$overlay_root/.agent/"* "$TARGET/.agent/"
+        log_info "  ✓ Applied .agent git overlay ($GIT_PROFILE)"
+    fi
+
+    log_info "  ✓ Git profile: $GIT_PROFILE"
+}
+
+parse_args() {
+    local positional=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --git-profile)
+                if [[ -z "$2" || "$2" == --* ]]; then
+                    log_error "Missing value for --git-profile"
+                    exit 1
+                fi
+                GIT_PROFILE="$2"
+                shift 2
+                ;;
+            --git-profile=*)
+                GIT_PROFILE="${1#*=}"
+                shift
+                ;;
+            *)
+                positional+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if [[ ${#positional[@]} -gt 0 ]]; then
+        CMD="${positional[0]}"
+    else
+        CMD="claude"
+    fi
+}
+
 # ============================================
 # COMMANDS
 # ============================================
@@ -136,6 +250,7 @@ cmd_claude() {
         log_warn "Completed with $failed error(s)"
         exit 1
     fi
+    apply_git_profile_overlay
     log_success "Done! Claude Code config copied"
 }
 
@@ -170,6 +285,7 @@ cmd_antigravity() {
         log_warn "Completed with $failed error(s)"
         exit 1
     fi
+    apply_git_profile_overlay
     log_success "Done! Antigravity config copied"
 }
 
@@ -177,12 +293,6 @@ cmd_opencode() {
     validate_write_permission
     log_info "Copying OpenCode config to $TARGET"
     local failed=0
-
-    # Clean up Antigravity files that cause .agent/ path errors in OpenCode
-    if [[ -f "$TARGET/AGENTS.md" ]]; then
-        rm -f "$TARGET/AGENTS.md"
-        log_info "  ✓ Removed AGENTS.md (not needed for OpenCode)"
-    fi
 
     # .claude/
     if cp -r "$ADF_HOME/.claude" "$TARGET/"; then
@@ -219,6 +329,14 @@ cmd_opencode() {
         log_warn "Completed with $failed error(s)"
         exit 1
     fi
+
+    # Clean up Antigravity files that cause .agent/ path errors in OpenCode
+    if [[ -f "$TARGET/AGENTS.md" ]]; then
+        rm -f "$TARGET/AGENTS.md"
+        log_info "  ✓ Removed AGENTS.md (not needed for OpenCode)"
+    fi
+
+    apply_git_profile_overlay
     log_success "Done! OpenCode config copied"
 }
 
@@ -268,6 +386,7 @@ cmd_codex() {
         log_warn "Completed with $failed error(s)"
         exit 1
     fi
+    apply_git_profile_overlay
     log_success "Done! Codex config copied"
 }
 
@@ -337,6 +456,7 @@ cmd_all() {
         log_warn "Completed with $failed error(s)"
         exit 1
     fi
+    apply_git_profile_overlay
     log_success "Done! All ADF config copied"
 }
 
@@ -344,7 +464,9 @@ cmd_all() {
 # MAIN
 # ============================================
 TARGET="${PWD}"
-CMD="${1:-claude}"
+CMD="claude"
+
+parse_args "$@"
 
 # Route commands
 case "$CMD" in
@@ -357,22 +479,27 @@ case "$CMD" in
         ;;
     claude|"")
         validate_adf_home
+        validate_git_profile
         cmd_claude
         ;;
     ag|antigravity)
         validate_adf_home
+        validate_git_profile
         cmd_antigravity
         ;;
     opencode|oc)
         validate_adf_home
+        validate_git_profile
         cmd_opencode
         ;;
     codex)
         validate_adf_home
+        validate_git_profile
         cmd_codex
         ;;
     all)
         validate_adf_home
+        validate_git_profile
         cmd_all
         ;;
     *)

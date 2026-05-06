@@ -54,6 +54,11 @@ project-root/
 │   └── AGENTS.md              # Antigravity instructions
 ├── .github/                    # GitHub-specific files
 │   └── workflows/             # CI/CD workflows
+├── profiles/                   # Installer profile overlays
+│   ├── git-profiles.json      # Git profile manifest
+│   └── [profile-name]/        # Per-profile overlay files
+│       ├── .claude/           # Claude/OpenCode/Codex git overrides
+│       └── .agent/            # Antigravity git overrides
 ├── docs/                       # Project documentation
 ├── plans/                      # Implementation plans
 │   ├── reports/               # Agent communication reports
@@ -99,6 +104,27 @@ project-root/
   - `codebase-summary.md`
   - `code-standards.md`
   - `system-architecture.md`
+
+### Profile Structure
+
+**Installer profiles** (`profiles/`):
+- Keep profile selection manifest in `profiles/git-profiles.json`
+- Use short stable profile IDs such as `adf` and `cmc`
+- Store only files that actually differ by profile
+- Do not duplicate full framework trees when only git guidance changes
+
+**Overlay Rules**:
+- Base install still comes from canonical framework files
+- Installer applies profile overlay after base copy completes
+- `.claude/` overlay affects Claude Code, OpenCode, and Codex
+- `.agent/` overlay affects Antigravity installs
+- Keep overlays narrow: git guidance, branch workflow refs, related command docs
+
+**When adding a new profile**:
+- Add manifest entry in `profiles/git-profiles.json`
+- Create `profiles/<name>/` only for files that differ
+- Keep default `adf` behavior backward-compatible
+- Validate installer help text and README examples in the same change
 
 **Reports** (`plans/<plan-name>/reports/`):
 - Format: `{date}-from-[agent]-to-[agent]-[task]-report.md`

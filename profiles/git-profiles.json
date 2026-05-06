@@ -1,0 +1,12 @@
+{
+  "defaultProfile": "adf",
+  "profiles": {
+    "adf": {
+      "description": "Default ADF git convention"
+    },
+    "cmc": {
+      "description": "CMC git convention",
+      "overlayPath": "profiles/cmc"
+    }
+  }
+}

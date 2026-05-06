@@ -1,6 +1,6 @@
 # Codebase Summary
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-05-06
 **Version**: 0.0.1
 **Repository**: [sotatek-dev/adf](https://github.com/sotatek-dev/adf)
 
@@ -39,6 +39,9 @@ agentic-development-framework/
 │       └── adf-hooks.js     # OpenCode plugin (session, privacy, simplify hooks)
 ├── scripts/
 │   └── generate-tool-configs.js  # Generates .codex/agents/ + .opencode/agents/
+├── profiles/                  # Installer git profile overlays
+│   ├── git-profiles.json      # Git profile manifest and default profile
+│   └── cmc/                   # CMC git workflow overrides for .claude/.agent
 ├── docs/                     # Project documentation
 ├── plans/                    # Implementation plans and reports
 │   └── reports/             # Agent-to-agent communication
@@ -183,6 +186,22 @@ agentic-development-framework/
 11. **team-context-inject.cjs** - Team coordination context
 12. **task-completed-handler.cjs** - Task completion monitoring
 13. **teammate-idle-handler.cjs** - Teammate idle state detection
+
+### 6. Installer Profile System
+
+**Purpose**: Allow `adf` installer users to select repo-specific git workflow guidance without forking the full framework.
+
+**Key files**:
+- `scripts/adf` - Parses `--git-profile`, validates manifest, applies overlays after base copy
+- `profiles/git-profiles.json` - Declares available profiles and default profile (`adf`)
+- `profiles/cmc/.claude/skills/git/references/*` - CMC git guidance for Claude/OpenCode/Codex
+- `profiles/cmc/.agent/skills/git/references/*` - CMC git guidance for Antigravity
+- `profiles/cmc/.agent/workflows/git.md` - Antigravity git workflow override
+
+**Current behavior**:
+- Default install remains `adf` when `--git-profile` is omitted
+- `--git-profile cmc` overlays CMC git branch and merge guidance
+- Overlay surface is intentionally narrow to minimize maintenance
 
 **Hook Features:**
 - Fail-Safe: All hooks exit 0 (non-blocking) - graceful degradation

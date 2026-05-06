@@ -84,6 +84,8 @@ source ~/.zshrc
 ```bash
 cd /path/to/your-project
 adf claude
+# or
+adf claude --git-profile cmc
 ```
 
 Then launch:
@@ -98,6 +100,8 @@ Claude Code reads `CLAUDE.md` and loads the full agent/skill ecosystem automatic
 ```bash
 cd /path/to/your-project
 adf ag
+# or
+adf ag --git-profile cmc
 ```
 
 Then open your project in Antigravity IDE. The workflows (slash commands) are available immediately.
@@ -107,6 +111,8 @@ Then open your project in Antigravity IDE. The workflows (slash commands) are av
 ```bash
 cd /path/to/your-project
 adf opencode
+# or
+adf opencode --git-profile cmc
 ```
 
 Then launch:
@@ -121,6 +127,8 @@ OpenCode reads `.claude/skills/` natively and `.opencode/agents/` for agent conf
 ```bash
 cd /path/to/your-project
 adf codex
+# or
+adf codex --git-profile cmc
 ```
 
 Then launch:
@@ -135,11 +143,15 @@ Codex discovers skills via `.agents/skills/` and agents via `.agents/agents/`.
 ```bash
 cd /path/to/your-project
 adf all
+# or
+adf all --git-profile cmc
 ```
 
 > **Note:** `.claude/` is the canonical source of truth. `.agent/`, `.agents`, `.codex/agents/`, and `.opencode/agents/` are all derived from it — via symlinks or the generator script (`node scripts/generate-tool-configs.js`). Zero duplication.
 
 > **Upgrading?** Run `adf --update` to pull the latest CLI, then re-run `adf <tool>` in your project.
+
+> **Git profiles:** If `--git-profile` is omitted, `adf` is used by default. Available profiles: `adf`, `cmc`.
 
 ---
 

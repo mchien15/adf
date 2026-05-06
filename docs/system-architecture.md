@@ -66,6 +66,32 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 - Single source of truth, zero duplication
 - Both tools access identical agents, skills, rules
 
+#### 1.4 Installer Profile Resolution
+
+**Location**: `scripts/adf`, `profiles/git-profiles.json`, `profiles/`
+
+**Responsibility**: Resolve repo-specific git convention overlays during installer execution.
+
+**Resolution Flow**:
+1. Parse installer arguments, including optional `--git-profile`
+2. Default to `adf` when profile flag is omitted
+3. Validate requested profile against `profiles/git-profiles.json`
+4. Run normal base file copy for selected tool
+5. Apply narrow overlay files from `profiles/<profile>/` onto installed paths
+
+**Overlay targets**:
+- `.claude/` for Claude Code, OpenCode, and Codex
+- `.agent/` for Antigravity
+
+```text
+adf <tool> --git-profile cmc
+    -> parse args
+    -> validate manifest entry
+    -> copy base tool config
+    -> overlay profile-specific git refs
+    -> target repo reads updated git guidance
+```
+
 ### 2. Agent Layer
 
 #### 2.1 Agent Types (16 Agents)
