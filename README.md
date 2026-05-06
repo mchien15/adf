@@ -152,6 +152,7 @@ adf all --git-profile cmc
 > **Upgrading?** Run `adf --update` to pull the latest CLI, then re-run `adf <tool>` in your project.
 
 > **Git profiles:** If `--git-profile` is omitted, `adf` is used by default. Available profiles: `adf`, `cmc`.
+> **Shorthand:** A trailing known profile name is treated as `--git-profile`, so `adf opencode cmc` works like `adf opencode --git-profile cmc`.
 
 ---
 

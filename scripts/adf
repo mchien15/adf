@@ -124,7 +124,22 @@ validate_node() {
     fi
 }
 
+is_known_command() {
+    case "$1" in
+        claude|ag|antigravity|opencode|oc|codex|all|help|--help|-h|--update|-u|update)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 resolve_git_profile_overlay() {
+    if [[ "$GIT_PROFILE" == "adf" ]]; then
+        return 0
+    fi
+
     local manifest="$ADF_HOME/profiles/git-profiles.json"
 
     if [[ ! -f "$manifest" ]]; then
@@ -152,6 +167,10 @@ resolve_git_profile_overlay() {
 }
 
 validate_git_profile() {
+    if [[ "$GIT_PROFILE" == "adf" ]]; then
+        return 0
+    fi
+
     validate_node
     local overlay_rel
     overlay_rel=$(resolve_git_profile_overlay)
@@ -160,6 +179,21 @@ validate_git_profile() {
         log_error "Git profile overlay not found: $ADF_HOME/$overlay_rel"
         exit 1
     fi
+}
+
+is_known_git_profile() {
+    local candidate="$1"
+    local manifest="$ADF_HOME/profiles/git-profiles.json"
+
+    if [[ -z "$candidate" || ! -f "$manifest" ]]; then
+        return 1
+    fi
+
+    if ! command -v node >/dev/null 2>&1; then
+        return 1
+    fi
+
+    node -e 'const fs=require("fs"); const manifest=JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const profile=process.argv[2]; process.exit(manifest.profiles && manifest.profiles[profile] ? 0 : 1);' "$manifest" "$candidate" >/dev/null 2>&1
 }
 
 apply_git_profile_overlay() {
@@ -205,6 +239,10 @@ parse_args() {
                 ;;
             --git-profile=*)
                 GIT_PROFILE="${1#*=}"
+                if [[ -z "$GIT_PROFILE" ]]; then
+                    log_error "Missing value for --git-profile"
+                    exit 1
+                fi
                 shift
                 ;;
             *)
@@ -218,6 +256,17 @@ parse_args() {
         CMD="${positional[0]}"
     else
         CMD="claude"
+    fi
+
+    if [[ ${#positional[@]} -gt 2 ]]; then
+        log_warn "Ignoring extra positional arguments: ${positional[*]:2}"
+    fi
+
+    if [[ ${#positional[@]} -eq 2 && "$GIT_PROFILE" == "adf" ]] && ! is_known_command "${positional[1]}"; then
+        if is_known_git_profile "${positional[1]}"; then
+            GIT_PROFILE="${positional[1]}"
+            log_info "Interpreting trailing argument '${positional[1]}' as --git-profile ${positional[1]}"
+        fi
     fi
 }
 
