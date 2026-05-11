@@ -34,7 +34,11 @@ This document defines coding standards, file organization patterns, naming conve
 
 ```
 project-root/
-├── .claude/                    # Claude Code configuration (canonical source)
+├── .adf/                       # Installed ADF payload + manifest + backups
+│   ├── payload/               # Canonical installed ADF files
+│   ├── manifest.json          # Managed ownership + install metadata
+│   └── backups/               # Local rollback snapshots
+├── .claude/                    # Claude Code compatibility output
 │   ├── agents/                # Agent definitions (*.md)
 │   ├── hooks/                 # Claude Code hooks
 │   ├── skills/                # Reusable knowledge modules
@@ -45,7 +49,7 @@ project-root/
 │   ├── config/                # ADF configuration
 │   ├── metadata.json          # Framework version
 │   └── settings.json          # Hook configuration
-├── .agent/                     # Antigravity IDE configuration
+├── .agent/                     # Antigravity IDE compatibility output
 │   ├── agents/                # → symlink to .claude/agents/
 │   ├── skills/                # → symlink to .claude/skills/
 │   ├── rules/                 # → symlink to .claude/rules/
@@ -115,9 +119,9 @@ project-root/
 
 **Overlay Rules**:
 - Base install still comes from canonical framework files
-- Installer applies profile overlay after base copy completes
-- `.claude/` overlay affects Claude Code, OpenCode, and Codex
-- `.agent/` overlay affects Antigravity installs
+- Installer applies profile overlay to staged `.adf/payload/`
+- `.claude/` overlay affects Claude Code, OpenCode, and Codex payload outputs
+- `.agent/` overlay affects Antigravity payload outputs
 - Keep overlays narrow: git guidance, branch workflow refs, related command docs
 
 **When adding a new profile**:

@@ -61,10 +61,10 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 - Hook scripts (performance, context, security)
 
 **Cross-Platform Design**:
-- `.claude/` — complete configuration (Claude Code)
-- `.agent/` — symlinks to `.claude/agents/`, `.claude/skills/`, `.claude/rules/` + 13 workflow proxy files
-- Single source of truth, zero duplication
-- Both tools access identical agents, skills, rules
+- Source repo canonical tree: `.claude/`
+- Installed repo canonical tree: `.adf/payload/`
+- Root `.claude/`, `.agent/`, `.agents/`, `.codex/agents/`, `.opencode/agents/`, `CLAUDE.md`, and `AGENTS.md` are generated compatibility outputs
+- Ownership and recovery are tracked in `.adf/manifest.json`
 
 #### 1.4 Installer Profile Resolution
 
@@ -76,8 +76,9 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 1. Parse installer arguments, including optional `--git-profile`
 2. Default to `adf` when profile flag is omitted
 3. Validate requested profile against `profiles/git-profiles.json`
-4. Run normal base file copy for selected tool
-5. Apply narrow overlay files from `profiles/<profile>/` onto installed paths
+4. Stage canonical payload under `.adf/payload`
+5. Apply narrow overlay files from `profiles/<profile>/` onto staged payload
+6. Generate root compatibility outputs and write manifest
 
 **Overlay targets**:
 - `.claude/` for Claude Code, OpenCode, and Codex
@@ -87,8 +88,10 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 adf <tool> --git-profile cmc
     -> parse args
     -> validate manifest entry
-    -> copy base tool config
+    -> stage payload in .adf/payload
     -> overlay profile-specific git refs
+    -> generate compatibility outputs
+    -> write manifest + backup metadata
     -> target repo reads updated git guidance
 ```
 
