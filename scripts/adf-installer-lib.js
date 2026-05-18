@@ -61,17 +61,17 @@ function warn(message) { log(YELLOW, message); }
 function fail(message, code = 1) { log(RED, message); process.exit(code); }
 
 function usage(adfHome) {
-  console.log(`ADF - Install ADF payload into .adf with root compatibility shims
+  console.log(`ADF - Install ADF payload into .adf with tool-specific support surfaces
 
 Usage: adf [tool] [flags]
 
 Tools:
-  adf                Install Claude compatibility layer (default)
-  adf claude         Install Claude compatibility layer
-  adf ag             Install Antigravity compatibility layer
-  adf opencode       Install OpenCode compatibility layer
-  adf codex          Install Codex compatibility layer
-  adf all            Install all compatibility layers
+  adf                Install Claude support surfaces (default)
+  adf claude         Install Claude support surfaces
+  adf ag             Install Antigravity support surfaces
+  adf opencode       Install OpenCode support surfaces
+  adf codex          Install Codex support surfaces
+  adf all            Install all support surfaces
   adf repair         Recreate missing/broken managed outputs from manifest
   adf rollback [id]  Restore last successful managed state (default: latest)
   adf --update       Update ~/bin/adf from ADF_HOME

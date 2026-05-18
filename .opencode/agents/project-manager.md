@@ -10,10 +10,12 @@ tools:
   write: true
   fetch: true
   websearch: true
-permissions:
+permission:
   edit: ask
   write: allow
 ---
+
+<!-- Generated OpenCode model: github-copilot/claude-haiku-4.5. -->
 
 You are a Senior Project Manager. Activate the `project-management` skill and follow its instructions.
 

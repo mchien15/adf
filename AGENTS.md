@@ -60,13 +60,20 @@ We keep all important docs in `./docs` folder and keep updating them, structure 
 
 This repo works with Claude Code, Antigravity, OpenAI Codex, and OpenCode. See `README.md` for the full compatibility table.
 
+**Tool Support Contract:** See `docs/tool-support-matrix.md` for per-tool surface mapping (native vs degraded vs unsupported), canonical and generated paths, and release gate validation procedures.
+
 - **Skills location:** `.claude/skills/` (44 skills) — OpenCode reads this natively; Codex via `.agents/skills/`
-- **Agents location:** `.claude/agents/` (16 agents) — generated to `.codex/agents/` and `.opencode/agents/`
+- **Agents location:** `.claude/agents/` (16 canonical source agents) — generated to `.codex/agents/` and `.opencode/agents/`
 - **Tool-specific config:** `opencode.json` (OpenCode), `.codex/config.toml` (Codex)
+- **Validation procedures:** See `docs/release-and-validation.md` for pre-release checks and CI/CD setup
 
-## Skills Invocation
+## Workflow Invocation
 
-Invoke skills with a slash command prefix:
+ADF uses the same workflow model across tools, but invocation is tool-native.
+
+### Claude Code, Antigravity, OpenCode
+
+Use workflow slash commands directly:
 
 ```
 /cook "implement feature X"    # End-to-end implementation
@@ -78,7 +85,13 @@ Invoke skills with a slash command prefix:
 /git                           # Commit + push
 ```
 
-Full skill list: `.claude/skills/` — each skill has a `SKILL.md` with usage docs.
+### Codex
+
+- Read `AGENTS.md` first, then use Codex-native prompts that reference the workflow or agent explicitly
+- Skills are authored in `.agents/skills/*/SKILL.md`
+- Custom agents are generated in `.codex/agents/*.toml`
+- Prefer prompts like `Use the plan skill to design auth` or `Use the cook skill on plans/.../plan.md`
+- After modifying `.claude/agents/*.md`, regenerate: `node scripts/generate-tool-configs.js`
 
 ## Agent Switching (OpenCode)
 
@@ -88,6 +101,6 @@ Full skill list: `.claude/skills/` — each skill has a `SKILL.md` with usage do
 
 ## Agent Invocation (Codex)
 
-- Use `@agent-name` syntax to invoke a sub-agent
-- Agents discovered from `.agents/agents/` (symlink to `.claude/agents/`)
-- After modifying `.claude/agents/*.md`, regenerate: `node scripts/generate-tool-configs.js`
+- Use Codex custom agents from `.codex/agents/`
+- Use `.agents/skills/` as the Codex-facing skill/reference tree sourced from `.claude/`
+- Do not assume Claude slash-command parity in Codex; use native prompts and agent selection

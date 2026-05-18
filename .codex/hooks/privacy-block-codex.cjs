@@ -7,8 +7,8 @@
  * On block: exit 2, write message to stderr.
  * On allow: exit 0 (no output needed).
  *
- * Note: Codex PreToolUse only intercepts Bash — Read/Write privacy not coverable.
- * This is a known limitation documented in Phase 04 docs.
+ * Note: Codex PreToolUse only intercepts Bash, so this hook protects bash-driven reads only.
+ * Read/Edit/Write requests still depend on Codex approval controls and operator judgment.
  */
 
 'use strict';

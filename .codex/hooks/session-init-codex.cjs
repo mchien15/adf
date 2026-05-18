@@ -2,7 +2,7 @@
 /**
  * session-init-codex.cjs - Codex SessionStart hook
  *
- * Injects project context: datetime, CWD, project type, dev rules reminder.
+ * Injects project context: datetime, CWD, project type, support-surface reminder.
  * Reads stdin JSON: { session_id, cwd }
  * Outputs JSON: { systemMessage: "..." }
  * Exit 0 always (non-blocking).
@@ -79,17 +79,18 @@ try {
     `- Git Branch: ${gitBranch}`,
     ``,
     `## Dev Rules`,
-    `- Rules: \`.claude/rules/development-rules.md\` (follow strictly)`,
+    `- Rules: \`.agent/rules/development-rules.md\` (follow strictly)`,
     `- Principles: YAGNI, KISS, DRY`,
     `- File size: keep code files under 200 lines`,
     `- Naming: kebab-case for JS/TS/Python/shell`,
     `- Docs: \`./docs/\` directory`,
     `- Plans: \`./plans/\` directory`,
     ``,
-    `## Skills`,
-    `- Skills available: \`.agents/skills/\` (51 skills)`,
-    `- Agent configs: \`.codex/agents/\` (Codex-native)`,
+    `## Support Surface`,
+    `- Skills authored in: \`.claude/skills/\` and exposed to Codex via \`.agents/skills/\` (44 skills)`,
+    `- Custom agents: \`.codex/agents/\` (generated Codex-native TOML files)`,
     `- After editing \`.claude/agents/*.md\`, run: node scripts/generate-tool-configs.js`,
+    `- Workflow model is shared with Claude/OpenCode, but Codex invocation stays tool-native`,
   ].join('\n');
 
   console.log(JSON.stringify({ systemMessage }));

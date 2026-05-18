@@ -1,6 +1,6 @@
 # ADF Install Ownership Model
 
-ADF now installs its canonical payload under `./.adf/payload/` and generates root-facing compatibility outputs for supported tools.
+ADF now installs its canonical payload under `./.adf/payload/` and generates root-facing support surfaces for supported tools.
 
 ## Layout
 
@@ -10,11 +10,11 @@ repo/
 │   ├── payload/         # Canonical installed ADF files
 │   ├── manifest.json    # Managed-path ownership + install metadata
 │   └── backups/         # Local rollback snapshots
-├── .claude/            # Generated compatibility files for Claude/OpenCode/Codex
+├── .claude/            # Canonical Claude-facing payload copied from .adf/payload
 ├── .agent/             # Generated compatibility files for Antigravity
-├── .codex/agents/      # Generated from .adf/payload/.claude/agents
+├── .codex/agents/      # Generated Codex custom agents from .adf/payload/.claude/agents
 ├── .opencode/agents/   # Generated from .adf/payload/.claude/agents
-├── .agents             # Symlink or copied fallback to .claude
+├── .agents             # Symlink or copied fallback to .claude for Codex skill discovery
 ├── CLAUDE.md           # Managed block injection
 └── AGENTS.md           # Managed block injection
 ```

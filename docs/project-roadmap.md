@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Agentic Development Framework (ADF) is an AI-powered development orchestration framework for building professional software. v0.0.1 is the initial public release with **cross-platform support** for both Claude Code and Antigravity IDE — a complete, production-ready foundation.
+Agentic Development Framework (ADF) is an AI-powered development orchestration framework for building professional software. v0.0.1 is the initial public release with **cross-platform support** for Claude Code, Antigravity IDE, OpenCode, and OpenAI Codex — a complete, production-ready foundation with unified tool support contract.
 
 ---
 
@@ -17,10 +17,11 @@ Agentic Development Framework (ADF) is an AI-powered development orchestration f
 First public release. Includes full agent orchestration, skills library, hook system, and documentation pipeline.
 
 **Core:**
-- Multi-agent orchestration engine (14 specialized agents)
-- Skill system with 38+ skills (plan, cook, fix, test, debug, brainstorm, etc.)
+- Multi-agent orchestration engine (16 specialized agents)
+- Skill system with 44 skills (plan, cook, fix, test, debug, brainstorm, etc.)
 - Hook system (session-init, dev-rules, subagent-init, scout-block, privacy-block)
 - File-based agent communication via plans/reports
+- Tool support contract for Claude Code, Antigravity, OpenCode, and Codex
 
 **Workflows:**
 - `/plan` — research + phased implementation plans (--fast, --hard, --two, --parallel)
@@ -33,12 +34,13 @@ First public release. Includes full agent orchestration, skills library, hook sy
 - `/docs` — documentation generation and sync
 
 **Infrastructure:**
-- **Cross-Platform**: Claude Code (macOS/Linux/Windows) + Antigravity IDE (Windows/Mac/Linux)
+- **Cross-Platform**: Claude Code (macOS/Linux/Windows) + Antigravity IDE + OpenCode + OpenAI Codex with unified tool support contract
 - Plans dashboard (`/plans-kanban`)
 - Preview system (`/preview --explain|--diagram|--slides|--ascii`)
 - Agent Teams for parallel multi-session collaboration (`/team`)
 - MCP integrations (context7, sequential-thinking, chrome-devtools)
-- `.agent/` directory with symlinks + 13 workflow proxy files for Antigravity
+- `.claude/` canonical source with generated artifacts for `.codex/` and `.opencode/`
+- Tool support matrix defining native, degraded, and unsupported surfaces
 
 **Documentation:**
 - Auto-generated project docs (overview, architecture, code standards, codebase summary)
@@ -62,12 +64,11 @@ First public release. Includes full agent orchestration, skills library, hook sy
   - **Cleanup**: removed profiles feature, config validate/doctor, zombie config fields (nuclei section, dast.severity, sonar.sources/exclusions); leaned SKILL.md commands
 
 ### Near-term
-- Codex and OpenCode support integration improvements
+- Additional cloud platform skill integrations (GCP, AWS, Azure)
+- GitHub Actions workflow template for quality gates (CI setup)
 - Community feedback and bug fixes
 - Documentation improvements and tutorials
 - Performance optimization (token efficiency, parallel execution)
-- Additional cloud platform skill integrations (GCP, AWS, Azure)
-- GitHub Actions workflow template for quality gates (CI setup)
 
 ### Future
 - Visual workflow builder UI
