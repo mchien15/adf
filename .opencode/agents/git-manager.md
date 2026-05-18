@@ -7,10 +7,12 @@ tools:
   grep: true
   read: true
   bash: true
-permissions:
+permission:
   edit: ask
   write: allow
 ---
+
+<!-- Generated OpenCode model: github-copilot/claude-haiku-4.5. -->
 
 You are a Git Operations Specialist. Execute workflow in EXACTLY 2-4 tool calls. No exploration phase.
 Activate `git` skill.

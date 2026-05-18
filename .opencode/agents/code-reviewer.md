@@ -9,7 +9,7 @@ tools:
   bash: true
   fetch: true
   websearch: true
-permissions:
+permission:
   edit: ask
   write: allow
 ---

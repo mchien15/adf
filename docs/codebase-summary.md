@@ -1,12 +1,12 @@
 # Codebase Summary
 
-**Last Updated**: 2026-05-06
+**Last Updated**: 2026-05-18
 **Version**: 0.0.1
 **Repository**: [sotatek-dev/adf](https://github.com/sotatek-dev/adf)
 
 ## Overview
 
-Agentic Development Framework is a comprehensive boilerplate template for building professional software projects with AI Coding Agents (Claude Code, Antigravity). It provides a complete development environment with AI-powered agent orchestration, automated workflows, and intelligent project management.
+Agentic Development Framework is a comprehensive boilerplate template for building professional software projects with AI Coding Agents across Claude Code, Antigravity, OpenCode, and OpenAI Codex. It provides one shared workflow model with tool-native invocation, generated compatibility artifacts, and intelligent project management.
 
 ## Project Structure
 
@@ -27,12 +27,12 @@ agentic-development-framework/
 │   ├── rules/               # → symlink to .claude/rules/
 │   ├── workflows/           # 13 slash command proxy files
 │   └── ARCHITECTURE.md      # Agent/skill/workflow reference
-├── .agents                   # → symlink to .claude (Codex discovery)
+├── .agents                   # → symlink to .claude (Codex skills + authored references)
 ├── .codex/                   # OpenAI Codex configuration
 │   ├── config.toml          # Project-scoped Codex settings
 │   ├── hooks.json           # Hook registry (3 hooks)
 │   ├── hooks/               # Hook scripts (session-init, dev-rules, privacy-block)
-│   └── agents/              # Generated agent TOML files (16 × .toml)
+│   └── agents/              # Generated Codex custom agents (16 × .toml)
 ├── .opencode/                # OpenCode configuration
 │   ├── agents/              # Generated agent markdown files (16 × .md)
 │   └── plugins/
@@ -89,7 +89,7 @@ agentic-development-framework/
 - `business-analyst.md` - Requirements analysis, FSD and use cases (Opus model)
 - `testcase-writer.md` - Test case generation from BA docs (Sonnet model)
 
-### 2. Slash Commands System (Unified: Claude Code + Antigravity)
+### 2. Workflow System
 
 **Core Development Commands**:
 - `/plan` - Research and planning (--fast, --hard, --two, --parallel variants)
@@ -107,14 +107,20 @@ agentic-development-framework/
 - `/specs` - Business analysis (init, analyze, update)
 - `/test-cases` - Test case generation and export (generate, update, export)
 
-**Skill-Backed Commands** (`.claude/skills/` + `.agent/workflows/`):
-- Both tools access same skill implementations
+**Slash-command tools** (`.claude/skills/` + `.agent/workflows/`):
+- Claude Code, Antigravity, and OpenCode expose ADF workflows directly as slash commands
 - `.agent/workflows/` contains 13 proxy files for Antigravity slash command support
+
+**Codex-native workflow entrypoints**:
+- Codex uses `AGENTS.md`, `.codex/config.toml`, `.codex/agents/*.toml`, and `.agents/skills/*`
+- Codex follows the same workflow intent, but invocation happens through native prompts and custom-agent selection rather than guaranteed slash-command aliases
 
 ### 3. Skills Library (44 Skills, Unified)
 
 **Location**: `.claude/skills/` (canonical)
 **Available in**: Claude Code, Antigravity (`.agent/skills/` symlinks), OpenCode (native), Codex (`.agents/skills/` symlink)
+
+Support guarantees per tool live in `docs/tool-support-matrix.md`.
 
 **Current Skills (44 Total)**:
 - **AI & Vision**: ai-artist, ai-multimodal, agent-browser

@@ -11,10 +11,12 @@ tools:
   bash: true
   fetch: true
   websearch: true
-permissions:
+permission:
   edit: ask
   write: allow
 ---
+
+<!-- Generated OpenCode model: github-copilot/claude-haiku-4.5. -->
 
 You are a senior technical documentation specialist with deep expertise in creating, maintaining, and organizing developer documentation for complex software projects. Your role is to ensure documentation remains accurate, comprehensive, and maximally useful for development teams.
 

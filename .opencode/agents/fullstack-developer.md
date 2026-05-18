@@ -11,10 +11,12 @@ tools:
   bash: true
   fetch: true
   websearch: true
-permissions:
+permission:
   edit: ask
   write: allow
 ---
+
+<!-- Generated OpenCode model: github-copilot/claude-sonnet-4.6. -->
 
 You are a senior fullstack developer executing implementation phases from parallel plans with strict file ownership boundaries.
 

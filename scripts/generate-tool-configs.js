@@ -5,7 +5,7 @@
  * Usage: node scripts/generate-tool-configs.js [--dry-run] [--source-root PATH] [--codex-out PATH] [--opencode-out PATH]
  *
  * Reads a Claude agents source tree (defaults to .claude/agents), outputs:
- *   .codex/agents/{name}.toml   — minimal Codex agent definitions
+ *   .codex/agents/{name}.toml   — Codex custom agents with developer instructions
  *   .opencode/agents/{name}.md  — full OpenCode agent definitions with mapped tools/model
  *
  * No external dependencies — Node built-ins only.
@@ -71,7 +71,7 @@ const DEFAULT_MODEL = 'github-copilot/claude-sonnet-4.6';
  * Extracts YAML frontmatter (simple key:value + quoted strings) and body.
  *
  * @param {string} filePath - Absolute path to the .md file
- * @returns {{ name: string, description: string, model: string, tools: string[], body: string }}
+ * @returns {{ name: string, description: string, model: string, memory: string, tools: string[], body: string, sourceFile: string }}
  */
 function parseCLaudeAgent(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
@@ -85,20 +85,31 @@ function parseCLaudeAgent(filePath) {
   const body = parts.slice(2).join('---').trim();
 
   const meta = {};
-  // Parse simple key: value lines — handles multi-line quoted strings
-  let remaining = frontmatter;
-  const lineRe = /^(\w+):\s*(.*)$/m;
-  let match;
-  while ((match = lineRe.exec(remaining)) !== null) {
-    const [full, key, val] = match;
-    remaining = remaining.slice(match.index + full.length);
+  const lines = frontmatter.split('\n');
 
-    let parsed = val.trim();
-    // Strip surrounding single/double quotes
+  for (let index = 0; index < lines.length; index++) {
+    const match = lines[index].match(/^(\w+):\s*(.*)$/);
+    if (!match) continue;
+
+    const [, key, rawValue] = match;
+    let parsed = rawValue.trim();
+
+    if (parsed === '>-' || parsed === '>' || parsed === '|' || parsed === '|-') {
+      const blockLines = [];
+      while (index + 1 < lines.length && /^(\s{2,}|\t)/.test(lines[index + 1])) {
+        blockLines.push(lines[index + 1].replace(/^(\s{2}|\t)/, ''));
+        index++;
+      }
+      parsed = parsed.startsWith('>')
+        ? blockLines.join(' ').replace(/\s+/g, ' ').trim()
+        : blockLines.join('\n').trim();
+    }
+
     if ((parsed.startsWith("'") && parsed.endsWith("'")) ||
         (parsed.startsWith('"') && parsed.endsWith('"'))) {
       parsed = parsed.slice(1, -1).replace(/\\'/g, "'").replace(/\\"/g, '"');
     }
+
     meta[key] = parsed;
   }
 
@@ -112,8 +123,10 @@ function parseCLaudeAgent(filePath) {
     name: meta.name || path.basename(filePath, '.md'),
     description: meta.description || '',
     model: meta.model || '',
+    memory: meta.memory || '',
     tools,
     body,
+    sourceFile: path.basename(filePath),
   };
 }
 
@@ -143,20 +156,46 @@ function mapModel(shorthand) {
   return MODEL_MAP[shorthand] || DEFAULT_MODEL;
 }
 
+function describeModelMapping(shorthand) {
+  if (!shorthand) return null;
+  const mapped = mapModel(shorthand);
+  if ((shorthand === 'opus' || shorthand === 'sonnet' || shorthand === 'haiku' || shorthand === 'inherit') && mapped !== shorthand) {
+    return `Generated OpenCode model: ${mapped}.`;
+  }
+  return null;
+}
+
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
 /**
- * Generate Codex TOML content (minimal: name + description only).
- * Model is resolved at session level in Codex.
+ * Generate Codex TOML content with embedded developer instructions.
  *
- * @param {{ name: string, description: string }} agent
+ * @param {{ name: string, description: string, model: string, memory: string, tools: string[], body: string, sourceFile: string }} agent
  * @returns {string}
  */
+function toTomlMultilineString(value) {
+  const normalized = value.replace(/\r\n/g, '\n').replace(/"""/g, '\\"\\"\\"');
+  return `"""\n${normalized}\n"""`;
+}
+
+function toCodexDeveloperInstructions(agent) {
+  const header = [
+    `Generated from .claude/agents/${agent.sourceFile}.`,
+    'Treat this file as a Codex-native projection of the canonical Claude agent.',
+  ];
+
+  if (agent.model) header.push(`Preferred source model: ${agent.model}.`);
+  if (agent.memory) header.push(`Source memory scope: ${agent.memory}.`);
+  if (agent.tools.length > 0) header.push(`Source tool surface: ${agent.tools.join(', ')}.`);
+
+  return `${header.join(' ')}\n\n${agent.body.trim()}`.trim();
+}
+
 function toCodexToml(agent) {
-  // Use JSON.stringify for safe string embedding (handles special chars, quotes)
   const safeName = JSON.stringify(agent.name);
   const safeDesc = JSON.stringify(agent.description);
-  return `name = ${safeName}\ndescription = ${safeDesc}\n`;
+  const safeInstructions = toTomlMultilineString(toCodexDeveloperInstructions(agent));
+  return `name = ${safeName}\ndescription = ${safeDesc}\ndeveloper_instructions = ${safeInstructions}\n`;
 }
 
 /**
@@ -168,6 +207,7 @@ function toCodexToml(agent) {
 function toOpenCodeMd(agent) {
   const toolsObj = mapTools(agent.tools);
   const model = mapModel(agent.model);
+  const mappedModelNote = describeModelMapping(agent.model);
 
   // Build YAML tools block
   const toolsYaml = Object.keys(toolsObj).length > 0
@@ -180,12 +220,12 @@ mode: subagent
 model: ${model}
 tools:
 ${toolsYaml}
-permissions:
+permission:
   edit: ask
   write: allow
 ---
 
-${agent.body}
+${mappedModelNote ? `<!-- ${mappedModelNote} -->\n\n` : ''}${agent.body}
 `;
 }
 

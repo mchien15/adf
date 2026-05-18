@@ -2,13 +2,13 @@
 
 **Project Name**: Agentic Development Framework
 **Version**: 0.0.1
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-05-18
 **Status**: Active Development
 **Repository**: https://github.com/sotatek-dev/adf
 
 ## Executive Summary
 
-Agentic Development Framework is a comprehensive boilerplate template that revolutionizes software development by integrating AI coding agents (Claude Code, Antigravity) into the development workflow. It provides a complete orchestration framework where specialized AI agents collaborate to handle planning, implementation, testing, code review, documentation, and project management.
+Agentic Development Framework is a comprehensive boilerplate template that revolutionizes software development by integrating AI coding agents into the development workflow. It provides a complete orchestration framework where specialized AI agents collaborate to handle planning, implementation, testing, code review, documentation, and project management. ADF supports four first-class platforms (Claude Code, Antigravity, OpenCode, OpenAI Codex) with a unified tool support contract defining native, degraded, and unsupported surfaces for each.
 
 ## Project Purpose
 
@@ -124,7 +124,29 @@ Command behavior is implemented via skill directories:
 - **Visualization**: mermaidjs-v11
 - **Workflow Tools**: cook, research, scout, payment-integration
 
-### 4. Release Workflow
+### 3.1 Tool Support Contract
+
+**Supported Platforms**: Claude Code, Antigravity, OpenCode, OpenAI Codex
+
+ADF maintains a unified tool support contract ([see `docs/tool-support-matrix.md`](./tool-support-matrix.md)) that defines:
+- **Native**: Supported through the tool's real project surface
+- **Degraded**: Supported with documented platform limitations
+- **Unsupported**: Not claimed, not relied on
+
+**Key Guarantees**:
+- `.claude/` is the canonical authored source for agents, skills, rules, and hooks
+- Codex and OpenCode consume generated artifacts from that source
+- All tools use the same workflow model with tool-native invocation (e.g., slash commands for Claude/Antigravity/OpenCode, native prompts for Codex)
+- Privacy enforcement is native for Claude Code and partial (bash-only) for Codex
+- Release gate validation scripts ensure cross-tool consistency
+
+**Release Gate** (before first-class support claim):
+```bash
+node scripts/validate-claude-support.js
+node scripts/validate-codex-support.js
+node scripts/validate-support-matrix.js
+node scripts/generate-tool-configs.js
+```
 
 **Manual release process** (no npm, no semantic-release):
 1. Update version in `.claude/metadata.json`
@@ -553,6 +575,7 @@ Why this matters:
 ## Appendix
 
 ### Related Documentation
+- [Tool Support Matrix](./tool-support-matrix.md) — Per-tool support contract and release gate
 - [Codebase Summary](./codebase-summary.md)
 - [Code Standards](./code-standards.md)
 - [System Architecture](./system-architecture.md)

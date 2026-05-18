@@ -1055,12 +1055,12 @@ User Project
 
 ## Tool Compatibility Layer
 
-ADF supports four AI coding tools. `.claude/` is the canonical source of truth; all other tools consume derived/generated configs.
+ADF supports four AI coding tools. `.claude/` is the canonical authored source; Codex and OpenCode consume generated artifacts while Claude Code and Antigravity consume native or linked surfaces.
 
 ### Symlink Strategy
 
 ```
-.agents        → .claude              # Codex skill/agent discovery
+.agents        → .claude              # Codex skill discovery + authored references
 .agent/agents  → .claude/agents       # Antigravity agents
 .agent/skills  → .claude/skills       # Antigravity skills
 .agent/rules   → .claude/rules        # Antigravity rules
@@ -1072,7 +1072,7 @@ ADF supports four AI coding tools. `.claude/` is the canonical source of truth; 
 .claude/agents/*.md  (source of truth)
         │
         ▼  node scripts/generate-tool-configs.js
-        ├── .codex/agents/*.toml     (minimal: name + description)
+        ├── .codex/agents/*.toml     (name + description + developer_instructions)
         └── .opencode/agents/*.md    (full: frontmatter + mapped tools/model + body)
 ```
 
@@ -1087,7 +1087,9 @@ Run the generator after any change to `.claude/agents/*.md`.
 | `privacy-block.cjs` | PreToolUse | `privacy-block-codex.cjs` (Bash only) | `tool.execute.before` in `adf-hooks.js` |
 | `post-edit-simplify-reminder.cjs` | PostToolUse | ❌ not available in Codex | `tool.execute.after` in `adf-hooks.js` |
 
-**Known limitation:** Codex `PreToolUse` intercepts Bash only — Read/Write privacy cannot be blocked at hook level.
+**Known limitation:** Codex `PreToolUse` intercepts Bash only, so Codex privacy enforcement is degraded relative to Claude for Read/Edit/Write operations.
+
+Support status and runtime guarantees live in `docs/tool-support-matrix.md`.
 
 ### Tool Feature Matrix
 
