@@ -2,13 +2,14 @@
 /**
  * privacy-block-codex.cjs - Codex PreToolUse(Bash) privacy hook
  *
- * Blocks bash commands that attempt to read sensitive files (.env, keys, creds).
- * Reads stdin JSON: { tool: "Bash", input: { command: "..." } }
+ * Blocks a subset of bash read commands that target sensitive files (.env, keys, creds).
+ * Reads stdin JSON with Codex hook fields including tool_input.command.
  * On block: exit 2, write message to stderr.
  * On allow: exit 0 (no output needed).
  *
- * Note: Codex PreToolUse only intercepts Bash, so this hook protects bash-driven reads only.
- * Read/Edit/Write requests still depend on Codex approval controls and operator judgment.
+ * Note: Codex PreToolUse only intercepts Bash, and this hook currently focuses on
+ * direct read-style commands such as cat/head/tail. Other bash-based access patterns
+ * still depend on Codex approval controls and operator judgment.
  */
 
 'use strict';
@@ -91,7 +92,7 @@ try {
   if (!stdin) process.exit(0);
 
   const payload = JSON.parse(stdin);
-  const command = (payload.input && payload.input.command) || '';
+  const command = payload.tool_input?.command || payload.input?.command || '';
 
   if (!command) process.exit(0);
 

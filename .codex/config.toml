@@ -8,4 +8,4 @@ project_doc_max_bytes = 65536
 # Allow bounded custom-agent nesting for ADF multi-agent workflows.
 [agents]
 max_depth = 2
-max_concurrent = 8
+max_threads = 8

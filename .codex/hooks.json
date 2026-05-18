@@ -1,18 +1,39 @@
 {
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "command": "node .codex/hooks/session-init-codex.cjs"
-    },
-    {
-      "event": "UserPromptSubmit",
-      "matcher": ".*",
-      "command": "node .codex/hooks/dev-rules-reminder-codex.cjs"
-    },
-    {
-      "event": "PreToolUse",
-      "matcher": "Bash",
-      "command": "node .codex/hooks/privacy-block-codex.cjs"
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/session-init-codex.cjs\"",
+            "statusMessage": "Loading Codex session context"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/dev-rules-reminder-codex.cjs\"",
+            "statusMessage": "Loading Codex dev rules"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/privacy-block-codex.cjs\"",
+            "statusMessage": "Checking Bash command"
+          }
+        ]
+      }
+    ]
+  }
 }

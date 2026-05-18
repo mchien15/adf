@@ -35,8 +35,8 @@ node scripts/validate-codex-support.js
 - `AGENTS.md` exists with proper instructions
 - `.codex/config.toml` exists with:
   - `project_doc_fallback_filenames = ["CLAUDE.md"]`
-  - `[agents]` section with `max_depth = 2` and `max_concurrent = 8`
-- `.codex/hooks.json` exists with proper event hooks (SessionStart, UserPromptSubmit, PreToolUse)
+  - `[agents]` section with `max_depth = 2` and `max_threads = 8`
+- `.codex/hooks.json` exists with proper event groups (SessionStart, UserPromptSubmit, PreToolUse)
 - `.codex/agents/` directory exists
 - `.agents/` support path exists
 - Generated `.codex/agents/` (`.toml` files) count matches source `.claude/agents/` (`.md` files) count
@@ -75,8 +75,8 @@ node scripts/generate-tool-configs.js
 **Output:**
 - `.codex/agents/*.toml` — Codex-native agent configurations
 - `.opencode/agents/*.md` — OpenCode agent configurations
-- `.codex/config.toml` — Updated Codex runtime configuration
-- `.codex/hooks.json` — Codex hook registration
+
+`generate-tool-configs.js` does not regenerate `.codex/config.toml` or `.codex/hooks.json`; those runtime files are maintained separately.
 
 ## Release Gate Procedure
 
@@ -117,7 +117,7 @@ If all validations pass, the release is ready to proceed.
 - `.codex/agents/*.toml` — Agent definitions (Codex-native format)
 - `.codex/config.toml` — Codex runtime and agent configuration
 - `.codex/hooks.json` — Codex hook registration
-- `.agents/skills/` — Symlink to skill references for Codex
+- `.agents/skills/` — Directory containing skill references for Codex
 
 ### Generated for OpenCode
 - `.opencode/agents/*.md` — Agent definitions (OpenCode-native format)

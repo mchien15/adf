@@ -4,7 +4,7 @@
  *
  * Injects dev rules reminder into every prompt (with debounce to avoid spam).
  * Reads stdin JSON: { session_id, transcript_path?, ... }
- * Outputs JSON: { systemMessage: "..." }
+ * Outputs JSON with hookSpecificOutput.additionalContext.
  * Exit 0 always (non-blocking).
  */
 
@@ -87,7 +87,12 @@ try {
   }
 
   recordInjection(sessionId);
-  console.log(JSON.stringify({ systemMessage: REMINDER }));
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: REMINDER,
+    },
+  }));
   process.exit(0);
 } catch (err) {
   // Never block user prompt

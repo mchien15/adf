@@ -4,7 +4,7 @@
  *
  * Injects project context: datetime, CWD, project type, support-surface reminder.
  * Reads stdin JSON: { session_id, cwd }
- * Outputs JSON: { systemMessage: "..." }
+ * Outputs JSON with hookSpecificOutput.additionalContext.
  * Exit 0 always (non-blocking).
  */
 
@@ -69,7 +69,7 @@ try {
   const nodeVersion = execSafe('node --version') || 'unknown';
   const platform = `${os.type()} ${os.release()}`;
 
-  const systemMessage = [
+  const additionalContext = [
     `## Session Context (Codex)`,
     `- DateTime: ${datetime}`,
     `- CWD: ${cwd}`,
@@ -93,7 +93,12 @@ try {
     `- Workflow model is shared with Claude/OpenCode, but Codex invocation stays tool-native`,
   ].join('\n');
 
-  console.log(JSON.stringify({ systemMessage }));
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'SessionStart',
+      additionalContext,
+    },
+  }));
   process.exit(0);
 } catch (err) {
   // Never block session start

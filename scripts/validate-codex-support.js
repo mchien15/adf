@@ -23,6 +23,25 @@ function read(relativePath) {
   return fs.readFileSync(absolute(relativePath), 'utf8');
 }
 
+function collectHookCommands(groups) {
+  const commands = [];
+  for (const entries of Object.values(groups || {})) {
+    for (const entry of entries || []) {
+      for (const hook of entry.hooks || []) {
+        if (hook.type === 'command' && typeof hook.command === 'string') {
+          commands.push(hook.command);
+        }
+      }
+    }
+  }
+  return commands;
+}
+
+function extractRepoRelativeHookPath(command) {
+  const match = command.match(/\$\(git rev-parse --show-toplevel\)\/([^"']+)/);
+  return match ? match[1] : null;
+}
+
 expect(exists('AGENTS.md'), 'Missing AGENTS.md');
 expect(exists('.codex/config.toml'), 'Missing .codex/config.toml');
 expect(exists('.codex/hooks.json'), 'Missing .codex/hooks.json');
@@ -34,14 +53,22 @@ if (exists('.codex/config.toml')) {
   expect(config.includes('project_doc_fallback_filenames = ["CLAUDE.md"]'), 'Codex config missing CLAUDE.md fallback');
   expect(config.includes('[agents]'), 'Codex config missing [agents] section');
   expect(config.includes('max_depth = 2'), 'Codex config missing max_depth');
-  expect(config.includes('max_concurrent = 8'), 'Codex config missing max_concurrent');
+  expect(config.includes('max_threads = 8'), 'Codex config missing max_threads');
 }
 
 if (exists('.codex/hooks.json')) {
   const hooks = JSON.parse(read('.codex/hooks.json'));
-  const events = new Set((hooks.hooks || []).map((hook) => hook.event));
+  const events = new Set(Object.keys(hooks.hooks || {}));
   for (const eventName of ['SessionStart', 'UserPromptSubmit', 'PreToolUse']) {
     expect(events.has(eventName), `Codex hooks missing ${eventName}`);
+  }
+
+  for (const command of collectHookCommands(hooks.hooks)) {
+    const repoRelativePath = extractRepoRelativeHookPath(command);
+    expect(Boolean(repoRelativePath), `Codex hook command should resolve from git root: ${command}`);
+    if (repoRelativePath) {
+      expect(exists(repoRelativePath), `Codex hook script missing: ${repoRelativePath}`);
+    }
   }
 }
 
