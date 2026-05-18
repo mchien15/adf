@@ -29,7 +29,7 @@ ADF uses one workflow model across tools, with tool-native invocation.
 |---|---|---|
 | Authored agents | `.claude/agents/*.md` | `.codex/agents/*.toml`, `.opencode/agents/*.md` |
 | Authored skills | `.claude/skills/*/SKILL.md` | `.agent/skills/*`, `.agents/skills/*`, `.claude/skills/*` |
-| Codex runtime | `AGENTS.md`, `.codex/config.toml`, `.codex/hooks.json` | `.codex/agents/*`, `.agents/*` |
+| Codex runtime | `AGENTS.md`, `.codex/config.toml`, `.codex/hooks.json` | `.codex/agents/*`, `.codex/scripts/set-active-plan-codex.cjs`, `.agents/*` |
 | Claude runtime | `CLAUDE.md`, `.claude/settings.json` | `.claude/hooks/*`, `.claude/agents/*` |
 
 ## Codex Notes
@@ -37,6 +37,8 @@ ADF uses one workflow model across tools, with tool-native invocation.
 - Codex is a first-class target in ADF, but not a Claude clone.
 - ADF does not promise Claude-style slash-command parity in Codex.
 - Codex workflows should be invoked through native prompts and generated custom agents.
+- Codex generated agents map source tiers explicitly: `opus -> gpt-5.5`, `sonnet -> gpt-5.4`, `haiku -> gpt-5.4-mini`, while `inherit` omits `model`.
+- Codex planner/runtime use `.codex/scripts/set-active-plan-codex.cjs`; `.claude/scripts/set-active-plan.cjs` and `.agents/scripts/set-active-plan.cjs` stay the compatibility pair.
 - Codex privacy blocking is limited by Codex hook coverage: Bash is interceptable, Read/Edit/Write are not.
 
 ## Antigravity Notes

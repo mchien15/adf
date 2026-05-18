@@ -56,13 +56,23 @@ const SKIP_TOOLS = new Set([
 ]);
 
 // Claude shorthand → OpenCode GitHub Copilot model IDs
-const MODEL_MAP = {
+const OPENCODE_MODEL_MAP = {
   opus: 'github-copilot/claude-sonnet-4.6',
   sonnet: 'github-copilot/claude-sonnet-4.6',
   haiku: 'github-copilot/claude-haiku-4.5',
   inherit: 'github-copilot/claude-sonnet-4.6',
 };
-const DEFAULT_MODEL = 'github-copilot/claude-sonnet-4.6';
+const OPENCODE_DEFAULT_MODEL = 'github-copilot/claude-sonnet-4.6';
+
+// Claude shorthand → Codex explicit OpenAI model IDs
+const CODEX_MODEL_MAP = {
+  opus: 'gpt-5.5',
+  sonnet: 'gpt-5.4',
+  haiku: 'gpt-5.4-mini',
+};
+
+const CLAUDE_ACTIVE_PLAN_HELPER = 'node .claude/scripts/set-active-plan.cjs';
+const CODEX_ACTIVE_PLAN_HELPER = `node -e "const path=require('path'); const {execFileSync}=require('child_process'); const root=execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim(); const helper=path.join(root,'.codex/scripts/set-active-plan-codex.cjs'); process.argv.splice(1,0,helper); require(helper);"`;
 
 // ─── Parsers ──────────────────────────────────────────────────────────────────
 
@@ -152,13 +162,18 @@ function mapTools(toolList) {
  * @param {string} shorthand
  * @returns {string}
  */
-function mapModel(shorthand) {
-  return MODEL_MAP[shorthand] || DEFAULT_MODEL;
+function mapOpenCodeModel(shorthand) {
+  return OPENCODE_MODEL_MAP[shorthand] || OPENCODE_DEFAULT_MODEL;
 }
 
-function describeModelMapping(shorthand) {
+function mapCodexModel(shorthand) {
+  if (!shorthand || shorthand === 'inherit') return null;
+  return CODEX_MODEL_MAP[shorthand] || null;
+}
+
+function describeOpenCodeModelMapping(shorthand) {
   if (!shorthand) return null;
-  const mapped = mapModel(shorthand);
+  const mapped = mapOpenCodeModel(shorthand);
   if ((shorthand === 'opus' || shorthand === 'sonnet' || shorthand === 'haiku' || shorthand === 'inherit') && mapped !== shorthand) {
     return `Generated OpenCode model: ${mapped}.`;
   }
@@ -188,14 +203,20 @@ function toCodexDeveloperInstructions(agent) {
   if (agent.memory) header.push(`Source memory scope: ${agent.memory}.`);
   if (agent.tools.length > 0) header.push(`Source tool surface: ${agent.tools.join(', ')}.`);
 
-  return `${header.join(' ')}\n\n${agent.body.trim()}`.trim();
+  const codexBody = agent.body
+    .replaceAll(CLAUDE_ACTIVE_PLAN_HELPER, CODEX_ACTIVE_PLAN_HELPER)
+    .trim();
+
+  return `${header.join(' ')}\n\n${codexBody}`.trim();
 }
 
 function toCodexToml(agent) {
   const safeName = JSON.stringify(agent.name);
   const safeDesc = JSON.stringify(agent.description);
+  const codexModel = mapCodexModel(agent.model);
   const safeInstructions = toTomlMultilineString(toCodexDeveloperInstructions(agent));
-  return `name = ${safeName}\ndescription = ${safeDesc}\ndeveloper_instructions = ${safeInstructions}\n`;
+  const modelLine = codexModel ? `model = ${JSON.stringify(codexModel)}\n` : '';
+  return `name = ${safeName}\ndescription = ${safeDesc}\n${modelLine}developer_instructions = ${safeInstructions}\n`;
 }
 
 /**
@@ -206,8 +227,8 @@ function toCodexToml(agent) {
  */
 function toOpenCodeMd(agent) {
   const toolsObj = mapTools(agent.tools);
-  const model = mapModel(agent.model);
-  const mappedModelNote = describeModelMapping(agent.model);
+  const model = mapOpenCodeModel(agent.model);
+  const mappedModelNote = describeOpenCodeModelMapping(agent.model);
 
   // Build YAML tools block
   const toolsYaml = Object.keys(toolsObj).length > 0

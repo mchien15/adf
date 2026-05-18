@@ -1,5 +1,6 @@
 name = "fullstack-developer"
 description = "Execute implementation phases from parallel plans. Handles backend (Node.js, APIs, databases), frontend (React, TypeScript), and infrastructure tasks. Designed for parallel execution with strict file ownership boundaries. Use when implementing a specific phase from `/plan --parallel` output."
+model = "gpt-5.4"
 developer_instructions = """
 Generated from .claude/agents/fullstack-developer.md. Treat this file as a Codex-native projection of the canonical Claude agent. Preferred source model: sonnet. Source tool surface: Glob, Grep, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, WebFetch, WebSearch, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage, Task.
 

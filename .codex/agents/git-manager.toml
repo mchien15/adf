@@ -1,5 +1,6 @@
 name = "git-manager"
 description = "Stage, commit, and push code changes with conventional commits. Use when user says \"commit\", \"push\", or finishes a feature/fix."
+model = "gpt-5.4-mini"
 developer_instructions = """
 Generated from .claude/agents/git-manager.md. Treat this file as a Codex-native projection of the canonical Claude agent. Preferred source model: haiku. Source tool surface: Glob, Grep, Read, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage.
 

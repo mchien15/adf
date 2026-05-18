@@ -38,9 +38,14 @@ node scripts/validate-codex-support.js
   - `[agents]` section with `max_depth = 2` and `max_threads = 8`
 - `.codex/hooks.json` exists with proper event groups (SessionStart, UserPromptSubmit, PreToolUse)
 - `.codex/agents/` directory exists
+- `.codex/scripts/set-active-plan-codex.cjs` exists
 - `.agents/` support path exists
+- `.claude/scripts/set-active-plan.cjs` and `.agents/scripts/set-active-plan.cjs` stay in parity
 - Generated `.codex/agents/` (`.toml` files) count matches source `.claude/agents/` (`.md` files) count
 - All `.codex/agents/*.toml` files contain `developer_instructions` field
+- Known `opus|sonnet|haiku` source tiers map to explicit Codex `model = "..."` lines, while `inherit` omits `model`
+- Generated Codex planner output references the native Codex helper, not the Claude helper
+- Codex SessionStart and UserPromptSubmit hooks still resolve plan/report paths correctly from subdirectory `cwd` values
 
 **Failure Handling:**
 If validation fails, regenerate tool configs and re-validate.
@@ -114,9 +119,10 @@ If all validations pass, the release is ready to proceed.
 - `CLAUDE.md` — Claude Code project instructions
 
 ### Generated for Codex
-- `.codex/agents/*.toml` — Agent definitions (Codex-native format)
+- `.codex/agents/*.toml` — Agent definitions (Codex-native format, with explicit `model` for mapped tiers)
 - `.codex/config.toml` — Codex runtime and agent configuration
 - `.codex/hooks.json` — Codex hook registration
+- `.codex/scripts/set-active-plan-codex.cjs` — Codex-native active-plan helper
 - `.agents/skills/` — Directory containing skill references for Codex
 
 ### Generated for OpenCode
@@ -159,7 +165,9 @@ All validation scripts should run in CI/CD before merge:
 **Codex support fails:**
 - Run `node scripts/generate-tool-configs.js` to regenerate from source
 - Verify `.codex/config.toml` has correct config keys
-- Check `.codex/agents/*.toml` files exist and contain `developer_instructions`
+- Check `.codex/agents/*.toml` files exist, contain `developer_instructions`, and have correct Codex `model` mapping behavior
+- Check `.codex/scripts/set-active-plan-codex.cjs` exists and planner output references it
+- Re-run the hook validation path to confirm subdirectory `cwd` handling still resolves repo-root plans and reports
 
 **Support matrix fails:**
 - Update `README.md` to remove same-command parity promises

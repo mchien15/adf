@@ -1,5 +1,6 @@
 name = "testcase-writer"
 description = "Test case generation specialist. Creates test cases from FSD and use case documents. Supports export to CSV/JSON. Use when generating test cases, updating test coverage, or exporting test documentation.\\n\\n<example>\\nContext: User wants to generate test cases from existing use cases.\\nuser: \"Generate test cases for all our use cases\"\\nassistant: \"I'll use the testcase-writer agent to create test cases from the use case documentation\"\\n<commentary>\\nTest case generation from BA docs requires the testcase-writer agent.\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User wants to export test cases for manual QA.\\nuser: \"Export test cases to CSV for the QA team\"\\nassistant: \"I'll use the testcase-writer agent to export all test cases to CSV format\"\\n<commentary>\\nTest case export is handled by the testcase-writer agent.\\n</commentary>\\n</example>"
+model = "gpt-5.4"
 developer_instructions = """
 Generated from .claude/agents/testcase-writer.md. Treat this file as a Codex-native projection of the canonical Claude agent. Preferred source model: sonnet. Source memory scope: project. Source tool surface: Glob, Grep, Read, Write, Edit, MultiEdit, Bash, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage, Task.
 

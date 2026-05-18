@@ -3,6 +3,11 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
+const {
+  getSessionTempPath,
+  writeSessionState,
+} = require('../.agents/hooks/lib/ck-config-utils.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
 const failures = [];
@@ -21,6 +26,21 @@ function exists(relativePath) {
 
 function read(relativePath) {
   return fs.readFileSync(absolute(relativePath), 'utf8');
+}
+
+function runNodeJson(relativePath, payload, extraEnv = {}) {
+  return JSON.parse(execFileSync('node', [absolute(relativePath)], {
+    cwd: ROOT,
+    env: { ...process.env, ...extraEnv },
+    input: JSON.stringify(payload),
+    encoding: 'utf8',
+  }));
+}
+
+function readSourceAgentModel(agentFile) {
+  const source = read(path.join('.claude/agents', agentFile));
+  const match = source.match(/^model:\s*(.+)$/m);
+  return match ? match[1].trim() : '';
 }
 
 function collectHookCommands(groups) {
@@ -46,7 +66,9 @@ expect(exists('AGENTS.md'), 'Missing AGENTS.md');
 expect(exists('.codex/config.toml'), 'Missing .codex/config.toml');
 expect(exists('.codex/hooks.json'), 'Missing .codex/hooks.json');
 expect(exists('.codex/agents'), 'Missing .codex/agents');
+expect(exists('.codex/scripts/set-active-plan-codex.cjs'), 'Missing .codex/scripts/set-active-plan-codex.cjs');
 expect(exists('.agents'), 'Missing .agents support path');
+expect(read('.claude/scripts/set-active-plan.cjs') === read('.agents/scripts/set-active-plan.cjs'), '.claude and .agents set-active-plan helpers diverged');
 
 if (exists('.codex/config.toml')) {
   const config = read('.codex/config.toml');
@@ -73,12 +95,69 @@ if (exists('.codex/hooks.json')) {
 }
 
 if (exists('.claude/agents') && exists('.codex/agents')) {
+  const codexModelMap = {
+    opus: 'gpt-5.5',
+    sonnet: 'gpt-5.4',
+    haiku: 'gpt-5.4-mini',
+  };
   const sourceAgents = fs.readdirSync(absolute('.claude/agents')).filter((name) => name.endsWith('.md'));
   const codexAgents = fs.readdirSync(absolute('.codex/agents')).filter((name) => name.endsWith('.toml'));
   expect(codexAgents.length === sourceAgents.length, `Expected ${sourceAgents.length} Codex agents, found ${codexAgents.length}`);
   for (const agentFile of codexAgents) {
     const content = read(path.join('.codex/agents', agentFile));
     expect(/developer_instructions\s*=\s*"""/.test(content), `${agentFile} missing developer_instructions`);
+    const sourceModel = readSourceAgentModel(agentFile.replace(/\.toml$/, '.md'));
+    const expectedModel = codexModelMap[sourceModel] || null;
+    if (expectedModel) {
+      expect(content.includes(`model = "${expectedModel}"`), `${agentFile} missing expected Codex model ${expectedModel}`);
+    } else {
+      expect(!/^model\s*=\s*".+"$/m.test(content), `${agentFile} should omit Codex model for source tier "${sourceModel || 'unset'}"`);
+    }
+  }
+
+  const plannerToml = read('.codex/agents/planner.toml');
+  expect(plannerToml.includes('.codex/scripts/set-active-plan-codex.cjs'), 'Codex planner missing native active-plan helper path');
+  expect(!plannerToml.includes('node .claude/scripts/set-active-plan.cjs'), 'Codex planner still references Claude active-plan helper');
+}
+
+if (exists('.codex/hooks/session-init-codex.cjs') && exists('.codex/hooks/dev-rules-reminder-codex.cjs')) {
+  const sessionId = 'validate-codex-support';
+  const subdirCwd = absolute('docs');
+  const activePlan = absolute('plans/260518-codex-subagent-model-mapping');
+  const expectedReports = `${activePlan}/reports/`;
+
+  writeSessionState(sessionId, {
+    sessionOrigin: ROOT,
+    activePlan,
+    suggestedPlan: null,
+    timestamp: Date.now(),
+    source: 'validate-codex-support',
+  });
+
+  try {
+    const sessionInit = runNodeJson('.codex/hooks/session-init-codex.cjs', {
+      session_id: sessionId,
+      cwd: subdirCwd,
+    }, {
+      CODEX_THREAD_ID: sessionId,
+    });
+    const sessionContext = sessionInit?.hookSpecificOutput?.additionalContext || '';
+    expect(sessionContext.includes(`- Project Type: ADF (Claude Code Framework)`), 'SessionStart hook lost repo project detection for subdirectory cwd');
+    expect(sessionContext.includes(`- Reports: ${expectedReports}`), 'SessionStart hook emitted wrong reports path for subdirectory cwd');
+    expect(!sessionContext.includes(`${subdirCwd}/plans/`), 'SessionStart hook incorrectly anchored plans to subdirectory cwd');
+
+    const promptSubmit = runNodeJson('.codex/hooks/dev-rules-reminder-codex.cjs', {
+      session_id: sessionId,
+      cwd: subdirCwd,
+    }, {
+      CODEX_THREAD_ID: sessionId,
+    });
+    const promptContext = promptSubmit?.hookSpecificOutput?.additionalContext || '';
+    expect(promptContext.includes(`- Reports: ${expectedReports}`), 'UserPromptSubmit hook emitted wrong reports path for subdirectory cwd');
+    expect(!promptContext.includes(`${subdirCwd}/plans/`), 'UserPromptSubmit hook incorrectly anchored plans to subdirectory cwd');
+  } finally {
+    const sessionFile = getSessionTempPath(sessionId);
+    try { fs.unlinkSync(sessionFile); } catch (_) { /* ignore */ }
   }
 }
 

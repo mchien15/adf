@@ -113,6 +113,8 @@ agentic-development-framework/
 
 **Codex-native workflow entrypoints**:
 - Codex uses `AGENTS.md`, `.codex/config.toml`, `.codex/agents/*.toml`, and `.agents/skills/*`
+- Codex active-plan updates use `.codex/scripts/set-active-plan-codex.cjs`
+- Codex generated agents now carry explicit `model = "..."` fields for `opus|sonnet|haiku` source tiers
 - Codex follows the same workflow intent, but invocation happens through native prompts and custom-agent selection rather than guaranteed slash-command aliases
 
 ### 3. Skills Library (44 Skills, Unified)

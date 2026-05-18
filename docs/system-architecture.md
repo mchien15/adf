@@ -150,6 +150,8 @@ temperature: 0.1
 **Model Selection**:
 - Source `.claude/agents/*.md` keeps abstract model tiers such as `opus`, `sonnet`, `haiku`, and `inherit`
 - OpenCode generated subagents map those tiers to explicit GitHub Copilot model IDs
+- Codex generated agents map those tiers to explicit OpenAI model IDs in `.codex/agents/*.toml`
+- Codex omits `model` when source tier is `inherit`, so runtime inheritance still works
 - Default OpenCode fallback for `inherit` or missing model is `github-copilot/claude-sonnet-4.6`
 
 #### 2.3 Agent Communication Protocol
@@ -1072,7 +1074,7 @@ ADF supports four AI coding tools. `.claude/` is the canonical authored source; 
 .claude/agents/*.md  (source of truth)
         │
         ▼  node scripts/generate-tool-configs.js
-        ├── .codex/agents/*.toml     (name + description + developer_instructions)
+        ├── .codex/agents/*.toml     (name + description + optional mapped model + developer_instructions)
         └── .opencode/agents/*.md    (full: frontmatter + mapped tools/model + body)
 ```
 

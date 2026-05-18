@@ -13,6 +13,13 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { execSync } = require('child_process');
+const {
+  loadConfig,
+  resolvePlanPath,
+  getReportsPath,
+  resolveNamingPattern,
+} = require('../../.agents/hooks/lib/ck-config-utils.cjs');
 
 // ─── Debounce ─────────────────────────────────────────────────────────────────
 
@@ -51,6 +58,22 @@ function recordInjection(sessionId) {
   } catch (_) { /* best-effort */ }
 }
 
+function execSafe(cmd) {
+  try {
+    return execSync(cmd, { encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch (_) {
+    return null;
+  }
+}
+
+function detectGitRoot(cwd) {
+  return execSafe(`git -C ${JSON.stringify(cwd)} rev-parse --show-toplevel`) || cwd;
+}
+
+function ensureTrailingSlash(pathValue) {
+  return /[/\\]$/.test(pathValue) ? pathValue : `${pathValue}/`;
+}
+
 // ─── Reminder Content ─────────────────────────────────────────────────────────
 
 const REMINDER = `## Dev Rules Reminder (Codex)
@@ -74,23 +97,60 @@ const REMINDER = `## Dev Rules Reminder (Codex)
 - Sacrifice grammar for concision in reports
 - List unresolved questions at end of reports`;
 
+function buildPlanContext(projectRoot, sessionId) {
+  const config = loadConfig();
+  const resolved = resolvePlanPath(sessionId, config);
+  if (!resolved.path) return '';
+
+  const gitBranch = execSafe('git branch --show-current') || 'unknown';
+  const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths);
+  const absoluteReportsPath = path.isAbsolute(reportsPath) ? reportsPath : path.join(projectRoot, reportsPath);
+  const reportPrefix = ensureTrailingSlash(absoluteReportsPath);
+  const namePattern = resolveNamingPattern(config.plan, gitBranch);
+
+  return [
+    `## Plan Context`,
+    `- ${resolved.resolvedBy === 'session' ? 'Active' : 'Suggested'} Plan: ${resolved.path}`,
+    `- Reports: ${reportPrefix}`,
+    `- Branch: ${gitBranch}`,
+    `- Validation: mode=${config.plan.validation.mode}, questions=${config.plan.validation.minQuestions}-${config.plan.validation.maxQuestions}`,
+    ``,
+    `## Naming`,
+    `- Report: \`${reportPrefix}{type}-${namePattern}.md\``,
+    `- Plan dir: \`${path.join(projectRoot, config.paths.plans, namePattern)}/\``,
+  ].join('\n');
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 try {
   const stdin = fs.readFileSync(0, 'utf8').trim();
   const payload = stdin ? JSON.parse(stdin) : {};
-  const sessionId = payload.session_id || null;
+  const sessionId = payload.session_id || process.env.CODEX_THREAD_ID || process.env.CK_SESSION_ID || null;
+  const cwd = payload.cwd || process.cwd();
+  const projectRoot = detectGitRoot(cwd);
+  if (fs.existsSync(projectRoot)) {
+    process.chdir(projectRoot);
+  }
+  const planContext = buildPlanContext(projectRoot, sessionId);
+  const recentlyInjected = wasRecentlyInjected(sessionId);
 
-  if (wasRecentlyInjected(sessionId)) {
-    // Output empty response — skip injection this turn
+  if (recentlyInjected && !planContext) {
     process.exit(0);
   }
 
-  recordInjection(sessionId);
+  if (!recentlyInjected) {
+    recordInjection(sessionId);
+  }
+
+  const sections = [];
+  if (!recentlyInjected) sections.push(REMINDER);
+  if (planContext) sections.push(planContext);
+
   console.log(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'UserPromptSubmit',
-      additionalContext: REMINDER,
+      additionalContext: sections.join('\n\n'),
     },
   }));
   process.exit(0);
