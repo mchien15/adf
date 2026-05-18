@@ -9,8 +9,10 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ADF_SCRIPT="$SCRIPT_DIR/adf"
+ADF_LIB="$SCRIPT_DIR/adf-installer-lib.js"
 INSTALL_DIR="$HOME/bin"
 INSTALL_TARGET="$INSTALL_DIR/adf"
+INSTALL_LIB_TARGET="$INSTALL_DIR/adf-installer-lib.js"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -28,6 +30,10 @@ uninstall() {
     else
         log_info "Not installed"
     fi
+    if [[ -f "$INSTALL_LIB_TARGET" ]]; then
+        rm "$INSTALL_LIB_TARGET"
+        log_success "Removed $INSTALL_LIB_TARGET"
+    fi
     exit 0
 }
 
@@ -35,6 +41,10 @@ install() {
     # Check source exists
     if [[ ! -f "$ADF_SCRIPT" ]]; then
         log_error "Source script not found: $ADF_SCRIPT"
+        exit 1
+    fi
+    if [[ ! -f "$ADF_LIB" ]]; then
+        log_error "Source library not found: $ADF_LIB"
         exit 1
     fi
 
@@ -46,6 +56,7 @@ install() {
 
     # Copy script
     cp "$ADF_SCRIPT" "$INSTALL_TARGET"
+    cp "$ADF_LIB" "$INSTALL_LIB_TARGET"
     chmod +x "$INSTALL_TARGET"
     log_success "Installed to $INSTALL_TARGET"
 

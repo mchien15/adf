@@ -12,7 +12,7 @@ Agentic Development Framework is a comprehensive boilerplate template for buildi
 
 ```
 agentic-development-framework/
-├── .claude/                  # Canonical source of truth
+├── .claude/                  # Source-repo canonical source of truth
 │   ├── agents/              # Specialized agent definitions (16 agents)
 │   ├── hooks/               # Claude Code hooks and scripts
 │   ├── skills/              # Specialized skills library (44 skills)
@@ -38,6 +38,8 @@ agentic-development-framework/
 │   └── plugins/
 │       └── adf-hooks.js     # OpenCode plugin (session, privacy, simplify hooks)
 ├── scripts/
+│   ├── adf                   # Installer CLI entrypoint
+│   ├── adf-installer-lib.js  # Installer planner/executor implementation
 │   └── generate-tool-configs.js  # Generates .codex/agents/ + .opencode/agents/
 ├── profiles/                  # Installer git profile overlays
 │   ├── git-profiles.json      # Git profile manifest and default profile
@@ -202,6 +204,7 @@ agentic-development-framework/
 - Default install remains `adf` when `--git-profile` is omitted
 - `--git-profile cmc` overlays CMC git branch and merge guidance
 - Overlay surface is intentionally narrow to minimize maintenance
+- Installed repos now keep payload in `./.adf/payload/` and track generated compatibility outputs in `./.adf/manifest.json`
 
 **Hook Features:**
 - Fail-Safe: All hooks exit 0 (non-blocking) - graceful degradation
@@ -395,7 +398,7 @@ Features: Branch protection rules
 
 ## Notes for Maintainers
 
-- `.claude/` is canonical source — all tools/configs derive from here
+- In this source repo, `.claude/` is canonical; in installed repos, `.adf/payload/` is canonical
 - `.agent/` uses symlinks (agents, skills, rules) — do NOT manually edit
 - `.agents` symlink → `.claude` — enables Codex skill/agent discovery
 - `.codex/agents/` and `.opencode/agents/` are generated — run `node scripts/generate-tool-configs.js` after agent changes

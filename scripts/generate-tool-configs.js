@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * generate-tool-configs.js - Generate Codex + OpenCode agent configs from .claude/agents/*.md
+ * generate-tool-configs.js - Generate Codex + OpenCode agent configs from a Claude agents source tree
  *
- * Usage: node scripts/generate-tool-configs.js [--dry-run]
+ * Usage: node scripts/generate-tool-configs.js [--dry-run] [--source-root PATH] [--codex-out PATH] [--opencode-out PATH]
  *
- * Reads .claude/agents/*.md (source of truth), outputs:
+ * Reads a Claude agents source tree (defaults to .claude/agents), outputs:
  *   .codex/agents/{name}.toml   — minimal Codex agent definitions
  *   .opencode/agents/{name}.md  — full OpenCode agent definitions with mapped tools/model
  *
@@ -19,10 +19,20 @@ const path = require('path');
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ROOT = path.resolve(__dirname, '..');
-const AGENTS_SRC = path.join(ROOT, '.claude', 'agents');
-const CODEX_AGENTS_OUT = path.join(ROOT, '.codex', 'agents');
-const OPENCODE_AGENTS_OUT = path.join(ROOT, '.opencode', 'agents');
 
+function readArg(flag, fallback) {
+  const index = process.argv.indexOf(flag);
+  if (index === -1) return fallback;
+  const value = process.argv[index + 1];
+  if (!value || value.startsWith('--')) {
+    throw new Error(`Missing value for ${flag}`);
+  }
+  return path.resolve(value);
+}
+
+const AGENTS_SRC = readArg('--source-root', path.join(ROOT, '.claude', 'agents'));
+const CODEX_AGENTS_OUT = readArg('--codex-out', path.join(ROOT, '.codex', 'agents'));
+const OPENCODE_AGENTS_OUT = readArg('--opencode-out', path.join(ROOT, '.opencode', 'agents'));
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // Claude PascalCase tool → OpenCode lowercase key
@@ -47,7 +57,7 @@ const SKIP_TOOLS = new Set([
 
 // Claude shorthand → OpenCode GitHub Copilot model IDs
 const MODEL_MAP = {
-  opus: 'github-copilot/gpt-5.4',
+  opus: 'github-copilot/claude-sonnet-4.6',
   sonnet: 'github-copilot/claude-sonnet-4.6',
   haiku: 'github-copilot/claude-haiku-4.5',
   inherit: 'github-copilot/claude-sonnet-4.6',
@@ -201,6 +211,10 @@ function writeIfChanged(filePath, content) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 function main() {
+  if (!fs.existsSync(AGENTS_SRC)) {
+    throw new Error(`Agent source not found: ${AGENTS_SRC}`);
+  }
+
   // Ensure output dirs exist
   for (const dir of [CODEX_AGENTS_OUT, OPENCODE_AGENTS_OUT]) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

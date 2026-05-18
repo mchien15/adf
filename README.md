@@ -31,7 +31,7 @@ ADF draws ideas and inspiration from several open-source projects and communitie
 | Claude Code | ✅ 44 | ✅ 16 | ✅ Full | Built-in (`CLAUDE.md`) |
 | Antigravity | ✅ 44 | ✅ 16 | ✅ Full | Built-in (`AGENTS.md`) |
 | OpenCode | ✅ 44 | ✅ 16 | ✅ Full | `opencode.json` included |
-| OpenAI Codex | ✅ 51 | ✅ 16 | ⚠️ Partial* | `ln -s .claude .agents` |
+| OpenAI Codex | ✅ 51 | ✅ 16 | ⚠️ Partial* | `adf codex` |
 
 \* Codex `PreToolUse` hook covers Bash only — Read/Write privacy interception not available.
 
@@ -39,6 +39,8 @@ After modifying `.claude/agents/*.md`, regenerate tool configs:
 ```bash
 node scripts/generate-tool-configs.js
 ```
+
+Installed repos generate those outputs from `./.adf/payload/.claude/agents`.
 
 ---
 
@@ -58,7 +60,9 @@ git clone https://github.com/sotatek-dev/adf.git ~/adf
 
 ```bash
 mkdir -p ~/bin
-cp ~/adf/scripts/adf ~/bin/adf && chmod +x ~/bin/adf
+cp ~/adf/scripts/adf ~/bin/adf
+cp ~/adf/scripts/adf-installer-lib.js ~/bin/adf-installer-lib.js
+chmod +x ~/bin/adf
 ```
 
 Then add `~/bin` to your PATH:
@@ -147,12 +151,28 @@ adf all
 adf all --git-profile cmc
 ```
 
-> **Note:** `.claude/` is the canonical source of truth. `.agent/`, `.agents`, `.codex/agents/`, and `.opencode/agents/` are all derived from it — via symlinks or the generator script (`node scripts/generate-tool-configs.js`). Zero duplication.
+> **Note:** In this source repo, `.claude/` is canonical. In installed repos, ADF lives under `./.adf/payload/`, and root paths such as `.claude/`, `.agent/`, `.agents`, `.codex/agents/`, `.opencode/agents/`, `CLAUDE.md`, and `AGENTS.md` are generated compatibility outputs tracked by `./.adf/manifest.json`.
 
 > **Upgrading?** Run `adf --update` to pull the latest CLI, then re-run `adf <tool>` in your project.
 
 > **Git profiles:** If `--git-profile` is omitted, `adf` is used by default. Available profiles: `adf`, `cmc`.
 > **Shorthand:** A trailing known profile name is treated as `--git-profile`, so `adf opencode cmc` works like `adf opencode --git-profile cmc`.
+> **Safety:** Use `adf <tool> --dry-run` to preview changes. Legacy root-copy installs require `--adopt-legacy` before ADF will take ownership.
+
+### Installer Behavior
+
+- Canonical installed payload: `./.adf/payload/`
+- Manifest and ownership tracking: `./.adf/manifest.json`
+- Local rollback snapshots: `./.adf/backups/`
+- Root markdown files use managed blocks so repo-authored text outside the markers stays intact
+- Existing unmanaged root files and directory children are not overwritten silently
+
+Recovery commands:
+
+```bash
+adf repair
+adf rollback latest
+```
 
 ---
 
