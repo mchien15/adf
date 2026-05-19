@@ -138,10 +138,16 @@ Step 3.4 (addBlockedBy: [P2-id])   ← critical steps share phase dependency
 3. Nếu không có → read plan phases, `TaskCreate` cho mỗi unchecked item
 4. `TaskUpdate(status: "in_progress")` khi bắt đầu task
 
-**Step 6 Finalize:**
-1. `TaskUpdate` marks all session tasks complete
-2. Spawn `project-manager` agent để chạy full-plan sync-back (sweep all phases + backfill stale completed items)
-3. Sync checkboxes `[ ]` → `[x]` across all phase files, rồi update `plan.md`
+**Step 5 Plan-Conformance:**
+1. `cook` verifies delivered scope against the approved plan/task
+2. Result is passed into final code review, not skipped in `--auto`
+
+**Step 7 Finalize:**
+1. Spawn `project-manager` agent để chạy full-plan sync-back (sweep all phases + backfill stale completed items)
+2. Spawn `docs-manager` agent để decide/update `./docs` if changes warrant
+3. Spawn `git-manager` agent để prepare closeout; commit/push only when git actions are already approved
+4. Sync checkboxes `[ ]` → `[x]` across all phase files, rồi update `plan.md`
+5. `TaskUpdate` marks session tasks complete after sync-back confirmation
 
 **Same-Session Handoff:**
 ```

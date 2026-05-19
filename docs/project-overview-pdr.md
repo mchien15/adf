@@ -383,14 +383,16 @@ Why this matters:
 **Goal**: Add feature with full workflow
 **Flow**:
 1. Run `/cook "add user authentication"`
-2. Planner creates implementation plan
-3. Researcher agents explore auth solutions
-4. Developer reviews and approves plan
-5. AI implements code
-6. AI writes comprehensive tests
-7. AI performs code review
-8. AI updates documentation
-9. AI commits with conventional message
+2. Cook classifies risk, checks isolation, and escalates if high-risk work stays in-place
+3. Planner creates implementation plan
+4. Researcher agents explore auth solutions
+5. Developer reviews and approves plan
+6. AI implements code and runs checkpoint review when policy requires it
+7. AI writes comprehensive tests unless a low-risk `--no-test` exception is allowed
+8. Cook verifies plan conformance before final code review
+9. AI performs code review and mandatory completion verification
+10. AI updates documentation
+11. Git manager prepares closeout and commits only when git actions are approved
 
 **Outcome**: Feature complete with tests, docs, and clean git history
 

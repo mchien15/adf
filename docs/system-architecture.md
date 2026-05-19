@@ -266,16 +266,18 @@ Explore different approaches simultaneously
 
 **Feature Development Workflow**:
 1. User: `/cook "add user authentication"`
-2. Planner: Create implementation plan
-3. Researchers: Explore auth solutions (parallel)
-4. Planner: Synthesize research, create detailed plan
-5. Main Agent: Implement code
-6. Main Agent: Run type checking/compilation
-7. Tester: Write and run tests
-8. (If tests fail): Debugger analyzes, loop to step 5
-9. Code Reviewer: Review implementation
-10. Docs Manager: Update documentation
-11. Git Manager: Commit with conventional message
+2. Cook: Classify risk, check branch/workspace isolation, and escalate if high-risk work stays in-place
+3. Planner: Create implementation plan
+4. Researchers: Explore auth solutions (parallel)
+5. Planner: Synthesize research, create detailed plan
+6. Main Agent: Implement code
+7. Main Agent: Run type checking/compilation and checkpoint review when policy requires it
+8. Tester: Write and run tests, or reject `--no-test` if the work is not low-risk
+9. (If tests fail): Debugger analyzes, loop to step 6
+10. Cook: Verify plan conformance before final code-quality review
+11. Code Reviewer: Review implementation
+12. Docs Manager: Update documentation if warranted
+13. Git Manager: Prepare closeout; commit only when git actions are approved
 
 **Bug Fix Workflow**:
 1. User: `/debug "API timeout errors"`

@@ -1,6 +1,6 @@
 # Agentic Development Framework - Project Roadmap
 
-**Last Updated:** 2026-04-01
+**Last Updated:** 2026-05-19
 **Current Version:** 0.0.1
 **Repository:** https://github.com/sotatek-dev/adf
 
@@ -25,7 +25,7 @@ First public release. Includes full agent orchestration, skills library, hook sy
 
 **Workflows:**
 - `/plan` — research + phased implementation plans (--fast, --hard, --two, --parallel)
-- `/cook` — end-to-end implementation (--auto, --fast, --parallel, --no-test)
+- `/cook` — risk-gated end-to-end implementation (--auto approval-skip only, --fast, --parallel, policy-limited --no-test, mandatory verification)
 - `/fix` — intelligent bug fixing (--quick, --parallel, specialized: test, types, ui, ci, logs)
 - `/test` — test execution and coverage analysis
 - `/code-review` — multi-pass automated review with edge case scouting

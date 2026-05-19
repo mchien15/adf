@@ -1,7 +1,7 @@
 # ClaudeKit Skills Interconnection Map
 
 > 44 skills · 80+ connections · 1 ecosystem
-> **Last Updated**: 2026-04-01
+> **Last Updated**: 2026-05-19
 
 ## Core Architecture
 
@@ -93,7 +93,7 @@ Domain-specific tools operating independently.
 
 ## Key Architectural Patterns
 
-1. **cook is the nucleus** — mandatory for all feature implementation, orchestrates 10+ skills through the full lifecycle: plan → scout → debug → fix → test → review → git
+1. **cook is the nucleus** — mandatory for all feature implementation, now risk-gates the lifecycle: risk/isolation → plan → scout → debug → fix → test → plan-conformance → review → docs/git closeout with mandatory verification
 
 2. **Hub-and-spoke topology** — orchestrators (cook, team) fan out to workflow hubs (plan, debug, fix, test, review), which fan out to utility providers
 
