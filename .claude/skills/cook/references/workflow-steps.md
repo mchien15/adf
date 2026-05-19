@@ -5,11 +5,15 @@ All modes share core steps with mode-specific variations.
 ## Step 0: Intent Detection & Setup
 
 1. Parse input with `intent-detection.md` rules
-2. Log detected mode: `✓ Step 0: Mode [X] - [reason]`
-3. If mode=code: detect plan path, set active plan
-4. Use `TaskCreate` to create workflow step tasks (with dependencies if complex)
+2. Classify risk with `risk-and-gates.md`
+3. Check branch, dirty workspace, and isolation availability
+4. Decide isolation need: `in-place`, `recommended`, or `required`
+5. If isolation is `required` and work stays in-place: get explicit user acknowledgement before proceeding
+6. Log detected mode and risk
+7. If mode=code: detect plan path, set active plan
+8. Use `TaskCreate` to create workflow step tasks (with dependencies if complex)
 
-**Output:** `✓ Step 0: Mode [interactive|auto|fast|parallel|no-test|code] - [detection reason]`
+**Output:** `✓ Step 0: Mode [interactive|auto|fast|parallel|no-test|code] - Risk [low|medium|high] - Isolation [in-place|recommended|required]`
 
 ## Step 1: Research (skip if fast/code mode)
 
@@ -70,6 +74,8 @@ All modes share core steps with mode-specific variations.
 - Use `ui-ux-designer` for frontend
 - Use `ai-multimodal` for image assets
 - Run type checking after each file
+- If medium/high-risk behavior work: capture TDD evidence where policy requires
+- If high-risk, or medium-risk with 3+ touched files or cross-cutting behavior: run checkpoint review before leaving the phase
 
 **Parallel mode:**
 - Utilize all tools of Claude Tasks: `TaskCreate`, `TaskUpdate`, `TaskGet` and `TaskList`
@@ -79,6 +85,12 @@ All modes share core steps with mode-specific variations.
 - Wait for parallel group before next
 
 **Output:** `✓ Step 3: Implemented [N] files - [X/Y] tasks complete`
+
+### Checkpoint Review (policy-driven)
+- Triggered by `risk-and-gates.md`, not by mode alone
+- Use delegated review for risky intermediate state and fix blocking findings before continuing
+
+**Output:** `✓ Step 3: Checkpoint review complete - [phase] - [approved|fixes applied]`
 
 ### [Review Gate 3] Post-Implementation (skip if auto mode)
 - Present implementation summary (files changed, key changes)
@@ -92,19 +104,34 @@ All modes share core steps with mode-specific variations.
 - **MUST** spawn `tester` subagent: `Task(subagent_type="tester", prompt="Run test suite", description="Run tests")`
 - If failures: **MUST** spawn `debugger` subagent → fix → repeat
 - **Forbidden:** fake mocks, commented tests, changed assertions, skipping subagent delegation
+- For medium/high-risk behavior work, include red/green proof in tester handoff or summary
 
 **Output:** `✓ Step 4: Tests [X/X passed] - tester subagent invoked`
+
+**No-test policy:**
+- `--no-test` skips this step only when allowed by `risk-and-gates.md`
+- It never skips final verification
 
 ### [Review Gate 4] Post-Testing (skip if auto mode)
 - Present test results summary
 - Use `AskUserQuestion` to ask: "Proceed to code review?" / "Request test fixes" / "Abort"
 - **Auto mode:** Skip this gate
 
-## Step 5: Code Review
+## Step 5: Plan-Conformance Check
+
+**All modes - required before code-quality review:**
+- Confirm delivered behavior matches the approved plan or task scope
+- Reject unplanned scope creep, missing acceptance items, or silent tradeoffs
+- `cook` owns this gate and passes the result into the final reviewer prompt
+
+**Output:** `✓ Step 5: Plan conformance verified - [criteria met count]`
+
+## Step 6: Code Review
 
 **All modes - MANDATORY subagent:**
 - **MUST** spawn `code-reviewer` subagent: `Task(subagent_type="code-reviewer", prompt="Review changes. Return score, critical issues, warnings.", description="Code review")`
 - **DO NOT** review code yourself - delegate to subagent
+- Reviewer should consume Step 5 conformance output and only challenge it when evidence conflicts
 
 **Interactive/Parallel/Code/No-test:**
 - Interactive cycle (max 3): see `review-cycle.md`
@@ -119,14 +146,15 @@ All modes share core steps with mode-specific variations.
 - Simplified review, no fix loop
 - User approves or aborts
 
-**Output:** `✓ Step 5: Review [score]/10 - [Approved|Auto-approved] - code-reviewer subagent invoked`
+**Output:** `✓ Step 6: Review [score]/10 - [Approved|Auto-approved] - code-reviewer subagent invoked`
 
-## Step 6: Finalize
+## Step 7: Finalize
 
 **All modes - MANDATORY subagents (NON-NEGOTIABLE):**
 1. **MUST** spawn these subagents in parallel:
    - `Task(subagent_type="project-manager", prompt="Run full sync-back for [plan-path]: reconcile all completed Claude Tasks with all phase files, backfill stale completed checkboxes across every phase, then update plan.md frontmatter/table progress. Do NOT only mark current phase.", description="Update plan")`
    - `Task(subagent_type="docs-manager", prompt="Update docs for changes.", description="Update docs")`
+   - `Task(subagent_type="git-manager", prompt="Prepare git closeout options, stage if approved, and only commit/push when the user or mode already approved git actions.", description="Git closeout")`
 2. Project-manager sync-back MUST include:
    - Sweep all `phase-XX-*.md` files in the plan directory.
    - Mark every completed item `[ ] → [x]` based on completed tasks (including earlier phases finished before current phase).
@@ -134,37 +162,36 @@ All modes share core steps with mode-specific variations.
    - Return unresolved mappings if any completed task cannot be matched to a phase file.
 3. Use `TaskUpdate` to mark Claude Tasks complete after sync-back confirmation.
 4. Onboarding check (API keys, env vars)
-5. **MUST** spawn git subagent: `Task(subagent_type="git-manager", prompt="Stage and commit changes", description="Commit")`
+5. Summarize verification proof before claiming completion
 
-**CRITICAL:** Step 6 is INCOMPLETE without spawning all 3 subagents. DO NOT skip subagent delegation.
+**CRITICAL:** Step 7 is INCOMPLETE without spawning all 3 subagents. DO NOT skip subagent delegation.
 
 **Auto mode:** Continue to next phase automatically, start from **Step 3**.
 **Others:** Ask user before next phase
 
-**Output:** `✓ Step 6: Finalized - 3 subagents invoked - Full-plan sync-back completed - Committed`
+**Output:** `✓ Step 7: Verified before completion - [proof summary] - Finalized`
 
 ## Mode-Specific Flow Summary
 
 Legend: `[R]` = Review Gate (human approval required)
 
 ```
-interactive: 0 → 1 → [R] → 2 → [R] → 3 → [R] → 4 → [R] → 5(user) → 6
-auto:        0 → 1 → 2 → 3 → 4 → 5(auto) → 6 → next phase (NO stops)
-fast:        0 → skip → 2(fast) → [R] → 3 → [R] → 4 → [R] → 5(simple) → 6
-parallel:    0 → 1? → [R] → 2(parallel) → [R] → 3(multi-agent) → [R] → 4 → [R] → 5(user) → 6
-no-test:     0 → 1 → [R] → 2 → [R] → 3 → [R] → skip → 5(user) → 6
-code:        0 → skip → skip → 3 → [R] → 4 → [R] → 5(user) → 6
+interactive: 0 → 1 → [R] → 2 → [R] → 3 → [R] → 4 → [R] → 5 → 6(user) → 7
+auto:        0 → 1 → 2 → 3 → 4 → 5 → 6(auto) → 7 → next phase
+fast:        0 → skip → 2(fast) → [R] → 3 → [R] → 4 → [R] → 5 → 6(simple) → 7
+parallel:    0 → 1? → [R] → 2(parallel) → [R] → 3(multi-agent) → checkpoint? → 4 → [R] → 5 → 6(user) → 7
+no-test:     0 → 1 → [R] → 2 → [R] → 3 → [R] → skip(policy) → 5 → 6(user) → 7
+code:        0 → skip → skip → 3 → checkpoint? → 4 → [R] → 5 → 6(user) → 7
 ```
-
-**Key difference:** `auto` mode is the ONLY mode that skips all review gates.
 
 ## Critical Rules
 
 - Never skip steps without mode justification
-- **MANDATORY SUBAGENT DELEGATION:** Steps 4, 5, 6 MUST spawn subagents via Task tool. DO NOT implement directly.
+- Never skip hard gates because of mode flags
+- **MANDATORY SUBAGENT DELEGATION:** Steps 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly.
   - Step 4: `tester` (and `debugger` if failures)
-  - Step 5: `code-reviewer`
-  - Step 6: `project-manager`, `docs-manager`, `git-manager`
+  - Step 6: `code-reviewer`
+  - Step 7: `project-manager`, `docs-manager`, `git-manager`
 - Use `TaskCreate` to create Claude Tasks for each unchecked item with priority order and dependencies.
 - Use `TaskUpdate` to mark Claude Tasks `in_progress` when picking up a task.
 - Use `TaskUpdate` to mark Claude Tasks `complete` immediately after finalizing the task.

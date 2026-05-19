@@ -37,6 +37,20 @@ FUNCTION detectMode(input):
   RETURN "interactive"
 ```
 
+FUNCTION detectRisk(input, mode):
+  keywords = lowercase(input)
+
+  IF mode == "parallel": RETURN "high"
+  IF keywords contains ["auth", "billing", "payment", "security", "migration", "database", "infra", "incident", "regression"]:
+    RETURN "high"
+  IF keywords contains ["docs", "documentation", "copy", "comment", "typo", "polish", "config"]:
+    RETURN "low"
+  IF keywords contains ["bug", "bugfix", "fix", "logic", "workflow", "refactor", "feature"]:
+    RETURN "medium"
+
+  RETURN "medium"
+```
+
 ## Feature Extraction
 
 Detect multiple features from natural language:
@@ -54,15 +68,34 @@ Detect multiple features from natural language:
 | Mode | Skip Research | Skip Test | Review Gates | Auto-Approve | Parallel Exec |
 |------|---------------|-----------|--------------|--------------|---------------|
 | interactive | ✗ | ✗ | **Yes (stops)** | ✗ | ✗ |
-| auto | ✗ | ✗ | **No (skips)** | ✓ (score≥9.5) | ✓ (all phases) |
+| auto | ✗ | ✗ | **No (approval only)** | ✓ (score≥9.5) | ✓ (all phases) |
 | fast | ✓ | ✗ | Yes (stops) | ✗ | ✗ |
 | parallel | Optional | ✗ | Yes (stops) | ✗ | ✓ |
-| no-test | ✗ | ✓ | Yes (stops) | ✗ | ✗ |
+| no-test | ✗ | Policy-limited | Yes (stops) | ✗ | ✗ |
 | code | ✓ | ✗ | Yes (stops) | Per plan | Per plan |
 
 **Review Gates:** Human approval checkpoints between major steps (see `workflow-steps.md`).
 - All modes EXCEPT `auto` stop at review gates for human approval.
 - `auto` mode is the only mode that runs continuously without stopping.
+- Hard gates from `risk-and-gates.md` still apply in every mode.
+
+## Risk Hints
+
+Use these quick hints before work starts:
+
+- `low`: docs-only, comments, copy, harmless config cleanup, UI polish with no behavior change
+- `medium`: most feature work, non-trivial bugfixes, logic updates, multi-file behavior changes
+- `high`: auth, billing, migrations, security, infra, regression-sensitive fixes, parallel work
+
+Escalate to `high` if:
+- the task runs in `parallel`
+- the task touches sensitive paths on `main`
+- the task changes behavior across 3+ files
+
+Reject or re-route `--no-test` requests when:
+- the task is `high` risk
+- the task is a bugfix with behavior changes
+- the request affects security, infra, database, auth, or payments
 
 ## Examples
 
@@ -83,13 +116,13 @@ Detect multiple features from natural language:
 → Mode: fast (explicit flag, stops at review gates)
 
 "/cook implement everything --auto"
-→ Mode: auto (NO STOPS, implements all phases continuously)
+→ Mode: auto (no approval-gate stops; hard gates may still pause or escalate)
 
 "/cook implement dashboard trust me"
-→ Mode: auto ("trust me" keyword, NO STOPS)
+→ Mode: auto ("trust me" keyword, no approval-gate stops)
 ```
 
-**Note:** Only `--auto` flag or "trust me"/"auto"/"yolo" keywords enable continuous execution.
+**Note:** Only `--auto` flag or "trust me"/"auto"/"yolo" keywords enable continuous execution. Continuous execution still respects hard gates.
 
 ## Conflict Resolution
 

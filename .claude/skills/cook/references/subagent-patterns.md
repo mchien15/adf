@@ -36,7 +36,7 @@ Task(subagent_type="ui-ux-designer", prompt="Implement [feature] UI per ./docs/d
 
 ## Testing
 ```
-Task(subagent_type="tester", prompt="Run test suite for plan phase [phase-name]", description="Test [phase]")
+Task(subagent_type="tester", prompt="Run test suite for plan phase [phase-name]. Verify red/green evidence when policy requires and report exact proof used.", description="Test [phase]")
 ```
 - Must achieve 100% pass rate
 
@@ -49,12 +49,12 @@ Task(subagent_type="debugger", prompt="Analyze failures: [details]", description
 
 ## Code Review
 ```
-Task(subagent_type="code-reviewer", prompt="Review changes for [phase]. Check security, performance, YAGNI/KISS/DRY. Return score (X/10), critical, warnings, suggestions.", description="Review [phase]")
+Task(subagent_type="code-reviewer", prompt="Review changes for [phase]. Consume the provided Step 5 plan-conformance result, challenge it only if evidence conflicts, then review security, performance, YAGNI/KISS/DRY. Return score (X/10), critical, warnings, suggestions.", description="Review [phase]")
 ```
 
 ## Project Management
 ```
-Task(subagent_type="project-manager", prompt="Run full sync-back in [plan-path]: reconcile completed tasks with all phase files, backfill stale completed checkboxes across all phases, update plan.md status/progress, and report unresolved mappings.", description="Update plan")
+Task(subagent_type="project-manager", prompt="Run full sync-back in [plan-path]: reconcile completed tasks with all phase files, backfill stale completed checkboxes across all phases, update plan.md status/progress, and report unresolved mappings. Include final verification evidence status in the summary.", description="Update plan")
 ```
 
 ## Documentation
@@ -64,7 +64,7 @@ Task(subagent_type="docs-manager", prompt="Update docs for [phase]. Changed file
 
 ## Git Operations
 ```
-Task(subagent_type="git-manager", prompt="Stage and commit changes with conventional commit message", description="Commit changes")
+Task(subagent_type="git-manager", prompt="Prepare git closeout options. Stage and commit with a conventional commit message only if the user or mode already approved git actions.", description="Git closeout")
 ```
 
 ## Parallel Execution
@@ -73,3 +73,4 @@ Task(subagent_type="fullstack-developer", prompt="Implement [phase-file] with fi
 ```
 - Launch multiple for parallel phases
 - Include file ownership boundaries
+- Mention current risk level and isolation expectation for the phase

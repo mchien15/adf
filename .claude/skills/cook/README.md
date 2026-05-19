@@ -34,12 +34,15 @@ The skill automatically detects your intent and routes to the appropriate workfl
 /cook implement dashboard trust me
 /cook implement feature --auto
 
+# Auto still verifies before completion
+/cook plans/260519-auth/plan.md --auto
+
 # Parallel mode (multi-agent)
 /cook implement auth, payments, notifications
 /cook implement feature --parallel
 
-# No-test mode
-/cook implement feature --no-test
+# No-test mode (low-risk only)
+/cook update docs copy --no-test
 ```
 
 ## Modes
@@ -47,10 +50,10 @@ The skill automatically detects your intent and routes to the appropriate workfl
 | Mode | Research | Testing | Review | Use Case |
 |------|----------|---------|--------|----------|
 | interactive | ✓ | ✓ | User approval | Default, full control |
-| auto | ✓ | ✓ | Auto if score≥9.5 | Trusted, hands-off |
+| auto | ✓ | ✓ | Approval gates skipped, hard gates stay on | Trusted, hands-off |
 | fast | ✗ | ✓ | Simplified | Quick fixes |
 | parallel | Optional | ✓ | User approval | Multi-feature work |
-| no-test | ✓ | ✗ | User approval | Speed priority |
+| no-test | ✓ | Policy-limited skip | User approval | Low-risk speed priority |
 | code | ✗ | ✓ | User approval | Existing plans |
 
 ## Intent Detection
@@ -64,8 +67,16 @@ The skill detects mode from:
 ## Workflow
 
 ```
-[Intent Detection] → [Research?] → [Plan] → [Implement] → [Test?] → [Review] → [Finalize]
+[Detect + Risk + Isolation] → [Research?] → [Plan] → [Implement] → [Checkpoint?] → [Test?] → [Plan-Conformance] → [Review] → [Finalize + Verify]
 ```
+
+## New Guardrails
+
+- Verification before completion always runs, even in `--auto` and allowed `--no-test` flows
+- Medium/high-risk behavior work needs TDD evidence
+- High-risk work, and some medium-risk multi-file phases, trigger checkpoint review
+- `--no-test` is not a universal bypass
+- Plan-conformance is checked before final code-quality review
 
 ## Files
 
@@ -75,6 +86,7 @@ cook/
 ├── README.md                          # This file
 └── references/
     ├── intent-detection.md            # Detection rules
+    ├── risk-and-gates.md              # Risk policy and hard gates
     ├── workflow-steps.md              # Step definitions
     ├── review-cycle.md                # Review process
     └── subagent-patterns.md           # Subagent usage
@@ -82,5 +94,6 @@ cook/
 
 ## Version
 
+2.2.0 - Added risk-based gates, checkpoint review, plan-conformance, and mandatory verification
 2.1.0 - Review gates added for human-in-the-loop mode
 2.0.0 - Smart intent detection (hybrid approach)
