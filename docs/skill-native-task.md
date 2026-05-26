@@ -142,11 +142,21 @@ Step 3.4 (addBlockedBy: [P2-id])   ← critical steps share phase dependency
 1. `cook` verifies delivered scope against the approved plan/task
 2. Result is passed into final code review, not skipped in `--auto`
 
-**Step 7 Finalize:**
-1. Spawn `project-manager` agent để chạy full-plan sync-back (sweep all phases + backfill stale completed items)
-2. Spawn `docs-manager` agent để decide/update `./docs` if changes warrant
-3. Spawn `git-manager` agent để prepare closeout; commit/push only when git actions are already approved
-4. Sync checkboxes `[ ]` → `[x]` across all phase files, rồi update `plan.md`
+**Step 6 Finalize (Delegation Gate):**
+
+Cook evaluates a **binary decision gate** before finalization:
+
+- **Gate TRUE (Inline)**: Skip delegation; immediately invoke `git-manager` for closeout
+  - When: Scope fully matches plan, zero doc changes, straightforward git state
+  - Outcome: Fast finalization inline, single subagent (`git-manager`)
+  
+- **Gate FALSE (Delegated)**: Route to full finalization pipeline
+  - When: Scope deviation, doc changes detected, complex git state, or unclear boundaries
+  - Agents: Spawn `project-manager` (full-plan sync-back), `docs-manager` (docs eval), `git-manager` (closeout)
+  - Process: Sync checkboxes `[ ]` → `[x]` across all phase files, update `plan.md`
+
+**Critical:** Cook prints decision line BEFORE any tool call. Decision is invalid if reasoning contains forbidden justifications (fake mocks, assertion changes, etc.). See cook skill `SKILL.md` → "Step 6 Delegation Gate" for full gate criteria.
+
 5. `TaskUpdate` marks session tasks complete after sync-back confirmation
 
 **Same-Session Handoff:**
