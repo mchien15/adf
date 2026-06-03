@@ -160,6 +160,7 @@ adf all --git-profile cmc
 
 > **Git profiles:** If `--git-profile` is omitted, `adf` is used by default. Available profiles: `adf`, `cmc`.
 > **Shorthand:** A trailing known profile name is treated as `--git-profile`, so `adf opencode cmc` works like `adf opencode --git-profile cmc`.
+> **CMC profile & docs:** Under `cmc`, ADF writes its generated docs to `./.adf/docs/` (code-level only: `codebase-summary.md`, `code-standards.md`, `documentation-index.md`) instead of `docs/`, leaving the company's curated `docs/` knowledge base untouched. The installer ships `./.adf/.gitignore` so `.adf/docs/` is committed while `payload/`, `backups/`, and `state/` stay untracked. **Do not add `.adf/` to your repo-root `.gitignore`** — git will not descend into an excluded directory to re-include `docs/`, so `.adf/docs/` would silently never be committed.
 > **Safety:** Use `adf <tool> --dry-run` to preview changes. Legacy root-copy installs require `--adopt-legacy` before ADF will take ownership.
 
 ### Installer Behavior

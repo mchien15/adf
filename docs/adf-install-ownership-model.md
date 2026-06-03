@@ -7,9 +7,11 @@ ADF now installs its canonical payload under `./.adf/payload/` and generates roo
 ```text
 repo/
 ├── .adf/
-│   ├── payload/         # Canonical installed ADF files
-│   ├── manifest.json    # Managed-path ownership + install metadata
-│   └── backups/         # Local rollback snapshots
+│   ├── payload/         # Canonical installed ADF files (not committed)
+│   ├── manifest.json    # Managed-path ownership + install metadata (not committed)
+│   ├── backups/         # Local rollback snapshots (not committed)
+│   ├── docs/            # (cmc profile) ADF generated docs — COMMITTED
+│   └── .gitignore       # Installer-managed: ignores payload/backups/state, keeps docs/ tracked
 ├── .claude/            # Canonical Claude-facing payload copied from .adf/payload
 ├── .agent/             # Generated compatibility files for Antigravity
 ├── .codex/agents/      # Generated Codex custom agents from .adf/payload/.claude/agents
@@ -18,6 +20,12 @@ repo/
 ├── CLAUDE.md           # Managed block injection
 └── AGENTS.md           # Managed block injection
 ```
+
+## CMC Profile Docs Path
+
+Under the `cmc` git-profile, ADF sets `paths.docs = .adf/docs` and `docs.codeLevelOnly = true` (shipped in `profiles/cmc/.claude/config/adf-config.json`, deep-merged into the base config at install). Generated docs go to `./.adf/docs/` so they never collide with CMC's curated company `docs/` tree, and only code-level docs are produced (`codebase-summary.md`, `code-standards.md`, `documentation-index.md`); architecture/PRD/FSD/use-cases are deferred to the company `docs/` tree.
+
+The installer writes a scoped `./.adf/.gitignore` (`/*`, `!/.gitignore`, `!/docs/`) so `.adf/docs/` is committed while install machinery is not. **Caveat:** this requires the repo-root `.gitignore` to NOT blanket-ignore `.adf/`; the installer prints a warning when it detects such a rule.
 
 ## Ownership Modes
 

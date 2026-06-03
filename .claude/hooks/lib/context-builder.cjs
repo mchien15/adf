@@ -401,12 +401,16 @@ function buildModularizationSection() {
  * @param {number} [params.docsMaxLoc=800] - Max lines of code for docs
  * @returns {string[]} Lines for paths section
  */
-function buildPathsSection({ reportsPath, plansPath, docsPath, docsMaxLoc = 800 }) {
-  return [
+function buildPathsSection({ reportsPath, plansPath, docsPath, docsMaxLoc = 800, docsCodeLevelOnly = false }) {
+  const lines = [
     `## Paths`,
     `Reports: ${reportsPath} | Plans: ${plansPath}/ | Docs: ${docsPath}/ | docs.maxLoc: ${docsMaxLoc}`,
-    ``
   ];
+  if (docsCodeLevelOnly) {
+    lines.push(`- **Docs mode: code-level only (cmc profile)** — generate ONLY \`codebase-summary.md\`, \`code-standards.md\`, and \`documentation-index.md\` in the Docs path. Do NOT (re)generate architecture, PRD/overview, FSD, or use-cases — the company \`docs/\` tree owns those; cross-link to them from the index instead.`);
+  }
+  lines.push(``);
+  return lines;
 }
 
 /**
@@ -476,6 +480,7 @@ function buildReminder(params) {
     plansPath,
     docsPath,
     docsMaxLoc,
+    docsCodeLevelOnly,
     planLine,
     gitBranch,
     namePattern,
@@ -498,7 +503,7 @@ function buildReminder(params) {
     ...(usageEnabled ? buildUsageSection() : []),
     ...buildRulesSection({ devRulesPath, catalogScript, skillsVenv, plansPath, docsPath }),
     ...buildModularizationSection(),
-    ...buildPathsSection({ reportsPath, plansPath, docsPath, docsMaxLoc }),
+    ...buildPathsSection({ reportsPath, plansPath, docsPath, docsMaxLoc, docsCodeLevelOnly }),
     ...buildPlanContextSection({ planLine, reportsPath, gitBranch, validationMode, validationMin, validationMax }),
     ...buildNamingSection({ reportsPath, plansPath, namePattern })
   ];
@@ -549,6 +554,7 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
     plansPath: effectiveBaseDir ? path.join(effectiveBaseDir, plansPathRel) : plansPathRel,
     docsPath: effectiveBaseDir ? path.join(effectiveBaseDir, docsPathRel) : docsPathRel,
     docsMaxLoc: Math.max(1, parseInt(cfg.docs?.maxLoc, 10) || 800),
+    docsCodeLevelOnly: cfg.docs?.codeLevelOnly === true,
     planLine: planCtx.planLine,
     gitBranch: planCtx.gitBranch,
     namePattern: planCtx.namePattern,
@@ -576,7 +582,7 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
       usage: usageEnabled ? buildUsageSection() : [],
       rules: buildRulesSection({ devRulesPath, catalogScript, skillsVenv, plansPath: params.plansPath, docsPath: params.docsPath }),
       modularization: buildModularizationSection(),
-      paths: buildPathsSection({ reportsPath: params.reportsPath, plansPath: params.plansPath, docsPath: params.docsPath, docsMaxLoc: params.docsMaxLoc }),
+      paths: buildPathsSection({ reportsPath: params.reportsPath, plansPath: params.plansPath, docsPath: params.docsPath, docsMaxLoc: params.docsMaxLoc, docsCodeLevelOnly: params.docsCodeLevelOnly }),
       planContext: buildPlanContextSection(planCtx),
       naming: buildNamingSection({ reportsPath: params.reportsPath, plansPath: params.plansPath, namePattern: params.namePattern })
     }

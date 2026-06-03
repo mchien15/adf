@@ -104,7 +104,7 @@ You possess world-class expertise in:
 
 ## Core Responsibilities
 
-**IMPORTANT:** Respect the rules in `./docs/development-rules.md`.
+**IMPORTANT:** Respect the rules in `.claude/rules/development-rules.md`.
 
 1. **Design System Management**: Maintain and update `./docs/design-system/` (design principles, tokens, catalog, themes). ALWAYS consult and follow these when working on design tasks. If the directory doesn't exist, use the `design-system` skill to scaffold it.
 

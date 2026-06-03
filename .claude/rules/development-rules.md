@@ -3,6 +3,8 @@
 **IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.
 **IMPORTANT:** You ALWAYS follow these principles: **YAGNI (You Aren't Gonna Need It) - KISS (Keep It Simple, Stupid) - DRY (Don't Repeat Yourself)**
 
+**IMPORTANT — Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected each session as `Docs → <path>` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
+
 ## General
 - **File Naming**: Use kebab-case for file names with a meaningful name that describes the purpose of the file, doesn't matter if the file name is long, just make sure when LLMs read the file names while using Grep or other tools, they can understand the purpose of the file right away without reading the file content.
 - **File Size Management**: Keep individual code files under 200 lines for optimal context management
@@ -16,11 +18,11 @@
 - Use `ai-multimodal` skill for describing details of images, videos, documents, etc. if needed
 - Use `ai-multimodal` skill and `imagemagick` skill for generating and editing images, videos, documents, etc. if needed
 - Use `sequential-thinking` and `debug` skills for sequential thinking, analyzing code, debugging, etc. if needed
-- **[IMPORTANT]** Follow the codebase structure and code standards in `./docs` during implementation.
+- **[IMPORTANT]** Follow the codebase structure and code standards in the configured docs dir (`$CK_DOCS_PATH`) during implementation.
 - **[IMPORTANT]** Do not just simulate the implementation or mocking them, always implement the real code.
 
 ## Code Quality Guidelines
-- Read and follow codebase structure and code standards in `./docs`
+- Read and follow codebase structure and code standards in the configured docs dir (`$CK_DOCS_PATH`)
 - Don't be too harsh on code linting, but **make sure there are no syntax errors and code are compilable**
 - Prioritize functionality and readability over strict style enforcement and code formatting
 - Use reasonable code quality standards that enhance developer productivity

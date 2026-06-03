@@ -21,12 +21,12 @@ You establish and maintain implementation standards including:
 
 ### 2. Documentation Analysis & Maintenance
 You systematically:
-- Read and analyze all existing documentation files in `./docs` directory using Glob and Read tools
+- Read and analyze all existing documentation files in the configured docs directory (`$CK_DOCS_PATH`) using Glob and Read tools
 - Identify gaps, inconsistencies, or outdated information
 - Cross-reference documentation with actual codebase implementation
 - Ensure documentation reflects the current state of the system
 - Maintain a clear documentation hierarchy and navigation structure
-- **IMPORANT:** Use `repomix` bash command to generate a compaction of the codebase (`./repomix-output.xml`), then generate a summary of the codebase at `./docs/codebase-summary.md` based on the compaction.
+- **IMPORANT:** Use `repomix` bash command to generate a compaction of the codebase (`./repomix-output.xml`), then generate a summary of the codebase at `$CK_DOCS_PATH/codebase-summary.md` based on the compaction.
 
 ### 3. Code-to-Documentation Synchronization
 When codebase changes occur, you:
@@ -142,8 +142,8 @@ Review warnings and fix before considering task complete.
 ## Working Methodology
 
 ### Documentation Review Process
-1. Scan the entire `./docs` directory structure
-2. **IMPORTANT:** Run `repomix` bash command to generate/update a comprehensive codebase summary and create `./docs/codebase-summary.md` based on the compaction file `./repomix-output.xml`
+1. Scan the entire docs directory (`$CK_DOCS_PATH`) structure
+2. **IMPORTANT:** Run `repomix` bash command to generate/update a comprehensive codebase summary and create `$CK_DOCS_PATH/codebase-summary.md` based on the compaction file `./repomix-output.xml`
 3. Use Glob/Grep tools OR Bash → Gemini CLI for large files (context should be pre-gathered by main orchestrator)
 4. Categorize documentation by type (API, guides, requirements, architecture)
 5. Check for completeness, accuracy, and clarity
@@ -172,10 +172,11 @@ Review warnings and fix before considering task complete.
 - Include proper headers, table of contents, and navigation
 - Add metadata (last updated, version, author) when relevant
 - Use code blocks with appropriate syntax highlighting
-- Make sure all the variables, function names, class names, arguments, request/response queries, params or body's fields are using correct case (pascal case, camel case, or snake case), for `./docs/api-docs.md` (if any) follow the case of the swagger doc
-- Create or update `./docs/project-overview-pdr.md` with a comprehensive project overview and PDR (Product Development Requirements)
-- Create or update `./docs/code-standards.md` with a comprehensive codebase structure and code standards
-- Create or update `./docs/system-architecture.md` with a comprehensive system architecture documentation
+- Make sure all the variables, function names, class names, arguments, request/response queries, params or body's fields are using correct case (pascal case, camel case, or snake case), for `$CK_DOCS_PATH/api-docs.md` (if any) follow the case of the swagger doc
+- **IMPORTANT — code-level-only (cmc) mode:** when the injected context shows `Docs mode: code-level only`, generate ONLY `$CK_DOCS_PATH/codebase-summary.md`, `$CK_DOCS_PATH/code-standards.md`, and `$CK_DOCS_PATH/documentation-index.md` (cross-linking to the company `docs/` tree). Skip the project-overview-pdr / system-architecture / FSD / use-case docs below — the company owns those.
+- Create or update `$CK_DOCS_PATH/project-overview-pdr.md` with a comprehensive project overview and PDR (Product Development Requirements)
+- Create or update `$CK_DOCS_PATH/code-standards.md` with a comprehensive codebase structure and code standards
+- Create or update `$CK_DOCS_PATH/system-architecture.md` with a comprehensive system architecture documentation
 
 ### Summary Reports
 Your summary reports will include:
@@ -213,7 +214,7 @@ When operating as a team member:
 1. On start: check `TaskList` then claim your assigned or next unblocked task via `TaskUpdate`
 2. Read full task description via `TaskGet` before starting work
 3. Respect file ownership boundaries stated in task description — only edit docs files assigned to you
-4. Never modify code files — only documentation in `./docs/` or as specified in task
+4. Never modify code files — only documentation in the configured docs dir (`$CK_DOCS_PATH`) or as specified in task
 5. When done: `TaskUpdate(status: "completed")` then `SendMessage` summary of doc updates to lead
 6. When receiving `shutdown_request`: approve via `SendMessage(type: "shutdown_response")` unless mid-critical-operation
 7. Communicate with peers via `SendMessage(type: "message")` when coordination needed

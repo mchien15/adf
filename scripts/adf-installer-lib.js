@@ -118,6 +118,67 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + '\n', 'utf8');
 }
 
+// Deep-merge plain objects (arrays/scalars from `overlay` win). Used so a git-profile
+// overlay can ship a PARTIAL adf-config.json without clobbering base config keys.
+function deepMerge(base, overlay) {
+  if (!isPlainObject(base) || !isPlainObject(overlay)) return overlay;
+  const result = { ...base };
+  for (const key of Object.keys(overlay)) {
+    result[key] = isPlainObject(result[key]) && isPlainObject(overlay[key])
+      ? deepMerge(result[key], overlay[key])
+      : overlay[key];
+  }
+  return result;
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+// Merge a profile-overlay adf-config.json INTO the staged base config (deep), preserving
+// base keys (statusline, plan, docs.maxLoc, ...) while applying overlay overrides (paths.docs).
+function mergeOverlayConfig(baseConfigPath, overlayConfigPath) {
+  const overlay = readJson(overlayConfigPath, null);
+  if (!overlay) return;
+  const base = readJson(baseConfigPath, {});
+  writeJson(baseConfigPath, deepMerge(base, overlay));
+}
+
+// Write a scoped .adf/.gitignore (write-if-absent) so install machinery stays untracked
+// while .adf/docs/ (cmc-profile generated docs) is committed. Whitelist is harmless in the
+// default profile (no .adf/docs/ exists there). Caveat: requires the repo root .gitignore to
+// NOT blanket-ignore .adf/ — git will not descend into an excluded dir to re-include docs/.
+function ensureAdfGitignore(context) {
+  const gitignorePath = repoPath(context, '.adf/.gitignore');
+  if (fs.existsSync(gitignorePath)) return; // respect a user-owned override
+  fs.mkdirSync(path.dirname(gitignorePath), { recursive: true });
+  fs.writeFileSync(gitignorePath, ['/*', '!/.gitignore', '!/docs/', ''].join('\n'), 'utf8');
+}
+
+// True if the repo-root gitignore text blanket-ignores the whole .adf/ directory (e.g. ".adf",
+// ".adf/", "/.adf"). Such a rule defeats the scoped .adf/.gitignore whitelist: git will not
+// descend into an excluded directory to re-include .adf/docs/, so generated docs never commit.
+// Sub-path rules like ".adf/payload" are intentionally NOT flagged.
+function rootIgnoresAdf(gitignoreText) {
+  return gitignoreText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .some((line) => /^\/?\.adf\/?$/.test(line));
+}
+
+// cmc profile only: ADF generated docs live at .adf/docs/. Surface where docs go, note that an
+// existing root docs/ is left untouched, and warn if the root .gitignore would swallow .adf/docs/.
+function warnCmcDocsSetup(context, gitProfile) {
+  if (gitProfile !== 'cmc') return;
+  info('cmc profile: ADF generates code-level docs into .adf/docs/ (company docs/ left untouched).');
+  info('Any existing root docs/ from a previous install is left as-is — move it manually if desired.');
+  const rootIgnore = repoPath(context, '.gitignore');
+  if (fs.existsSync(rootIgnore) && rootIgnoresAdf(fs.readFileSync(rootIgnore, 'utf8'))) {
+    warn('Root .gitignore blanket-ignores .adf/ — this prevents .adf/docs/ from being committed.');
+    warn('Remove that rule; ADF manages .adf/.gitignore (keeps docs/ tracked, ignores payload/backups/state).');
+  }
+}
+
 function sha256Text(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
@@ -272,10 +333,21 @@ function stagePayload(context, gitProfile, dryRun) {
 
   const overlayRoot = resolveOverlayRoot(context, gitProfile);
   if (overlayRoot) {
+    const configRel = path.join('config', 'adf-config.json');
     for (const area of ['.claude', '.agent']) {
       const source = path.join(overlayRoot, area);
       const target = path.join(paths.nextPayload, area);
-      if (fs.existsSync(source)) fs.cpSync(source, target, { recursive: true, dereference: false, force: true });
+      if (!fs.existsSync(source)) continue;
+      // Copy everything EXCEPT config/adf-config.json verbatim; that file is deep-merged
+      // below so a partial overlay config does not clobber base config keys.
+      fs.cpSync(source, target, {
+        recursive: true,
+        dereference: false,
+        force: true,
+        filter: (src) => path.relative(source, src) !== configRel,
+      });
+      const overlayConfig = path.join(source, configRel);
+      if (fs.existsSync(overlayConfig)) mergeOverlayConfig(path.join(target, configRel), overlayConfig);
     }
   }
 
@@ -638,6 +710,10 @@ function runInstall(context, command, options) {
     }
 
     const installMode = requestedCommand === 'repair' ? manifest && manifest.installMode : requestedCommand;
+    // Preserve the installed git profile on repair (don't silently downgrade cmc -> adf default).
+    const effectiveGitProfile = requestedCommand === 'repair' && manifest && manifest.gitProfile
+      ? manifest.gitProfile
+      : options.gitProfile;
     if (requestedCommand === 'repair') {
       if (!manifest) fail('Repair requires an existing .adf/manifest.json');
       const repairGenerated = staged.payloadGenerated;
@@ -670,8 +746,10 @@ function runInstall(context, command, options) {
     for (const entry of removals) removeManagedEntry(context, entry);
     for (const entry of plan) if (entry.status !== 'unchanged') writeRootEntry(context, entry);
     if (staged.nextPayload) finalizePayload(staged);
+    ensureAdfGitignore(context);
+    warnCmcDocsSetup(context, effectiveGitProfile);
 
-    const manifestValue = buildManifest(context, installMode, options.gitProfile, backupId, desiredEntries(installMode, payloadStatePaths(context)), legacy.length > 0);
+    const manifestValue = buildManifest(context, installMode, effectiveGitProfile, backupId, desiredEntries(installMode, payloadStatePaths(context)), legacy.length > 0);
     writeJson(repoPath(context, '.adf/manifest.json'), manifestValue);
     success(`Done! Installed ${installMode} compatibility via .adf payload`);
   } finally {
@@ -703,4 +781,4 @@ function main(argv = process.argv.slice(2), env = process.env) {
   }
 }
 
-module.exports = { main, createInstallerContext };
+module.exports = { main, createInstallerContext, deepMerge, mergeOverlayConfig, ensureAdfGitignore, rootIgnoresAdf };
