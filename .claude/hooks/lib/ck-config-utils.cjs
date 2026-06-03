@@ -39,7 +39,8 @@ const DEFAULT_CONFIG = {
     plans: 'plans'
   },
   docs: {
-    maxLoc: 800  // Maximum lines of code per doc file before warning
+    maxLoc: 800,  // Maximum lines of code per doc file before warning
+    codeLevelOnly: false  // cmc profile: generate only code-level docs (codebase-summary, code-standards); defer arch/PRD/FSD/use-cases to the company docs/ tree
   },
   locale: {
     thinkingLanguage: null,  // Language for reasoning (e.g., "en" for precision)

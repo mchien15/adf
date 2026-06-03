@@ -1,0 +1,8 @@
+{
+  "paths": {
+    "docs": ".adf/docs"
+  },
+  "docs": {
+    "codeLevelOnly": true
+  }
+}

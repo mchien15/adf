@@ -38,9 +38,9 @@ Parse `$ARGUMENTS` first word:
 
 ## Shared Context
 
-Documentation lives in `./docs` directory:
+Documentation lives in the configured docs directory (`$CK_DOCS_PATH` — default `docs/`, `cmc` git-profile `.adf/docs/`):
 ```
-./docs
+$CK_DOCS_PATH
 ├── project-overview-pdr.md
 ├── code-standards.md
 ├── codebase-summary.md
@@ -50,6 +50,8 @@ Documentation lives in `./docs` directory:
 └── project-roadmap.md
 ```
 
-Use `docs/` directory as the source of truth for documentation.
+Use the configured docs directory (`$CK_DOCS_PATH`) as the source of truth for documentation.
+
+**Code-level-only (cmc) mode:** when the injected context shows `Docs mode: code-level only`, generate ONLY `codebase-summary.md`, `code-standards.md`, and `documentation-index.md`. Do NOT (re)generate architecture, PRD/overview, FSD, or use-cases — the company `docs/` tree owns those; cross-link to them from `documentation-index.md` instead.
 
 **IMPORTANT**: **Do not** start implementing code.

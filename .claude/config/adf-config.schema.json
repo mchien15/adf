@@ -24,6 +24,11 @@
           "maximum": 5000,
           "default": 800,
           "description": "Maximum lines of code per documentation file"
+        },
+        "codeLevelOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Generate only code-level docs (codebase-summary, code-standards, documentation-index); defer architecture/PDR/FSD/use-cases to company docs tree"
         }
       },
       "additionalProperties": false

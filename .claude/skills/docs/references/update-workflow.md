@@ -11,8 +11,8 @@
 
 **You (main agent) must spawn readers** - subagents cannot spawn subagents.
 
-1. Count docs: `ls docs/*.md 2>/dev/null | wc -l`
-2. Get LOC: `wc -l docs/*.md 2>/dev/null | sort -rn`
+1. Count docs: `ls "$CK_DOCS_PATH"/*.md 2>/dev/null | wc -l`
+2. Get LOC: `wc -l "$CK_DOCS_PATH"/*.md 2>/dev/null | sort -rn`
 3. Strategy:
    - 1-3 files: Skip parallel reading, docs-manager reads directly
    - 4-6 files: Spawn 2-3 `Explore` agents
@@ -27,15 +27,17 @@
 
 Pass the gathered context to docs-manager agent to update documentation:
 - `README.md`: Update README (keep it under 300 lines)
-- `docs/project-overview-pdr.md`: Update project overview and PDR
-- `docs/codebase-summary.md`: Update codebase summary
-- `docs/code-standards.md`: Update codebase structure and code standards
-- `docs/system-architecture.md`: Update system architecture
-- `docs/project-roadmap.md`: Update project roadmap
-- `docs/deployment-guide.md` [optional]: Update deployment guide
-- `docs/design-system/design-principles.md` [optional]: Update design principles
-- `docs/project-fsd.md` [if exists]: Check FSD staleness — if new modules/features in code lack FSD coverage, flag and suggest running `/specs update`
-- `docs/usecases/` [if exists]: Check for orphaned use cases or missing coverage
+- `$CK_DOCS_PATH/project-overview-pdr.md`: Update project overview and PDR
+- `$CK_DOCS_PATH/codebase-summary.md`: Update codebase summary
+- `$CK_DOCS_PATH/code-standards.md`: Update codebase structure and code standards
+- `$CK_DOCS_PATH/system-architecture.md`: Update system architecture
+- `$CK_DOCS_PATH/project-roadmap.md`: Update project roadmap
+- `$CK_DOCS_PATH/deployment-guide.md` [optional]: Update deployment guide
+- `$CK_DOCS_PATH/design-system/design-principles.md` [optional]: Update design principles
+- `$CK_DOCS_PATH/project-fsd.md` [if exists]: Check FSD staleness — if new modules/features in code lack FSD coverage, flag and suggest running `/specs update`
+- `$CK_DOCS_PATH/usecases/` [if exists]: Check for orphaned use cases or missing coverage
+
+**Code-level-only (cmc) mode:** when the injected context shows `Docs mode: code-level only`, update ONLY `$CK_DOCS_PATH/codebase-summary.md`, `$CK_DOCS_PATH/code-standards.md`, and `$CK_DOCS_PATH/documentation-index.md`. The company `docs/` tree owns overview-pdr / system-architecture / roadmap / FSD / use-cases — do not regenerate them; cross-link instead.
 
 ## Additional requests
 <additional_requests>
@@ -45,17 +47,17 @@ Pass the gathered context to docs-manager agent to update documentation:
 ## Phase 3: Size Check (Post-Update)
 
 After docs-manager completes:
-1. Run `wc -l docs/*.md 2>/dev/null | sort -rn` to check LOC
+1. Run `wc -l "$CK_DOCS_PATH"/*.md 2>/dev/null | sort -rn` to check LOC
 2. Use `docs.maxLoc` from session context (default: 800)
 3. For files exceeding limit: report and ask user
 
 ## Phase 4: Documentation Validation (Post-Update)
 
 Run validation to detect potential hallucinations:
-1. Run: `node .claude/scripts/validate-docs.cjs docs/`
+1. Run: `node .claude/scripts/validate-docs.cjs "$CK_DOCS_PATH/"`
 2. Display validation report (warnings only, non-blocking)
 3. Checks: code references, internal links, config keys
 
 ## Important
-- Use `docs/` directory as the source of truth.
+- Use the configured docs directory (`$CK_DOCS_PATH`) as the source of truth.
 - **Do not** start implementing.

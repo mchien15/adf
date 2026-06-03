@@ -12,6 +12,14 @@ Agentic Development Framework (ADF) is an AI-powered development orchestration f
 
 ## Version History
 
+### Unreleased
+
+**CMC docs-path convention:**
+- `cmc` git-profile now relocates ADF generated docs to `./.adf/docs/` (code-level only), leaving the company's curated `docs/` knowledge base untouched. Toggled via the existing `--git-profile cmc` (no new flag); ships a partial `adf-config.json` overlay (`paths.docs=.adf/docs`, `docs.codeLevelOnly=true`) deep-merged at install.
+- Installer ships scoped `./.adf/.gitignore` (keeps `.adf/docs/` tracked, ignores payload/backups/state) and warns if the repo-root `.gitignore` blanket-ignores `.adf/`.
+- **Sticky git profile:** re-installs/`repair` now keep the previously-installed profile (from `.adf/manifest.json`) instead of silently reverting to `adf`; an explicit `--git-profile` still overrides. Makes updating existing cmc projects safe.
+- Agent/skill/rule docs references made config-aware (`$CK_DOCS_PATH`); added `scripts/check-docs-path-refs.sh` regression gate. Fixed a pre-existing mispath (`./docs/development-rules.md` → `.claude/rules/development-rules.md`) in planner/ui-ux-designer agents.
+
 ### v0.0.1 — Initial Release (2026-03-16)
 
 First public release. Includes full agent orchestration, skills library, hook system, and documentation pipeline.

@@ -120,7 +120,7 @@ Mark tasks complete, add next steps.
 
 - Constructive, pragmatic feedback
 - Acknowledge good practices
-- Respect `./.claude/rules/development-rules.md` and `./docs/code-standards.md`
+- Respect `./.claude/rules/development-rules.md` and `$CK_DOCS_PATH/code-standards.md`
 - No AI attribution in code/commits
 - Security best practices priority
 - **Verify plan TODO list completion**
