@@ -11,8 +11,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { deepMerge, mergeOverlayConfig, ensureAdfGitignore, rootIgnoresAdf, createInstallerContext } =
+const { deepMerge, mergeOverlayConfig, ensureAdfGitignore, rootIgnoresAdf, parseArgs, createInstallerContext } =
   require('../adf-installer-lib.js');
+
+// Context whose adfHome is this repo, so parseArgs can resolve known profiles (adf, cmc).
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const repoCtx = createInstallerContext({ ADF_HOME: REPO_ROOT });
 
 function tmpDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -82,4 +86,17 @@ test('rootIgnoresAdf flags only whole-.adf blanket rules', () => {
   for (const rule of ['.adf/payload', '.adf/backups/', '.adfx', 'docs/', '# .adf']) {
     assert.ok(!rootIgnoresAdf(`node_modules\n${rule}\n`), `should NOT flag: ${rule}`);
   }
+});
+
+test('parseArgs leaves gitProfile null when not specified (enables sticky resolution)', () => {
+  assert.strictEqual(parseArgs(repoCtx, []).gitProfile, null);
+  assert.strictEqual(parseArgs(repoCtx, ['claude']).gitProfile, null);
+});
+
+test('parseArgs sets gitProfile from --git-profile and from trailing shorthand', () => {
+  assert.strictEqual(parseArgs(repoCtx, ['claude', '--git-profile', 'cmc']).gitProfile, 'cmc');
+  assert.strictEqual(parseArgs(repoCtx, ['claude', '--git-profile=cmc']).gitProfile, 'cmc');
+  const shorthand = parseArgs(repoCtx, ['cmc']);
+  assert.strictEqual(shorthand.gitProfile, 'cmc');
+  assert.strictEqual(shorthand.command, 'claude');
 });

@@ -657,7 +657,9 @@ function runRollback(context, id) {
 }
 
 function parseArgs(context, argv) {
-  const options = { command: 'claude', dryRun: false, gitProfile: DEFAULT_PROFILE, adoptLegacy: false, rollbackId: 'latest' };
+  // gitProfile defaults to null (= "not specified") so runInstall can stay sticky to the installed
+  // profile; an explicit --git-profile or trailing shorthand sets it.
+  const options = { command: 'claude', dryRun: false, gitProfile: null, adoptLegacy: false, rollbackId: 'latest' };
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -683,7 +685,7 @@ function parseArgs(context, argv) {
     if (positional.length > 1) warn(`Profile shorthand detected; ignoring extra positionals: ${positional.slice(1).join(', ')}`);
     options.command = 'claude';
     options.gitProfile = first;
-  } else if (positional.length > 1 && options.gitProfile === DEFAULT_PROFILE && isKnownGitProfile(context, positional[1])) {
+  } else if (positional.length > 1 && !options.gitProfile && isKnownGitProfile(context, positional[1])) {
     options.gitProfile = positional[1];
     info(`Interpreting trailing argument '${positional[1]}' as --git-profile ${positional[1]}`);
   }
@@ -693,6 +695,10 @@ function parseArgs(context, argv) {
 function runInstall(context, command, options) {
   validateAdfHome(context);
   const manifest = currentManifest(context);
+  // Resolve the effective git profile: an explicit --git-profile wins; otherwise stay sticky to the
+  // profile recorded in the existing manifest (so re-installs/repair don't silently revert cmc → adf);
+  // otherwise fall back to the default profile for fresh installs.
+  const effectiveGitProfile = options.gitProfile || (manifest && manifest.gitProfile) || DEFAULT_PROFILE;
   let staged;
   try {
     const requestedCommand = command;
@@ -706,14 +712,10 @@ function runInstall(context, command, options) {
           : repoPath(context, '.adf/payload/.generated'),
       };
     } else {
-      staged = stagePayload(context, options.gitProfile, options.dryRun);
+      staged = stagePayload(context, effectiveGitProfile, options.dryRun);
     }
 
     const installMode = requestedCommand === 'repair' ? manifest && manifest.installMode : requestedCommand;
-    // Preserve the installed git profile on repair (don't silently downgrade cmc -> adf default).
-    const effectiveGitProfile = requestedCommand === 'repair' && manifest && manifest.gitProfile
-      ? manifest.gitProfile
-      : options.gitProfile;
     if (requestedCommand === 'repair') {
       if (!manifest) fail('Repair requires an existing .adf/manifest.json');
       const repairGenerated = staged.payloadGenerated;
@@ -781,4 +783,4 @@ function main(argv = process.argv.slice(2), env = process.env) {
   }
 }
 
-module.exports = { main, createInstallerContext, deepMerge, mergeOverlayConfig, ensureAdfGitignore, rootIgnoresAdf };
+module.exports = { main, createInstallerContext, parseArgs, deepMerge, mergeOverlayConfig, ensureAdfGitignore, rootIgnoresAdf };
