@@ -102,7 +102,7 @@ agentic-development-framework/
 - `/fix` - Bug fixes (--quick, --parallel, specialized: test, types, ui, ci, logs)
 - `/code-review` - Multi-pass automated review
 - `/docs` - Documentation generation and updates
-- `/git` - Conventional commits, PRs, branch management
+- `/git` - Conventional commits, PRs/MRs, branch management
 - `/scout` - Codebase exploration
 - `/specs` - Business analysis (init, analyze, update)
 - `/test-cases` - Test case generation and export (generate, update, export)
