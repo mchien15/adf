@@ -2,9 +2,10 @@
 # sync-claude-global.sh — Publish ADF framework source (~/adf/.claude) to the global
 # Claude config (~/.claude). One-way, manual trigger.
 #
-# Copies ONLY an allowlist of managed dirs/files. NEVER touches settings*.json,
-# agent-memory/, or runtime state (sessions, projects, history.jsonl, tasks, caches…).
-# settings.json is never written — only checked for drift. Works with macOS openrsync.
+# Copies ONLY an allowlist of managed dirs/files, skipping gitignored/runtime cruft inside
+# them (.gitignore'd files, .claude/, .logs/, .coverage, .DS_Store). NEVER touches
+# settings*.json, agent-memory/, or runtime state (sessions, projects, history.jsonl,
+# tasks, caches…). settings.json is never written — only checked for drift. macOS openrsync OK.
 #
 # Usage:  ./scripts/sync-claude-global.sh [--dry-run]
 # Env:    ADF_HOME   source repo root (default: $HOME/adf)
@@ -23,6 +24,13 @@ DEST="$HOME/.claude"
 MANAGED_DIRS=(skills agents rules hooks scripts config)
 # Managed single files — copied, never --delete.
 MANAGED_FILES=(statusline.cjs statusline.ps1 statusline.sh .env.example .mcp.json.example metadata.json)
+
+# Cruft never published to global, even though it lives inside managed dirs:
+#   --filter ':- .gitignore' → honor any in-tree .gitignore (build/coverage/log artifacts)
+#   .claude/  → stray nested dirs from tools run with a wrong CWD
+#   .logs/    → runtime hook/agent logs    .coverage → test artifacts    .DS_Store → macOS
+# Excluded paths are ALSO protected from --delete, so global's own runtime logs survive.
+EXCLUDES=(--filter=':- .gitignore' --exclude='.claude/' --exclude='.logs/' --exclude='.coverage' --exclude='.DS_Store')
 
 DRY_RUN=0
 
@@ -43,6 +51,7 @@ Env:
   ADF_HOME    Source repo root (default: \$HOME/adf). Source = \$ADF_HOME/.claude
 
 Syncs (allowlist): ${MANAGED_DIRS[*]} + managed root files.
+Skips in-dir cruft: .gitignore'd files, .claude/, .logs/, .coverage, .DS_Store.
 Never touches:     settings.json, settings.local.json, agent-memory/, and all runtime
                    state (sessions, projects, history.jsonl, tasks, caches…).
 settings.json:     never written — only checked for hooks/statusLine drift.
@@ -65,7 +74,7 @@ command -v rsync >/dev/null   || die "rsync required"
 
 # rsync option sets. Dirs get --delete; single files must NOT.
 # --out-format prints one line per changed path (verified on macOS openrsync + GNU rsync).
-DIR_OPTS=(-a --delete --out-format='%o %n')
+DIR_OPTS=(-a --delete "${EXCLUDES[@]}" --out-format='%o %n')
 FILE_OPTS=(-a --out-format='%o %n')
 if [[ $DRY_RUN -eq 1 ]]; then
   DIR_OPTS+=(--dry-run); FILE_OPTS+=(--dry-run)
