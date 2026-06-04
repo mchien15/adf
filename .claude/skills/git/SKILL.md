@@ -1,7 +1,7 @@
 ---
 name: git
 description: "Git operations with conventional commits. Use for staging, committing, pushing, PRs, merges. Auto-splits commits by type/scope. Security scans for secrets."
-argument-hint: "cm|cp|pr|merge [args]"
+argument-hint: "cm|cp|pr|mr|merge [args]"
 version: 1.0.0
 ---
 
@@ -15,7 +15,7 @@ If invoked without arguments, use `AskUserQuestion` to present available git ope
 |-----------|-------------|
 | `cm` | Stage files & create commits |
 | `cp` | Stage files, create commits and push |
-| `pr` | Create Pull Request |
+| `pr` / `mr` | Create Pull/Merge Request (auto-detect GitHub/GitLab) |
 | `merge` | Merge branches |
 
 Present as options via `AskUserQuestion` with header "Git Operation", question "What would you like to do?".
@@ -31,7 +31,8 @@ Activate `context-engineering` skill.
 ## Arguments
 - `cm`: Stage files & create commits
 - `cp`: Stage files, create commits and push
-- `pr`: Create Pull Request [to-branch] [from-branch]
+- `pr` / `mr`: Create Pull/Merge Request [to-branch] [from-branch]
+  - Provider auto-detected from remote (github→`gh`, gitlab→`glab`); the `pr`/`mr` keyword breaks ties on ambiguous/self-hosted hosts
   - `to-branch`: Target branch (default: main)
   - `from-branch`: Source branch (default: current branch)
 - `merge`: Merge [to-branch] [from-branch]
@@ -44,12 +45,13 @@ Activate `context-engineering` skill.
 |------|-----------|
 | Commit | `references/workflow-commit.md` |
 | Push | `references/workflow-push.md` |
-| Pull Request | `references/workflow-pr.md` |
+| Pull/Merge Request | `references/workflow-pr.md` |
 | Merge | `references/workflow-merge.md` |
 | Standards | `references/commit-standards.md` |
 | Safety | `references/safety-protocols.md` |
 | Branches | `references/branch-management.md` |
 | GitHub CLI | `references/gh-cli-guide.md` |
+| GitLab CLI | `references/glab-cli-guide.md` |
 
 ## Core Workflow
 
@@ -106,9 +108,10 @@ git commit -m "type(scope): description"
 
 - `references/workflow-commit.md` - Commit workflow with split logic
 - `references/workflow-push.md` - Push workflow with error handling
-- `references/workflow-pr.md` - PR creation with remote diff analysis
+- `references/workflow-pr.md` - PR/MR creation, provider auto-detect (gh/glab)
 - `references/workflow-merge.md` - Branch merge workflow
 - `references/commit-standards.md` - Conventional commit format rules
 - `references/safety-protocols.md` - Secret detection, branch protection
 - `references/branch-management.md` - Naming, lifecycle, strategies
 - `references/gh-cli-guide.md` - GitHub CLI commands reference
+- `references/glab-cli-guide.md` - GitLab CLI (glab) commands reference

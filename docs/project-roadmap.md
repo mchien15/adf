@@ -38,7 +38,7 @@ First public release. Includes full agent orchestration, skills library, hook sy
 - `/test` — test execution and coverage analysis
 - `/code-review` — multi-pass automated review with edge case scouting
 - `/debug` — root cause analysis and diagnostic reports
-- `/git` — conventional commits, PRs, branch management
+- `/git` — conventional commits, PRs/MRs, branch management
 - `/docs` — documentation generation and sync
 
 **Infrastructure:**
