@@ -178,6 +178,16 @@ adf repair
 adf rollback latest
 ```
 
+### Framework Development (Maintainers)
+
+To publish changes to `.claude/` (managed dirs: skills, agents, rules, hooks, scripts, config, plus statusline.* and metadata.json) to your global `~/.claude`:
+
+```bash
+./scripts/sync-claude-global.sh [--dry-run]
+```
+
+One-way publish via `rsync`. Never touches `settings.json`, `settings.local.json`, `agent-memory/`, or runtime state (sessions, projects, history.jsonl, tasks, caches). Run `--dry-run` first to preview. `ADF_HOME` defaults to `~/adf`.
+
 ---
 
 ### Using ADF
