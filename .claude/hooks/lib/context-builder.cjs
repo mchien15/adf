@@ -541,6 +541,10 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
   const effectiveBaseDir = baseDir || null;
   const plansPathRel = normalizePath(cfg.paths?.plans) || 'plans';
   const docsPathRel = normalizePath(cfg.paths?.docs) || 'docs';
+  // getReportsPath returns a trailing slash when it builds the relative form, and
+  // buildNamingSection concatenates a filename straight onto reportsPath. path.resolve
+  // strips trailing slashes, so restore one to keep that concatenation well-formed.
+  const withTrailingSlash = (p) => (p.endsWith('/') ? p : `${p}/`);
 
   // Build all parameters with absolute paths if baseDir provided
   const params = {
@@ -550,9 +554,13 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
     devRulesPath,
     catalogScript,
     skillsVenv,
-    reportsPath: effectiveBaseDir ? path.join(effectiveBaseDir, planCtx.reportsPath) : planCtx.reportsPath,
-    plansPath: effectiveBaseDir ? path.join(effectiveBaseDir, plansPathRel) : plansPathRel,
-    docsPath: effectiveBaseDir ? path.join(effectiveBaseDir, docsPathRel) : docsPathRel,
+    // resolve, not join: reportsPath carries an absolute active-plan path (Issue #335) and
+    // paths.* may be configured absolute — join would append them and double the prefix.
+    reportsPath: effectiveBaseDir
+      ? withTrailingSlash(path.resolve(effectiveBaseDir, planCtx.reportsPath))
+      : planCtx.reportsPath,
+    plansPath: effectiveBaseDir ? path.resolve(effectiveBaseDir, plansPathRel) : plansPathRel,
+    docsPath: effectiveBaseDir ? path.resolve(effectiveBaseDir, docsPathRel) : docsPathRel,
     docsMaxLoc: Math.max(1, parseInt(cfg.docs?.maxLoc, 10) || 800),
     docsCodeLevelOnly: cfg.docs?.codeLevelOnly === true,
     planLine: planCtx.planLine,

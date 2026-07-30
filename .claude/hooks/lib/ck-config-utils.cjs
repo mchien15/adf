@@ -600,9 +600,11 @@ function getReportsPath(planPath, resolvedBy, planConfig, pathsConfig, baseDir =
     reportPath = `${plansDir}/${reportsDir}`;
   }
 
-  // Return absolute path if baseDir provided
+  // Return absolute path if baseDir provided.
+  // resolve, not join: an active plan path is stored absolute (set-active-plan.cjs, Issue
+  // #335), and join would treat it as a segment — '/a/b' + '/a/b/c' = '/a/b/a/b/c'.
   if (baseDir) {
-    return path.join(baseDir, reportPath);
+    return path.resolve(baseDir, reportPath);
   }
   return reportPath + '/';
 }

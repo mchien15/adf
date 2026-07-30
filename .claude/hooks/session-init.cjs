@@ -228,10 +228,13 @@ async function main() {
       }
 
       // Paths - use absolute paths based on CWD for subdirectory workflow support (Issue #327)
+      // resolve, not join: these values may already be absolute (active plan path from
+      // set-active-plan.cjs, or an absolute paths.* in config). join would append them to
+      // baseDir and double the prefix.
       writeEnv(envFile, 'CK_GIT_ROOT', staticEnv.gitRoot || '');
-      writeEnv(envFile, 'CK_REPORTS_PATH', path.join(baseDir, reportsPath));
-      writeEnv(envFile, 'CK_DOCS_PATH', path.join(baseDir, config.paths.docs));
-      writeEnv(envFile, 'CK_PLANS_PATH', path.join(baseDir, config.paths.plans));
+      writeEnv(envFile, 'CK_REPORTS_PATH', path.resolve(baseDir, reportsPath));
+      writeEnv(envFile, 'CK_DOCS_PATH', path.resolve(baseDir, config.paths.docs));
+      writeEnv(envFile, 'CK_PLANS_PATH', path.resolve(baseDir, config.paths.plans));
       writeEnv(envFile, 'CK_PROJECT_ROOT', process.cwd());
 
       // Project detection
