@@ -19,6 +19,7 @@ const os = require('os');
 
 // Import the module under test
 const contextBuilder = require('../context-builder.cjs');
+const { writeSessionState } = require('../ck-config-utils.cjs');
 
 /**
  * Create a temporary directory with optional subdirectories
@@ -209,6 +210,59 @@ describe('context-builder.cjs', () => {
       assert.ok(result.content, 'Should have content');
       assert.ok(Array.isArray(result.lines), 'Should have lines array');
       assert.ok(result.sections, 'Should have sections object');
+    });
+
+    // Regression: every other case here omits baseDir, so the absolute-path branch went
+    // untested — that blind spot is what let the reports-path prefix doubling ship.
+    it('does not double baseDir in reports path when a plan is active', () => {
+      tempDir = createTempDir(['.claude/rules']);
+      createTestFile(path.join(tempDir, '.claude/rules'), 'development-rules.md');
+      process.chdir(tempDir);
+
+      const sessionId = 'ctx-builder-abs-plan-test';
+      // set-active-plan.cjs stores the plan path absolute (Issue #335).
+      writeSessionState(sessionId, { activePlan: path.join(tempDir, 'plans/my-plan') });
+
+      const result = contextBuilder.buildReminderContext({
+        sessionId,
+        staticEnv: {},
+        baseDir: tempDir
+      });
+
+      const reportsLine = result.lines.find((l) => l.includes('Reports:'));
+      assert.ok(reportsLine, 'Should emit a Reports line');
+      assert.ok(
+        !reportsLine.includes(path.join(tempDir, tempDir)),
+        `baseDir must not appear twice: ${reportsLine}`
+      );
+      assert.ok(
+        reportsLine.includes(path.join(tempDir, 'plans/my-plan/reports')),
+        `Should point at the active plan reports dir: ${reportsLine}`
+      );
+    });
+
+    // buildNamingSection concatenates a filename onto reportsPath, so the trailing
+    // separator must survive path.resolve (which strips it).
+    it('keeps a trailing separator so the Report naming pattern stays well-formed', () => {
+      tempDir = createTempDir(['.claude/rules']);
+      createTestFile(path.join(tempDir, '.claude/rules'), 'development-rules.md');
+      process.chdir(tempDir);
+
+      const sessionId = 'ctx-builder-slash-test';
+      writeSessionState(sessionId, { activePlan: path.join(tempDir, 'plans/my-plan') });
+
+      const result = contextBuilder.buildReminderContext({
+        sessionId,
+        staticEnv: {},
+        baseDir: tempDir
+      });
+
+      const reportLine = result.lines.find((l) => l.includes('- Report:'));
+      assert.ok(reportLine, 'Should emit a Report naming line');
+      assert.ok(
+        reportLine.includes('reports/{type}-'),
+        `Missing separator before {type}: ${reportLine}`
+      );
     });
 
     it('includes devRulesPath when rules/ exists', () => {

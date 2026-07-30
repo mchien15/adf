@@ -220,6 +220,48 @@ test('getReportsPath ignores plan path for branch-resolved plans', () => {
   assertEquals(result, '/home/user/project/plans/reports');
 });
 
+// Regression: set-active-plan.cjs stores an ABSOLUTE plan path (Issue #335) while the
+// baseDir join assumed a relative one (Issue #327). path.join('/a/b', '/a/b/c') yields
+// '/a/b/a/b/c' — the base prefix appears twice. Every test above passes a RELATIVE plan
+// path, so the suite stayed green while active-plan sessions got a broken reports path.
+console.log('\n=== getReportsPath with ABSOLUTE plan path (prefix doubling regression) ===\n');
+
+test('getReportsPath does not double baseDir when plan path is absolute', () => {
+  const planConfig = { reportsDir: 'reports' };
+  const pathsConfig = { plans: 'plans' };
+  const baseDir = '/home/user/project';
+  const absolutePlan = '/home/user/project/plans/my-plan';
+
+  const result = getReportsPath(absolutePlan, 'session', planConfig, pathsConfig, baseDir);
+  assertEquals(result, '/home/user/project/plans/my-plan/reports');
+});
+
+test('getReportsPath keeps an out-of-tree absolute plan path intact', () => {
+  const planConfig = { reportsDir: 'reports' };
+  const pathsConfig = { plans: 'plans' };
+  const baseDir = '/home/user/project';
+  // Brownfield/subdirectory case Issue #335 exists for: plan lives outside baseDir.
+  const absolutePlan = '/elsewhere/shared-plans/my-plan';
+
+  const result = getReportsPath(absolutePlan, 'session', planConfig, pathsConfig, baseDir);
+  assertEquals(result, '/elsewhere/shared-plans/my-plan/reports');
+});
+
+test('getReportsPath absolute plan path stays absolute when no baseDir', () => {
+  const planConfig = { reportsDir: 'reports' };
+  const pathsConfig = { plans: 'plans' };
+  const absolutePlan = '/home/user/project/plans/my-plan';
+
+  // Callers (session-init, context-builder) join this with baseDir themselves — they must
+  // use path.resolve so an already-absolute value wins instead of being appended.
+  const result = getReportsPath(absolutePlan, 'session', planConfig, pathsConfig);
+  assertEquals(result, '/home/user/project/plans/my-plan/reports/');
+  assertEquals(
+    path.resolve('/home/user/project', result),
+    '/home/user/project/plans/my-plan/reports'
+  );
+});
+
 console.log('\n=== getGitRoot/getGitBranch with cwd parameter (Issue #291) ===\n');
 
 test('getGitRoot accepts cwd parameter', () => {
