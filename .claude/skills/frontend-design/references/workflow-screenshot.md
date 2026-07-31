@@ -25,12 +25,8 @@ Use `ai-multimodal` skill to extract:
 ### 2. Create Implementation Plan
 Use `ui-ux-designer` subagent:
 - Create plan directory (use `## Naming` pattern from hooks)
-- Write `plan.md` (<80 lines, generic overview)
-- Add `phase-XX-name.md` files with:
-  - Context links, Overview, Key Insights
-  - Requirements, Architecture, Related files
-  - Implementation Steps, Todo list
-  - Success Criteria, Risk Assessment
+- Write `plan.md` overview — see [plan-organization.md](../../plan/references/plan-organization.md) for required sections and size
+- Add `phase-XX-name.md` files — same reference for the required section list
 
 ### 3. Implement
 - Follow plan step by step

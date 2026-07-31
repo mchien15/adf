@@ -73,12 +73,35 @@ Load: `references/output-standards.md`
 1. **Pre-Creation Check** → Check Plan Context for active/suggested/none
 2. **Mode Detection** → Auto-detect or use explicit flag (see `workflow-modes.md`)
 3. **Research Phase** → Spawn researchers (skip in fast mode)
-4. **Codebase Analysis** → Read docs, scout if needed
+4. **Codebase Analysis** → Read docs, scout if needed, **and read existing ADRs** (see below)
 5. **Plan Documentation** → Write comprehensive plan via planner subagent
-6. **Audit Review** → Use `Skill` tool: `Skill(skill: "plan", args: "audit {plan-path}")` (hard/parallel/two modes)
-7. **Post-Plan Validation** → Use `Skill` tool: `Skill(skill: "plan", args: "validate {plan-path}")` (hard/parallel/two modes)
-8. **Hydrate Tasks** → Create Claude Tasks from phases (default on, `--no-tasks` to skip)
-9. **Context Reminder** → Output cook command with absolute path (MANDATORY)
+6. **Impact Check** → Read the plan's `## Impact` table; suggest an ADR when warranted (see below)
+7. **Audit Review** → Use `Skill` tool: `Skill(skill: "plan", args: "audit {plan-path}")` (hard/parallel/two modes)
+8. **Post-Plan Validation** → Use `Skill` tool: `Skill(skill: "plan", args: "validate {plan-path}")` (hard/parallel/two modes)
+9. **Hydrate Tasks** → Create Claude Tasks from phases (default on, `--no-tasks` to skip)
+10. **Context Reminder** → Output cook command with absolute path (MANDATORY)
+
+### Step 4 — Read existing decisions before proposing
+
+Find existing records with the probe in [`../adr/references/docs-root-detection.md`](../adr/references/docs-root-detection.md) → Layer 3, and follow its **reading** rule: read every surviving record **wherever it lives**, without asking. Do not look only in `<docs-root>/adr/` — a repo that adopted ADRs before ADF keeps them somewhere else, and missing them is silent.
+
+Read each record's **title** and its **`Alternatives considered` → `Why not`** column before you design anything. Records written by other tools (`adr-tools`, MADR) may have no such column — read Context and Decision instead.
+
+This is the half of decision capture that pays. Writing records prevents the reasoning from being lost; reading them is what stops you re-proposing the option somebody already rejected — the failure this whole mechanism exists to prevent. A record nobody reads is a filing cabinet.
+
+If your plan proposes something a record rejected, you must either say why the rejection no longer holds, or pick something else. Silently re-proposing it is the exact failure mode.
+
+### Step 6 — Impact Check
+
+Same rule `cook` applies at its Step 2b, so `/plan` run on its own does not lose the signal.
+
+> **`--auto` here is not `cook --auto`.** This skill's `--auto` means *auto-detect the workflow mode* and is the **default** — it does not suppress this question. The rule that skips the ADR question applies to non-interactive execution (`cook --auto`), where there is no human to answer. Plain `/plan` and `/plan --hard` ask. `/plan --fast` skips the question — its whole premise is no round-trips — and instead appends a Decision Log line noting an ADR looks warranted.
+
+Ask once — *"Does this decision outlive the task? Open an ADR?"* — only when the `## Impact` table ticks **Breaking change**, or a row describes a long-lived architectural commitment.
+
+- **Yes** → invoke the `adr` skill (defaults to 🟡 Proposed; never set 🟢 Accepted here)
+- **No** → append the decision and its reason to the plan's `## Decision Log`
+- **Table empty, or only `DB schema` / `API contract` ticked** → ask nothing. Those two are too common to be signals, and a routine question gets dismissed unread
 
 ## Output Requirements
 
@@ -86,7 +109,7 @@ Load: `references/output-standards.md`
 - Respond with plan file path and summary
 - Ensure self-contained plans with necessary context
 - Include code snippets/pseudocode when clarifying
-- Fully respect the `./docs/development-rules.md` file
+- Fully respect [`.claude/rules/development-rules.md`](../../rules/development-rules.md)
 
 ## Task Management
 
