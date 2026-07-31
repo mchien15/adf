@@ -1,6 +1,6 @@
 # ClaudeKit Skills Interconnection Map
 
-> 44 skills · 80+ connections · 1 ecosystem
+> 45 skills · 80+ connections · 1 ecosystem
 > **Last Updated**: 2026-05-19
 
 ## Core Architecture
@@ -54,6 +54,8 @@ copywriting → ai-multimodal
 | **test** | Validation & coverage | cook, team | chrome-devtools, ai-multimodal, debug, sequential-thinking |
 | **code-review** | Quality assurance | cook, fix, team | scout |
 | **brainstorm** | Solution ideation | fix | scout, docs-seeker, ai-multimodal, sequential-thinking, plan, research |
+| **adr** | Architecture decision capture | cook (Step 2b + Step 7 sweep), plan (Step 6) | — |
+| **plan** / **brainstorm** read records before proposing | — | — | adr (read-only) |
 
 ### Layer 3 — Utility Providers
 Pure capability providers — referenced by hub skills but don't call other skills.

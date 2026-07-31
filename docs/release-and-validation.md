@@ -19,7 +19,7 @@ node scripts/validate-claude-support.js
 - `CLAUDE.md` exists and contains proper instructions
 - `.claude/settings.json` exists with valid hook configuration (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse)
 - `.claude/agents/` directory contains exactly 16 agent definitions (`.md` files)
-- `.claude/skills/` directory contains exactly 44 skills with proper structure
+- `.claude/skills/` directory contains exactly 45 skills with proper structure
 
 **Failure Handling:**
 If validation fails, the script exits with code 1. Do not merge until all checks pass.
@@ -113,7 +113,7 @@ If all validations pass, the release is ready to proceed.
 
 ### Authored Sources (.claude/)
 - `.claude/agents/*.md` — Agent definitions (canonical source, 16 total)
-- `.claude/skills/*/SKILL.md` — Skill definitions (canonical source, 44 total)
+- `.claude/skills/*/SKILL.md` — Skill definitions (canonical source, 45 total)
 - `.claude/settings.json` — Claude Code hook configuration
 - `.claude/rules/` — Workflow rules and development guidelines
 - `CLAUDE.md` — Claude Code project instructions
@@ -160,7 +160,7 @@ All validation scripts should run in CI/CD before merge:
 
 **Claude support fails:**
 - Check `.claude/settings.json` has all required hooks
-- Verify `.claude/agents/` and `.claude/skills/` counts match expected (16 agents, 44 skills)
+- Verify `.claude/agents/` and `.claude/skills/` counts match expected (16 agents, 45 skills)
 
 **Codex support fails:**
 - Run `node scripts/generate-tool-configs.js` to regenerate from source

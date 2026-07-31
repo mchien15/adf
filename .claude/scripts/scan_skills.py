@@ -15,6 +15,7 @@ except ModuleNotFoundError:
 
 # Exact mappings for high-signal CK skills to avoid falling into "other".
 EXACT_CATEGORY_MAP = {
+    "adr": "utilities",
     "ask": "utilities",
     "code-review": "utilities",
     "coding-level": "utilities",

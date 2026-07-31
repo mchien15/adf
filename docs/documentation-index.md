@@ -49,7 +49,7 @@ This file provides a navigation guide to all ADF documentation with description 
 **Contents:**
 - Vision, mission, and value proposition
 - Target users and personas
-- Key features (16 agents, 44 skills, multi-tool orchestration)
+- Key features (16 agents, 45 skills, multi-tool orchestration)
 - Tool support contract overview
 - Functional and non-functional requirements
 - Success metrics and technical architecture

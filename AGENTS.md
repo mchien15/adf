@@ -62,7 +62,7 @@ This repo works with Claude Code, Antigravity, OpenAI Codex, and OpenCode. See `
 
 **Tool Support Contract:** See `docs/tool-support-matrix.md` for per-tool surface mapping (native vs degraded vs unsupported), canonical and generated paths, and release gate validation procedures.
 
-- **Skills location:** `.claude/skills/` (44 skills) — OpenCode reads this natively; Codex via `.agents/skills/`
+- **Skills location:** `.claude/skills/` (45 skills) — OpenCode reads this natively; Codex via `.agents/skills/`
 - **Agents location:** `.claude/agents/` (16 canonical source agents) — generated to `.codex/agents/` and `.opencode/agents/`
 - **Tool-specific config:** `opencode.json` (OpenCode), `.codex/config.toml` (Codex)
 - **Validation procedures:** See `docs/release-and-validation.md` for pre-release checks and CI/CD setup
