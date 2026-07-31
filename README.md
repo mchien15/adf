@@ -31,10 +31,10 @@ ADF draws ideas and inspiration from several open-source projects and communitie
 
 | Tool | Skills | Agents | Hooks | Setup |
 |------|--------|--------|-------|-------|
-| Claude Code | ✅ 44 native | ✅ 16 native | ✅ Native | Built-in (`CLAUDE.md`) |
-| Antigravity | ✅ 44 via generated links | ✅ 16 via generated links | ✅ Native to tool | Built-in (`AGENTS.md`) |
-| OpenCode | ✅ 44 native | ✅ 16 generated | ✅ Native plugin coverage | `opencode.json` included |
-| OpenAI Codex | ✅ 44 via `.agents/skills/` | ✅ 16 generated native agents | ⚠️ Degraded privacy hook coverage* | `adf codex` |
+| Claude Code | ✅ 45 native | ✅ 16 native | ✅ Native | Built-in (`CLAUDE.md`) |
+| Antigravity | ✅ 45 via generated links | ✅ 16 via generated links | ✅ Native to tool | Built-in (`AGENTS.md`) |
+| OpenCode | ✅ 45 native | ✅ 16 generated | ✅ Native plugin coverage | `opencode.json` included |
+| OpenAI Codex | ✅ 45 via `.agents/skills/` | ✅ 16 generated native agents | ⚠️ Degraded privacy hook coverage* | `adf codex` |
 
 \* Codex hook coverage is first-class for session/bootstrap and bash privacy interception, but Codex cannot hook Read/Edit/Write the same way Claude can. See [the tool support matrix](./docs/tool-support-matrix.md).
 
@@ -392,6 +392,7 @@ Syncs `docs/` with current codebase state.
 
 ```
 /brainstorm "should we use WebSockets or SSE?"   # Trade-off analysis
+/adr "choose Postgres over MongoDB"               # Record an architecture decision
 /ask "how does the middleware chain work?"        # Technical questions
 /scout "find all API route handlers"              # Codebase exploration
 /quality-gates setup                             # Configure security gates for project
@@ -416,7 +417,7 @@ Syncs `docs/` with current codebase state.
 │   ├── agents/             # 16 specialist agent definitions
 │   ├── hooks/              # Claude Code event hooks
 │   ├── rules/              # Development rules and workflows
-│   ├── skills/             # 44 skill modules
+│   ├── skills/             # 45 skill modules
 │   └── config/             # ADF configuration
 ├── .agent/                  # Antigravity (symlinks to .claude/)
 │   ├── agents/             # → .claude/agents/

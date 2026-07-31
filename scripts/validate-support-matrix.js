@@ -22,7 +22,7 @@ expect(!readme.includes('same commands, same workflows'), 'README still promises
 expect(!readme.includes('Same framework, same commands, same quality'), 'README footer still promises same-command parity');
 expect(readme.includes('[Tool Support Matrix](./docs/tool-support-matrix.md)'), 'README should link to docs/tool-support-matrix.md');
 expect(readme.includes('| OpenAI Codex |'), 'README missing Codex support row');
-expect(readme.includes('✅ 44 via `.agents/skills/`'), 'README Codex skills cell drifted');
+expect(readme.includes('✅ 45 via `.agents/skills/`'), 'README Codex skills cell drifted');
 expect(readme.includes('✅ 16 generated native agents'), 'README Codex agents cell drifted');
 expect(readme.includes('⚠️ Degraded privacy hook coverage*'), 'README Codex hooks cell drifted');
 

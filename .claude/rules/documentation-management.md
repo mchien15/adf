@@ -44,86 +44,15 @@ Save plans in `./plans` directory with timestamp and descriptive name.
 
 **Example:** `plans/251101-1505-authentication-and-profile-implementation/`
 
-#### File Organization
+#### File Organization & Structure
 
-```
-plans/
-├── 20251101-1505-authentication-and-profile-implementation/
-    ├── research/
-    │   ├── researcher-XX-report.md
-    │   └── ...
-│   ├── reports/
-│   │   ├── scout-report.md
-│   │   ├── researcher-report.md
-│   │   └── ...
-│   ├── plan.md                                # Overview access point
-│   ├── phase-01-setup-environment.md          # Setup environment
-│   ├── phase-02-implement-database.md         # Database models
-│   ├── phase-03-implement-api-endpoints.md    # API endpoints
-│   ├── phase-04-implement-ui-components.md    # UI components
-│   ├── phase-05-implement-authentication.md   # Auth & authorization
-│   ├── phase-06-implement-profile.md          # Profile page
-│   └── phase-07-write-tests.md                # Tests
-└── ...
-```
+**Single source of truth:** [`.claude/skills/plan/references/plan-organization.md`](../skills/plan/references/plan-organization.md)
 
-#### File Structure
+It defines the plan directory layout, the required `plan.md` sections — `Overview` · `Impact` · `Phases` · `Dependencies` · `Decision Log` — and the phase-file section list.
 
-##### Overview Plan (plan.md)
-- Keep generic and under 80 lines
-- List each phase with status/progress
-- Link to detailed phase files
-- Key dependencies
+Do not restate that spec here. Two copies drift, and the one that drifts is always the copy nobody is looking at.
 
-##### Phase Files (phase-XX-name.md)
-Fully respect the `./docs/development-rules.md` file.
-Each phase file should contain:
+Two rules from it are worth knowing without opening the file:
 
-**Context Links**
-- Links to related reports, files, documentation
-
-**Overview**
-- Priority
-- Current status
-- Brief description
-
-**Key Insights**
-- Important findings from research
-- Critical considerations
-
-**Requirements**
-- Functional requirements
-- Non-functional requirements
-
-**Architecture**
-- System design
-- Component interactions
-- Data flow
-
-**Related Code Files**
-- List of files to modify
-- List of files to create
-- List of files to delete
-
-**Implementation Steps**
-- Detailed, numbered steps
-- Specific instructions
-
-**Todo List**
-- Checkbox list for tracking
-
-**Success Criteria**
-- Definition of done
-- Validation methods
-
-**Risk Assessment**
-- Potential issues
-- Mitigation strategies
-
-**Security Considerations**
-- Auth/authorization
-- Data protection
-
-**Next Steps**
-- Dependencies
-- Follow-up tasks
+- **`## Impact`** — four fixed rows (DB schema/migration · API contract · Security/permissions · Breaking change). An empty table means "not assessed yet", not "nothing is affected".
+- **`## Decision Log`** — append-only. Never edit or delete a row, never condense the log. It is what keeps the *why* alive across compaction and new sessions.

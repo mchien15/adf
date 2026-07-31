@@ -45,6 +45,8 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 3. `--no-test` should be rejected for bugfixes and medium-risk logic changes unless user narrows scope to low-risk non-behavior work.
 4. `auto` can skip approval waits, but it cannot bypass TDD evidence, plan-conformance, or final verification.
 5. If high-risk work stays in the current workspace, `cook` must surface the risk and require explicit user acknowledgement before implementation.
+6. The ADR suggestion is **not a gate**. It never blocks, and it never adds a fifth review gate — it is one extra question inside Review Gate 2 (Step 2b) and one inside Step 7 (Decision Log sweep). In `auto` mode both are skipped: `auto` may append a note to the plan's `## Decision Log`, but **never creates an ADR and never sets one to Accepted**. Ratifying a decision is a human act.
+7. The Step 7 sweep is the one that matters in `code` mode, which skips Steps 1–2 and therefore never reaches Step 2b at all.
 
 ## Isolation Gate
 
@@ -97,6 +99,9 @@ Verification is satisfied only when the proof summary is specific enough that an
 ## Output Conventions
 
 - `✓ Step 0: Mode [X] - Risk [low|medium|high] - Isolation [in-place|recommended|required]`
+- `✓ Step 2b: Impact reviewed - ADR [suggested|n/a]`
+- `✓ Gate 2: ADR [created|declined|deferred-to-log|n/a]`
+- `✓ Step 7: Decision Log swept - ADR [created|declined|deferred-to-log|n/a]`
 - `✓ Step 3: Checkpoint review complete - [phase] - [approved|fixes applied]`
 - `✓ Step 5: Plan conformance verified - [N criteria met]`
 - `✓ Step 7: Verified before completion - [command/check] - [proof supported]`

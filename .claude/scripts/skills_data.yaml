@@ -1,3 +1,11 @@
+- argument_hint: <decision title>
+  category: utilities
+  description: Record an architecture decision as an ADR (Michael Nygard format) —
+    the decision, the alternatives, and why they were rejected.
+  has_references: true
+  has_scripts: false
+  name: adr
+  path: adr/SKILL.md
 - argument_hint: '[file-path] [prompt]'
   category: ai-ml
   description: Analyze images/audio/video with Gemini API (better vision than Claude).
@@ -156,7 +164,7 @@
   has_scripts: false
   name: frontend-development
   path: frontend-development/SKILL.md
-- argument_hint: cm|cp|pr|merge [args]
+- argument_hint: cm|cp|pr|mr|merge [args]
   category: dev-tools
   description: Git operations with conventional commits. Use for staging, committing,
     pushing, PRs, merges. Auto-splits commits by type/scope. Security scans for secrets.
@@ -241,11 +249,12 @@
   has_scripts: false
   name: project-management
   path: project-management/SKILL.md
-- argument_hint: '[setup|run|report] [--check <gate>] [--tool <tool>] [--force]'
+- argument_hint: '[setup|run|report] [--dry-run] [--check <gate>] [--no-block] [--json]
+    [--mode <mode>]'
   category: other
   description: Run security and quality gates (secrets, SAST, deps, DAST, coverage,
     file-size) for any project. CI/CD-ready. Use before code review or push.
-  has_references: false
+  has_references: true
   has_scripts: false
   name: quality-gates
   path: quality-gates/SKILL.md

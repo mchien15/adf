@@ -20,7 +20,7 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "animation" --domain ux
 ### 1. Create Implementation Plan
 Use `ui-ux-designer` + `researcher` subagents:
 - Create plan directory (use `## Naming` pattern)
-- Write `plan.md` (<80 lines overview)
+- Write `plan.md` overview — see [plan-organization.md](../../plan/references/plan-organization.md) for required sections and size
 - Add `phase-XX-name.md` files
 - Keep research reports under 150 lines
 

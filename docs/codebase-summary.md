@@ -15,7 +15,7 @@ agentic-development-framework/
 ├── .claude/                  # Source-repo canonical source of truth
 │   ├── agents/              # Specialized agent definitions (16 agents)
 │   ├── hooks/               # Claude Code hooks and scripts
-│   ├── skills/              # Specialized skills library (44 skills)
+│   ├── skills/              # Specialized skills library (45 skills)
 │   ├── rules/               # Development workflow definitions
 │   ├── config/              # ADF configuration
 │   ├── metadata.json        # Framework version metadata
@@ -117,14 +117,14 @@ agentic-development-framework/
 - Codex generated agents now carry explicit `model = "..."` fields for `opus|sonnet|haiku` source tiers
 - Codex follows the same workflow intent, but invocation happens through native prompts and custom-agent selection rather than guaranteed slash-command aliases
 
-### 3. Skills Library (44 Skills, Unified)
+### 3. Skills Library (45 Skills, Unified)
 
 **Location**: `.claude/skills/` (canonical)
 **Available in**: Claude Code, Antigravity (`.agent/skills/` symlinks), OpenCode (native), Codex (`.agents/skills/` symlink)
 
 Support guarantees per tool live in `docs/tool-support-matrix.md`.
 
-**Current Skills (44 Total)**:
+**Current Skills (45 Total)**:
 - **AI & Vision**: ai-artist, ai-multimodal, agent-browser
 - **Authentication**: better-auth
 - **Backend & Databases**: backend-development, databases
@@ -347,7 +347,7 @@ Types:
 
 **Framework Components**:
 - 16 specialized agent definitions
-- 44 skills in organized categories
+- 45 skills in organized categories
 - 13 core hooks with cross-platform support
 - 13 Antigravity workflow proxy files
 - Complete documentation system

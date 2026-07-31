@@ -178,6 +178,8 @@ Review warnings and fix before considering task complete.
 - Create or update `$CK_DOCS_PATH/project-overview-pdr.md` with a comprehensive project overview and PDR (Product Development Requirements)
 - Create or update `$CK_DOCS_PATH/code-standards.md` with a comprehensive codebase structure and code standards
 - Create or update `$CK_DOCS_PATH/system-architecture.md` with a comprehensive system architecture documentation
+- **NEVER write into the ADR directory** (`adr/` under the docs root, or wherever the repo keeps Architecture Decision Records). It is owned by the `adr` skill and by the people who wrote those records. Do not create it, do not edit a record, do not change a record's status, do not add or overwrite `_template.md`. Decisions cannot be derived from code, so anything you regenerate on top of one destroys it.
+- If `system-architecture.md` already contains an `## Architecture Decisions` section, **leave it exactly as it is** while you rewrite the rest of the file. It is hand-maintained; you did not derive it from code and cannot regenerate it.
 
 ### Summary Reports
 Your summary reports will include:

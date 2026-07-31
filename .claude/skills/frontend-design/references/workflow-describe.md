@@ -53,7 +53,7 @@ Use `ai-multimodal` skill to describe exhaustively:
 ### 2. Create Implementation Plan
 Use `ui-ux-designer` subagent:
 - Create plan directory (use `## Naming` pattern)
-- Write `plan.md` overview (<80 lines)
+- Write `plan.md` overview — see [plan-organization.md](../../plan/references/plan-organization.md) for required sections and size
 - Add detailed `phase-XX-name.md` files
 
 ### 3. Report to User

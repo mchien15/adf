@@ -70,6 +70,17 @@ created: 2025-12-16
 
 Brief description of what this plan accomplishes.
 
+## Impact
+
+| Area | Affected? | Details |
+|---|---|---|
+| DB schema / migration | | |
+| API contract (DTO/schema) | | |
+| Security / permissions | | |
+| Breaking change | | |
+
+> An empty table means "not considered yet", not "nothing is affected".
+
 ## Phases
 
 | # | Phase | Status | Effort | Link |
@@ -81,16 +92,44 @@ Brief description of what this plan accomplishes.
 ## Dependencies
 
 - List key dependencies here
+
+## Decision Log
+
+> **APPEND-ONLY.** Never edit or delete an existing row — the history is the asset.
+
+| Date | Gate | Decision | Why |
+|---|---|---|---|
+| 2025-12-16 | Post-Plan | Rejected approach B (event bus) | New infrastructure for a single use case — not worth it yet |
 ```
 
 **Guidelines:**
-- Keep generic and under 80 lines
+- Keep generic and under 100 lines
 - List each phase with status/progress
 - Link to detailed phase files
 - Key dependencies
 
+### `## Impact` — the four rows are fixed
+
+Do not add, remove, or rename rows. The point is that a reader can tell "considered and clear" from "never thought about it", and that only works if the shape is the same in every plan.
+
+Fill the `Details` cell for every row you tick. `cook` reads this table: a ticked **Breaking change**, or a row whose details describe a long-lived architectural commitment, triggers the ADR suggestion at Review Gate 2.
+
+An empty table is a legitimate state — it means nobody has assessed impact yet. It is not the same as four "no"s, and it should not be silently treated as one.
+
+### `## Decision Log` — append-only, no exceptions
+
+One row every time a gate rejects something, or a considered option is dropped. Record **why**, not just what.
+
+This exists because the reasoning is what gets lost across compaction and new sessions. Without it an agent comes back, has no idea approach B was already rejected and on what grounds, and proposes approach B again.
+
+Rules:
+- **Append only.** Never rewrite or remove a row, including your own from earlier in the session.
+- Never "tidy up" or condense the log. A shorter log is a worse log.
+- Superseding an earlier decision means adding a new row that says so — the old row stays.
+- No secrets or credentials in the `Why` cell. Describe the reason, do not paste the value.
+
 ### Phase Files (phase-XX-name.md)
-Fully respect the `./docs/development-rules.md` file.
+Fully respect [`.claude/rules/development-rules.md`](../../../rules/development-rules.md).
 Each phase file should contain:
 
 **Context Links**

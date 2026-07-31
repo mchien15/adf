@@ -1,7 +1,7 @@
 # Skills Dependency Graph
 
 **Last Updated**: 2026-04-01
-**Total Skills**: 44
+**Total Skills**: 45
 
 ## ASCII Overview
 
@@ -79,6 +79,7 @@ graph TD
     subgraph Project Management
         pm["project-management"]
         docs["docs"]
+        adr["adr"]
         git["git"]
         journal["journal"]
     end
@@ -131,6 +132,10 @@ graph TD
     cook --> pm
     cook --> docs
     cook --> debug
+    cook --> adr
+    plan --> adr
+    plan -.->|read records| adr
+    brainstorm -.->|read records| adr
 
     %% Fix dependencies
     fix --> debug

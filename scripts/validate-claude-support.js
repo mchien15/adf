@@ -39,7 +39,7 @@ if (fileExists('.claude/agents')) {
 
 if (fileExists('.claude/skills')) {
   const skills = fs.readdirSync(path.join(ROOT, '.claude', 'skills')).filter((name) => fileExists(path.join('.claude', 'skills', name, 'SKILL.md')));
-  expect(skills.length === 44, `Expected 44 Claude skills, found ${skills.length}`);
+  expect(skills.length === 45, `Expected 45 Claude skills, found ${skills.length}`);
 }
 
 if (failures.length > 0) {

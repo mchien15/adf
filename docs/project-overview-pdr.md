@@ -99,7 +99,7 @@ Command behavior is implemented via skill directories:
 - `code-review/` - Code review workflows
 - `test/` - Testing and validation workflows
 
-### 3. Extensive Skills Library (44 Skills, Shared Across Tools)
+### 3. Extensive Skills Library (45 Skills, Shared Across Tools)
 
 **Location**: `.claude/skills/` (canonical source)
 **Available in**: Claude Code AND Antigravity (via `.agent/skills/` symlinks)
