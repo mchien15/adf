@@ -6,7 +6,7 @@
 **IMPORTANT — Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected each session as `Docs → <path>` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
 
 ## General
-- **File Naming**: Use kebab-case for file names with a meaningful name that describes the purpose of the file, doesn't matter if the file name is long, just make sure when LLMs read the file names while using Grep or other tools, they can understand the purpose of the file right away without reading the file content.
+- **File Naming**: Follow each language's convention — kebab-case for JS/TS/shell, snake_case for Python (a kebab-case module cannot be imported), PascalCase for C#/Java/Kotlin/Swift, snake_case for Go/Rust. Match the names already used around the file; a short name for what the module holds beats a long one. Add a new file only for a new concept, never to keep another file short.
 - When looking for docs, activate `docs-seeker` skill (`context7` reference) for exploring latest docs.
 - Use `gh` bash command to interact with Github features if needed
 - Use `psql` bash command to query Postgres database for debugging if needed

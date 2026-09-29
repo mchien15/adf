@@ -36,8 +36,9 @@ Task(subagent_type="ui-ux-designer", prompt="Implement [feature] UI per ./docs/d
 
 ## Testing
 ```
-Task(subagent_type="tester", prompt="Run test suite for plan phase [phase-name]. Verify red/green evidence when policy requires and report exact proof used.", description="Test [phase]")
+Task(subagent_type="tester", prompt="Run the full test suite for plan phase [phase-name]. Check the implementer's RED/GREEN evidence: [evidence]. Add tests only for uncovered edge cases/errors and report exact proof used.", description="Test [phase]")
 ```
+- Tests are written test-first in Implementation; the tester verifies and fills gaps
 - Must achieve 100% pass rate
 
 ## Debugging
@@ -69,7 +70,7 @@ Task(subagent_type="git-manager", prompt="Prepare git closeout options. Stage an
 
 ## Implementation
 ```
-Task(subagent_type="fullstack-developer", prompt="Implement [phase-file] of plan [plan-dir]. Files you own: [files]. Risk: [level]; TDD evidence: [required|not required]. Run typecheck/build, then report changed files, verification output and open issues.", description="Implement phase [N]")
+Task(subagent_type="fullstack-developer", prompt="Implement [phase-file] of plan [plan-dir]. Files you own: [files]. Risk: [level]. Work test-first (TDD) per your agent definition. Run typecheck/build, then report changed files, RED/GREEN evidence, verification output and open issues.", description="Implement phase [N]")
 ```
 - Every code change goes through this — phases, fixes from tester/debugger/code-reviewer findings, follow-ups
 - Sequential modes: one fresh subagent per phase, next phase only after the previous one is verified

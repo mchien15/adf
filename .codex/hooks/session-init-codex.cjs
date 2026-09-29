@@ -143,7 +143,7 @@ try {
     `## Dev Rules`,
     `- Rules: \`.agent/rules/development-rules.md\` (follow strictly)`,
     `- Principles: YAGNI, KISS, DRY`,
-    `- Naming: kebab-case for JS/TS/Python/shell`,
+    `- Naming: kebab-case for JS/TS/shell, snake_case for Python; match surrounding names`,
     `- Docs: \`./docs/\` directory`,
     `- Plans: \`./plans/\` directory`,
     ``,

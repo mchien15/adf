@@ -22,7 +22,7 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 | Policy | Low | Medium | High |
 |--------|-----|--------|------|
 | Verification before completion | required | required | required |
-| TDD evidence | optional, give reason if skipped | required for behavior changes | required |
+| TDD (test-first) evidence | required for behavior changes | required for behavior changes | required |
 | Checkpoint review | not required | required when phase touches 3+ files or cross-cutting behavior | required |
 | Isolation check | note current workspace | recommend worktree or equivalent isolation | require worktree or explicit opt-out acknowledgement |
 | Plan-conformance check | required | required | required |

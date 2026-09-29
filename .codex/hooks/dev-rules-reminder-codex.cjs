@@ -81,7 +81,7 @@ const REMINDER = `## Dev Rules Reminder (Codex)
 **Principles:** YAGNI (You Aren't Gonna Need It) · KISS (Keep It Simple, Stupid) · DRY (Don't Repeat Yourself)
 
 **Code Quality:**
-- Use kebab-case for JS/TS/Python/shell file names (descriptive, self-documenting)
+- File names: kebab-case for JS/TS/shell, snake_case for Python; match surrounding names, prefer short names
 - No syntax errors — code must compile/run cleanly
 - Use try/catch for error handling at system boundaries
 

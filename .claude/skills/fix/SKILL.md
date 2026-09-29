@@ -1,7 +1,7 @@
 ---
 name: fix
 description: "ALWAYS activate this skill before fixing ANY bug, error, test failure, CI/CD issue, type error, lint, log error, UI issue, code problem."
-version: 1.3.0
+version: 1.4.0
 argument-hint: "[issue] --auto|--review|--quick|--parallel"
 ---
 
@@ -56,7 +56,7 @@ Classify before routing. See `references/complexity-assessment.md`.
 
 ### Step 4: Fix Implementation & Verification
 
-- Delegate the fix to a `fullstack-developer` subagent per selected workflow: pass the root cause, affected files it owns, chosen approach and verification commands. Update Tasks as phases complete.
+- Delegate the fix to a `fullstack-developer` subagent per selected workflow: pass the root cause, affected files it owns, chosen approach and verification commands. It writes a failing test that reproduces the bug first (TDD), then the fix. Update Tasks as phases complete.
 - Main agent reviews the subagent's report and `git diff --stat`; findings go back to the subagent (`SendMessage`). Do not patch the code yourself.
 - Spawn multiple `Explore` subagents to verify no regressions.
 - Prevent future issues by adding comprehensive validation.

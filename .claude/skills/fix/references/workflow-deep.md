@@ -67,7 +67,7 @@ Use `planner` subagent to create implementation plan.
 
 ### Step 5: Implement
 `TaskUpdate(T5, status="in_progress")`
-Delegate each plan phase to a fresh `fullstack-developer` subagent, in order. Tell it to use `context-engineering`, `sequential-thinking`, `problem-solving` as needed.
+Delegate each plan phase to a fresh `fullstack-developer` subagent, in order; it works test-first, starting with a failing test that reproduces the bug. Tell it to use `context-engineering`, `sequential-thinking`, `problem-solving` as needed.
 
 **Parallel Verification:** Launch `Bash` agents: typecheck + lint + build
 See `references/parallel-exploration.md`
