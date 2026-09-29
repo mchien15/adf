@@ -90,7 +90,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **All modes — the main agent orchestrates and never edits code itself:**
 - Spawn one fresh `fullstack-developer` subagent per phase, in phase order (`ui-ux-designer` for frontend UI). Prompt: see `subagent-patterns.md` → Implementation
 - Use `TaskUpdate` to assign the phase's tasks to the subagent and mark them `in_progress` when dispatching
-- Pass risk level and TDD expectation: for medium/high-risk behavior work, the subagent captures TDD evidence where policy requires
+- The subagent works test-first (TDD): failing test → minimal code → full suite green, and reports RED/GREEN evidence per behavior. A behavior change without evidence and without an allowed skip reason goes back to the subagent
 - On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
 - Wrong or incomplete → `SendMessage` the findings to the same subagent (it keeps its context); spawn a fresh one if it is stuck. Do not patch the code yourself
 - Use `ai-multimodal` for image assets
@@ -118,11 +118,11 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 ## Step 4: Testing (skip if no-test mode)
 
 **All modes (except no-test):**
-- Write tests: happy path, edge cases, errors
+- Tests already exist from Step 3 (TDD). `tester` runs the full suite, checks the RED/GREEN evidence, and adds tests only for gaps (edge cases, errors, integration)
 - **MUST** spawn `tester` subagent: `Task(subagent_type="tester", prompt="Run test suite", description="Run tests")`
 - If failures: **MUST** spawn `debugger` subagent → `fullstack-developer` applies the fix → repeat
 - **Forbidden:** fake mocks, commented tests, changed assertions, skipping subagent delegation
-- For medium/high-risk behavior work, include red/green proof in tester handoff or summary
+- Pass the implementer's RED/GREEN evidence in the tester handoff
 
 **Output:** `✓ Step 4: Tests [X/X passed] - tester subagent invoked`
 

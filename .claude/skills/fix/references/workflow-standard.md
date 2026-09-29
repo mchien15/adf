@@ -50,7 +50,7 @@ See `references/parallel-exploration.md` for patterns.
 
 ### Step 3: Implement Fix
 `TaskUpdate(T3, status="in_progress")` — auto-unblocked when T1 + T2 complete.
-Delegate to a `fullstack-developer` subagent with the debugging and scouting findings. Pass these hints on to it:
+Delegate to a `fullstack-developer` subagent with the debugging and scouting findings. It writes a failing test that reproduces the bug before fixing it (TDD). Pass these hints on to it:
 
 - Apply `problem-solving` skill if stuck
 - Use `sequential-thinking` for complex logic

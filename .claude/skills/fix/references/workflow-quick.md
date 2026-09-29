@@ -14,6 +14,7 @@ Activate `debug` skill. Find root cause quickly. Verify the root cause with mult
 
 ### Step 2: Fix & Verify
 Delegate to a `fullstack-developer` subagent with the root cause and affected file(s):
+- First a failing test that reproduces the bug (verify it fails), then the fix
 - Make minimal changes
 - Follow existing patterns
 

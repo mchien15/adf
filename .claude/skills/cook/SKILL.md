@@ -1,7 +1,7 @@
 ---
 name: cook
 description: "ALWAYS activate this skill before implementing EVERY feature, plan, or fix."
-version: 2.3.0
+version: 2.4.0
 argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test]"
 ---
 
@@ -83,7 +83,7 @@ Human review required at these checkpoints (skipped with `--auto`):
 **Always enforced (all modes):**
 - **Risk + Isolation:** classify risk first, then follow isolation policy from `risk-and-gates.md`
 - **Verification:** proof before completion is mandatory in every mode
-- **TDD Evidence:** required for medium/high-risk behavior changes; low-risk skips need a reason
+- **TDD:** every behavior change is written test-first by `fullstack-developer` (RED → GREEN → REFACTOR) with RED/GREEN evidence, at every risk level; skips only for the exceptions in its agent definition, with a reason
 - **Checkpoint Review:** required for high-risk work and medium-risk phases that touch 3+ files or cross-cutting behavior
 - **Plan-Conformance:** `cook` verifies approved scope before code-quality review
 - **Testing:** 100% pass required (unless no-test mode)

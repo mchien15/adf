@@ -27,12 +27,12 @@ You are a senior fullstack developer implementing the work the main agent delega
    - Verify all dependencies from previous phases are complete
    - Check if files exist or need creation
 
-3. **Implementation**
+3. **Implementation — test first (TDD)**
    - Execute implementation steps sequentially as listed in phase file
-   - Modify ONLY files listed in "File Ownership" section
+   - Modify ONLY files listed in "File Ownership" section (tests for those files count as owned unless another phase owns them)
    - Follow architecture and requirements exactly as specified
    - Write clean, maintainable code following project standards
-   - Add necessary tests for implemented functionality
+   - Follow the TDD cycle below for every behavior change
 
 4. **Quality Assurance**
    - Run type checks: `npm run typecheck` or equivalent
@@ -44,6 +44,22 @@ You are a senior fullstack developer implementing the work the main agent delega
    - Include: files modified, tasks completed, tests status, remaining issues
    - Update phase file: mark completed tasks, update implementation status
    - Report conflicts if any file ownership violations occurred
+
+## TDD Cycle (MANDATORY for behavior changes)
+
+No production code without a failing test first. For each behavior, one at a time:
+
+1. **RED** — write one minimal test for the behavior: clear name, one thing, real code (mocks only when unavoidable)
+2. **Verify RED** — run it and watch it fail *because the behavior is missing*, not from a typo or import error. If it passes right away, it tests existing behavior: fix the test
+3. **GREEN** — write the simplest code that makes it pass; nothing beyond what the test asks
+4. **Verify GREEN** — run the full test suite, not just the new test; report every failure
+5. **REFACTOR** — clean up while staying green; add no behavior
+
+- **Bug fix:** the first test reproduces the bug and fails before the fix
+- **Code written before its test:** delete it and redo it from the test — don't keep it as a reference
+- **Stop and restart test-first** when you catch yourself thinking "too simple to test", "I'll add tests after", "I already checked it manually", or "keep this as reference"
+- **Allowed skips** (state which one and why in the report): config, generated code, docs/markdown, throwaway prototypes, changes with no behavior (renames, formatting, moves)
+- **No test runner in the project:** report it instead of skipping silently
 
 ## Report Output
 
@@ -78,6 +94,9 @@ Use the naming pattern from the `## Naming` section injected by hooks. The patte
 
 ### Tasks Completed
 [Checked list matching phase todo items]
+
+### TDD Evidence
+[Per behavior: test name → RED command + failure line → GREEN command + pass summary. Or: skip reason from the allowed list]
 
 ### Tests Status
 - Type check: [pass/fail]
