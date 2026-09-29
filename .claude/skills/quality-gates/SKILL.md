@@ -1,12 +1,12 @@
 ---
 name: quality-gates
-description: "Run security and quality gates (secrets, SAST, deps, DAST, coverage, file-size) for any project. CI/CD-ready. Use before code review or push."
+description: "Run security and quality gates (secrets, SAST, deps, DAST, coverage) for any project. CI/CD-ready. Use before code review or push."
 argument-hint: "[setup|run|report] [--dry-run] [--check <gate>] [--no-block] [--json] [--mode <mode>]"
 ---
 
 # Quality Gates
 
-Language-agnostic security and quality scanning. Wraps gitleaks, trivy, semgrep, nuclei, SonarQube, and file-size checks.
+Language-agnostic security and quality scanning. Wraps gitleaks, trivy, semgrep, nuclei, SonarQube, and coverage checks.
 
 ## Default (No Arguments)
 
@@ -58,7 +58,6 @@ Steps overview:
 | `sast` | semgrep | exit 1 on ERROR, exit 2 on WARNING | diff-aware (BASE_SHA) |
 | `dast` | nuclei | exit 1 at `block_severity` threshold, exit 2 below | endpoints.txt (CI-only by default) |
 | `coverage` | bash/jq | exit 1 if below threshold | coverage report files |
-| `file-size` | tokei/wc | exit 2 only (warn, never block) | all dirs (scope.exclude applied) |
 | `sonar` | sonar-scanner | exit 1 if gate FAILED | full project (PR decoration: Developer Edition+) |
 
 ## Exit Codes
@@ -94,13 +93,12 @@ Override baseline: `BASE_SHA=<sha> /quality-gates run`
 [secrets]    ✅ gitleaks: no secrets found
 [deps]       ⚠️  trivy: not installed → brew install trivy
 [sast]       ❌ semgrep: 2 ERROR findings → .quality-gates/reports/raw/20260329-181500/sast-report.json
-[file-size]  ⚠️  3 files exceed 200 LOC
 [coverage]   ✅ 78% (threshold: 70%)
 [sonar]      ℹ️  Skipped (SONAR_HOST_URL not set)
 [dast]       ℹ️  Skipped (CI only)
 
 ────────────────────────────────
-Summary: 1 error, 2 warnings, 2 skipped
+Summary: 1 error, 1 warning, 2 skipped
 ```
 
 ## Configuration
@@ -108,7 +106,7 @@ Summary: 1 error, 2 warnings, 2 skipped
 Config: `.quality-gates/config.yaml` (created by setup wizard).
 Template: `.claude/skills/quality-gates/templates/quality-gates-config.yaml`.
 
-Key fields: `scope.exclude`, `thresholds.coverage`, `thresholds.file_max_loc`, `dast.tags`, `dast.block_severity`, `gates.<name>.enabled`.
+Key fields: `scope.exclude`, `thresholds.coverage`, `dast.tags`, `dast.block_severity`, `gates.<name>.enabled`.
 
 ## Integration
 

@@ -81,7 +81,6 @@ const REMINDER = `## Dev Rules Reminder (Codex)
 **Principles:** YAGNI (You Aren't Gonna Need It) · KISS (Keep It Simple, Stupid) · DRY (Don't Repeat Yourself)
 
 **Code Quality:**
-- Keep code files under 200 lines — split into focused modules if larger
 - Use kebab-case for JS/TS/Python/shell file names (descriptive, self-documenting)
 - No syntax errors — code must compile/run cleanly
 - Use try/catch for error handling at system boundaries

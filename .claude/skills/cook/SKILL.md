@@ -1,7 +1,7 @@
 ---
 name: cook
 description: "ALWAYS activate this skill before implementing EVERY feature, plan, or fix."
-version: 2.2.0
+version: 2.3.0
 argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test]"
 ---
 
@@ -102,14 +102,15 @@ Human review required at these checkpoints (skipped with `--auto`):
 | Research | `researcher` | Optional in fast/code |
 | Scout | `scout` | Optional in code |
 | Plan | `planner` | Optional in code |
-| UI Work | `ui-ux-designer` | If frontend work |
+| Implement | `fullstack-developer` | **MUST** spawn (one per phase) |
+| UI Work | `ui-ux-designer` | If frontend work (replaces `fullstack-developer` for UI) |
 | Testing | `tester`, `debugger` | **MUST** spawn |
 | Review | `code-reviewer` | **MUST** spawn |
 | Finalize | `project-manager`, `docs-manager`, `git-manager` | **MUST** spawn all 3 |
 
 **CRITICAL ENFORCEMENT:**
-- Steps 4, 6, 7 **MUST** use Task tool to spawn subagents
-- DO NOT implement testing, review, or finalization yourself - DELEGATE
+- Steps 3, 4, 6, 7 **MUST** use Task tool to spawn subagents
+- DO NOT write code, tests, reviews, or finalization yourself - DELEGATE. Fixes from test/review cycles go to `fullstack-developer` too
 - If workflow ends with 0 Task tool calls, it is INCOMPLETE
 - Pattern: `Task(subagent_type="[type]", prompt="[task]", description="[brief]")`
 

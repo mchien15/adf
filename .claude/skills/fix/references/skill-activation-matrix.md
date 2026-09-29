@@ -43,7 +43,7 @@ Skip Tasks for Quick workflow (< 3 steps). See `references/task-orchestration.md
 | `git-manager` | After approval, commit changes |
 | `docs-manager` | API/behavior changes need doc updates |
 | `project-manager` | Major fix impacts roadmap/plan status |
-| `fullstack-developer` | Parallel independent issues (each gets own agent) |
+| `fullstack-developer` | Every fix implementation (one per independent issue in parallel mode) |
 
 ## Parallel Patterns
 

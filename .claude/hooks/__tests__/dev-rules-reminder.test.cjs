@@ -191,17 +191,6 @@ describe('dev-rules-reminder.cjs', () => {
       }
     });
 
-    it('includes Modularization reminder', async () => {
-      const result = await runHook({ user_prompt: 'test' });
-
-      if (result.stdout) {
-        assert.ok(
-          result.stdout.includes('Modularization') || result.stdout.includes('[IMPORTANT]'),
-          'Should include Modularization reminder'
-        );
-      }
-    });
-
     it('includes Naming section', async () => {
       const result = await runHook({ user_prompt: 'test' });
 
@@ -224,9 +213,9 @@ describe('dev-rules-reminder.cjs', () => {
       const transcriptPath = path.join(tempDir, 'transcript.txt');
 
       try {
-        // Write transcript with modularization marker (last 150 lines)
+        // Write transcript with the reminder marker (last 150 lines)
         const lines = Array(200).fill('some content');
-        lines[180] = '[IMPORTANT] Consider Modularization';
+        lines[180] = '- Markdown files are organized in: Plans → "plans" directory, Docs → "docs" directory';
         fs.writeFileSync(transcriptPath, lines.join('\n'));
 
         const result = await runHook({
@@ -236,11 +225,8 @@ describe('dev-rules-reminder.cjs', () => {
 
         // Should exit cleanly with minimal/no output
         assert.strictEqual(result.exitCode, 0);
-        // When recently injected, should have minimal output
-        if (result.stdout.includes('[IMPORTANT] Consider Modularization')) {
-          // If it does output, that's also acceptable (hook may have different logic)
-          assert.ok(true);
-        }
+        // When recently injected, the reminder must not be emitted again
+        assert.ok(!result.stdout.includes('## Rules'), 'Should skip re-injecting the reminder');
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }

@@ -1,6 +1,6 @@
 # Code Review Cycle
 
-Interactive review-fix cycle used in code workflows.
+Interactive review-fix cycle used in code workflows. Every "fix" below is delegated to a `fullstack-developer` subagent with the findings; the main agent never patches code itself.
 
 Terminology:
 - `review gate`: human approval checkpoint

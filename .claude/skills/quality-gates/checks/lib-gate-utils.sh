@@ -259,12 +259,6 @@ _os_install_hint() {
         Linux)   echo "https://docs.sonarqube.org/latest/analyzing-source-code/scanners/sonarscanner/" ;;
         *)       echo "https://docs.sonarqube.org/latest/analyzing-source-code/scanners/sonarscanner/" ;;
       esac ;;
-    tokei)
-      case "$os" in
-        Darwin)  echo "brew install tokei" ;;
-        Linux)   echo "cargo install tokei  # or: snap install tokei" ;;
-        *)       echo "cargo install tokei" ;;
-      esac ;;
     yq)
       case "$os" in
         Darwin)  echo "brew install yq" ;;

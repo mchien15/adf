@@ -87,19 +87,18 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 3. If no tasks → read plan phases, `TaskCreate` for each unchecked `[ ]` item with priority order and metadata (`phase`, `planDir`, `phaseFile`)
 4. Tasks can be blocked by other tasks via `addBlockedBy`
 
-**All modes:**
-- Use `TaskUpdate` to mark tasks as `in_progress` immediately.
-- Execute phase tasks sequentially (Step 3.1, 3.2, etc.)
-- Use `ui-ux-designer` for frontend
+**All modes — the main agent orchestrates and never edits code itself:**
+- Spawn one fresh `fullstack-developer` subagent per phase, in phase order (`ui-ux-designer` for frontend UI). Prompt: see `subagent-patterns.md` → Implementation
+- Use `TaskUpdate` to assign the phase's tasks to the subagent and mark them `in_progress` when dispatching
+- Pass risk level and TDD expectation: for medium/high-risk behavior work, the subagent captures TDD evidence where policy requires
+- On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
+- Wrong or incomplete → `SendMessage` the findings to the same subagent (it keeps its context); spawn a fresh one if it is stuck. Do not patch the code yourself
 - Use `ai-multimodal` for image assets
-- Run type checking after each file
-- If medium/high-risk behavior work: capture TDD evidence where policy requires
 - If high-risk, or medium-risk with 3+ touched files or cross-cutting behavior: run checkpoint review before leaving the phase
 
 **Parallel mode:**
 - Utilize all tools of Claude Tasks: `TaskCreate`, `TaskUpdate`, `TaskGet` and `TaskList`
-- Launch multiple `fullstack-developer` agents
-- When agents pick up a task, use `TaskUpdate` to assign task to agent and mark tasks as `in_progress` immediately.
+- Launch multiple `fullstack-developer` agents at once, one per phase in the parallel group
 - Respect file ownership boundaries
 - Wait for parallel group before next
 
@@ -121,7 +120,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **All modes (except no-test):**
 - Write tests: happy path, edge cases, errors
 - **MUST** spawn `tester` subagent: `Task(subagent_type="tester", prompt="Run test suite", description="Run tests")`
-- If failures: **MUST** spawn `debugger` subagent → fix → repeat
+- If failures: **MUST** spawn `debugger` subagent → `fullstack-developer` applies the fix → repeat
 - **Forbidden:** fake mocks, commented tests, changed assertions, skipping subagent delegation
 - For medium/high-risk behavior work, include red/green proof in tester handoff or summary
 
@@ -158,7 +157,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 
 **Auto:**
 - Auto-approve if score≥9.5 AND 0 critical
-- Auto-fix critical (max 3 cycles)
+- Auto-fix critical via `fullstack-developer` (max 3 cycles)
 - Escalate to user after 3 failed cycles
 
 **Fast:**
@@ -222,7 +221,8 @@ code:        0 → skip → skip → 3 → checkpoint? → 4 → [R] → 5 → 6
 
 - Never skip steps without mode justification
 - Never skip hard gates because of mode flags
-- **MANDATORY SUBAGENT DELEGATION:** Steps 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly.
+- **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly.
+  - Step 3: `fullstack-developer` per phase (`ui-ux-designer` for UI) — also for every fix requested by tester, debugger or code-reviewer
   - Step 4: `tester` (and `debugger` if failures)
   - Step 6: `code-reviewer`
   - Step 7: `project-manager`, `docs-manager`, `git-manager`

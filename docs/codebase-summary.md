@@ -139,7 +139,7 @@ Support guarantees per tool live in `docs/tool-support-matrix.md`.
 - **MCP**: mcp-builder, mcp-management
 - **Mobile**: mobile-development
 - **Project Planning**: plan, plans-kanban
-- **Security**: quality-gates (gitleaks, trivy, semgrep, nuclei, SonarQube, file-size)
+- **Security**: quality-gates (gitleaks, trivy, semgrep, nuclei, SonarQube)
 - **Skills**: skill-creator, template-skill
 - **Testing**: web-testing
 - **Visualization**: mermaidjs-v11
@@ -147,7 +147,7 @@ Support guarantees per tool live in `docs/tool-support-matrix.md`.
 - **Workflow Tools**: cook, research, scout, payment-integration
 
 **quality-gates skill v1** (`.claude/skills/quality-gates/`) — Production release (2026-03-31):
-- Gates: secrets (gitleaks), deps (trivy), sast (semgrep), dast (nuclei), coverage, file-size, sonar (opt-in)
+- Gates: secrets (gitleaks), deps (trivy), sast (semgrep), dast (nuclei), coverage, sonar (opt-in)
 - Config: `.quality-gates/config.yaml` (created by `/quality-gates setup`)
 - Scripts: `install.sh`, `run-all.sh`, `report.sh`, `setup/setup-all.sh`, `setup/setup-hooks.sh`, `setup/generate-config.sh`, `setup/setup-sonar.sh`
 - Templates: `gitleaks.toml`, `quality-gates-config.yaml`, `sonar-project.properties`, `pre-commit-hook.sh`, `pre-push-hook.sh`
@@ -235,7 +235,6 @@ Support guarantees per tool live in `docs/tool-support-matrix.md`.
    - Parallel execution
 
 3. **development-rules.md**: Development standards
-   - File size management (<500 lines)
    - YAGNI, KISS, DRY principles
    - Code quality guidelines
    - Pre-commit/push rules
@@ -274,11 +273,6 @@ Prefer simple, straightforward solutions
 
 ### DRY (Don't Repeat Yourself)
 Eliminate code duplication
-
-### File Size Management
-- Keep files under 500 lines
-- Split large files into focused components
-- Extract utilities into separate modules
 
 ### Security First
 - Try-catch error handling

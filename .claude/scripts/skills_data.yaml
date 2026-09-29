@@ -252,8 +252,8 @@
 - argument_hint: '[setup|run|report] [--dry-run] [--check <gate>] [--no-block] [--json]
     [--mode <mode>]'
   category: other
-  description: Run security and quality gates (secrets, SAST, deps, DAST, coverage,
-    file-size) for any project. CI/CD-ready. Use before code review or push.
+  description: Run security and quality gates (secrets, SAST, deps, DAST,
+    coverage) for any project. CI/CD-ready. Use before code review or push.
   has_references: true
   has_scripts: false
   name: quality-gates

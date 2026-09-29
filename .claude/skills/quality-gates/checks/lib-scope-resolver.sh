@@ -78,7 +78,7 @@ resolve_scan_excludes() {
 }
 
 # format_excludes_for_tool — emit exclude flags in the correct format for each tool.
-# Usage: format_excludes_for_tool semgrep|trivy|tokei|gitleaks
+# Usage: format_excludes_for_tool semgrep|trivy|gitleaks
 # Prints a single line of flags (or empty for tools that don't support dir excludes).
 format_excludes_for_tool() {
   local tool="$1"
@@ -108,12 +108,6 @@ format_excludes_for_tool() {
       done
       # Deduplicate and join with comma
       printf '%s\n' "${dirs[@]}" | sort -u | paste -sd',' -
-      ;;
-    tokei)
-      # --exclude pattern  (one flag per pattern)
-      for pat in "${excludes[@]}"; do
-        printf -- '--exclude %s ' "$pat"
-      done
       ;;
     gitleaks)
       # gitleaks uses .gitleaks.toml allowlists — no CLI dir-exclude flag

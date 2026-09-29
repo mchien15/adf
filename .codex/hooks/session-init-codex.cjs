@@ -143,7 +143,6 @@ try {
     `## Dev Rules`,
     `- Rules: \`.agent/rules/development-rules.md\` (follow strictly)`,
     `- Principles: YAGNI, KISS, DRY`,
-    `- File size: keep code files under 200 lines`,
     `- Naming: kebab-case for JS/TS/Python/shell`,
     `- Docs: \`./docs/\` directory`,
     `- Plans: \`./plans/\` directory`,

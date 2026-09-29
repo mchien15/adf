@@ -339,7 +339,6 @@ function ParentContainer() {
 ### When to Keep Together
 
 **Keep in same file when:**
-- Component < 200 lines
 - Tightly coupled logic
 - Not reusable elsewhere
 - Simple presentation component

@@ -31,7 +31,6 @@ check_tool() {
 check_tool "gitleaks"      "$(_os_install_hint gitleaks)"      "required"    ""
 check_tool "semgrep"       "$(_os_install_hint semgrep)"       "required"    ""
 check_tool "trivy"         "$(_os_install_hint trivy)"         "optional"    ""
-check_tool "tokei"         "$(_os_install_hint tokei)"         "optional"    ""
 check_tool "sonar-scanner" "$(_os_install_hint sonar-scanner)" "conditional" "(required only if SONAR_HOST_URL set)"
 check_tool "nuclei"        "$(_os_install_hint nuclei)"        "conditional" "(required only for DAST in CI)"
 check_tool "yq"            "$(_os_install_hint yq)"            "optional"    "(auto-installed on first run if missing)"
@@ -39,7 +38,7 @@ check_tool "jq"            "$(_os_install_hint jq)"            "optional"    ""
 
 echo ""
 echo "Required for core gates : gitleaks, semgrep"
-echo "Optional (with fallback): trivy, tokei, jq"
+echo "Optional (with fallback): trivy, jq"
 echo "Auto-installed on use   : yq (YAML parser — improves config parsing reliability)"
 echo "Conditional             : sonar-scanner (if SONAR_HOST_URL set), nuclei (DAST in CI)"
 
