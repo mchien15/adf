@@ -13,7 +13,7 @@ Activate `debug` skill. Find root cause quickly. Verify the root cause with mult
 **Output:** `✓ Step 1: Root cause - [brief description]`
 
 ### Step 2: Fix & Verify
-Implement the fix directly.
+Delegate to a `fullstack-developer` subagent with the root cause and affected file(s):
 - Make minimal changes
 - Follow existing patterns
 

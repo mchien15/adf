@@ -67,10 +67,12 @@ Task(subagent_type="docs-manager", prompt="Update docs for [phase]. Changed file
 Task(subagent_type="git-manager", prompt="Prepare git closeout options. Stage and commit with a conventional commit message only if the user or mode already approved git actions.", description="Git closeout")
 ```
 
-## Parallel Execution
+## Implementation
 ```
-Task(subagent_type="fullstack-developer", prompt="Implement [phase-file] with file ownership: [files]", description="Implement phase [N]")
+Task(subagent_type="fullstack-developer", prompt="Implement [phase-file] of plan [plan-dir]. Files you own: [files]. Risk: [level]; TDD evidence: [required|not required]. Run typecheck/build, then report changed files, verification output and open issues.", description="Implement phase [N]")
 ```
-- Launch multiple for parallel phases
-- Include file ownership boundaries
-- Mention current risk level and isolation expectation for the phase
+- Every code change goes through this — phases, fixes from tester/debugger/code-reviewer findings, follow-ups
+- Sequential modes: one fresh subagent per phase, next phase only after the previous one is verified
+- Parallel mode: launch one per phase in the parallel group at once
+- Always include file ownership boundaries, risk level and isolation expectation
+- Follow-up on the same phase → `SendMessage` to that subagent instead of spawning a new one

@@ -16,6 +16,10 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
 #### 1. Code Implementation
 - Before you start, delegate to `planner` agent to create a implementation plan with TODO tasks in `./plans` directory.
 - When in planning phase, use multiple `researcher` agents in parallel to conduct research on different relevant technical topics and report back to `planner` agent to create implementation plan.
+- **[IMPORTANT] Main agent orchestrates, subagents write code.** Delegate every code change to a `fullstack-developer` subagent (`ui-ux-designer` for UI work): one fresh subagent per plan phase or independent task. Hand it the plan/phase file path, the files it owns, acceptance criteria and risk level.
+  - When it returns: read its report, check `git diff --stat` against the files it owns, and run the compile/typecheck command.
+  - Wrong or incomplete → send the findings back to that subagent (`SendMessage`), or spawn a fresh one if it is stuck. **Do not patch the code yourself.** Fixes coming out of test/review cycles are delegated the same way.
+  - The main agent edits directly only plans, docs and other markdown, or when the user explicitly asks it to.
 - Write clean, readable, and maintainable code
 - Follow established architectural patterns
 - Implement features according to specifications
@@ -51,7 +55,7 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
 
 #### 5. Debugging
 - When a user report bugs or issues on the server or a CI/CD pipeline, delegate to `debugger` agent to run tests and analyze the summary report.
-- Read the summary report from `debugger` agent and implement the fix.
+- Read the summary report from `debugger` agent and delegate the fix to a `fullstack-developer` subagent (see Step 1).
 - Delegate to `tester` agent to run tests and analyze the summary report.
 - If the `tester` agent reports failed tests, fix them follow the recommendations and repeat from the **Step 3**.
 

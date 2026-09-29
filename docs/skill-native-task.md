@@ -137,6 +137,7 @@ Step 3.4 (addBlockedBy: [P2-id])   ← critical steps share phase dependency
 2. Nếu có tasks → pick them up, skip re-creation
 3. Nếu không có → read plan phases, `TaskCreate` cho mỗi unchecked item
 4. `TaskUpdate(status: "in_progress")` khi bắt đầu task
+5. Spawn `fullstack-developer` subagent cho từng phase — main agent không tự sửa code
 
 **Step 5 Plan-Conformance:**
 1. `cook` verifies delivered scope against the approved plan/task

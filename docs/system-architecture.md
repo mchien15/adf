@@ -270,8 +270,8 @@ Explore different approaches simultaneously
 3. Planner: Create implementation plan
 4. Researchers: Explore auth solutions (parallel)
 5. Planner: Synthesize research, create detailed plan
-6. Main Agent: Implement code
-7. Main Agent: Run type checking/compilation and checkpoint review when policy requires it
+6. Fullstack Developer: Implement code (one fresh subagent per phase; the main agent orchestrates and never edits code)
+7. Main Agent: Check the diff, run type checking/compilation and checkpoint review when policy requires it
 8. Tester: Write and run tests, or reject `--no-test` if the work is not low-risk
 9. (If tests fail): Debugger analyzes, loop to step 6
 10. Cook: Verify plan conformance before final code-quality review
@@ -284,7 +284,7 @@ Explore different approaches simultaneously
 2. Debugger: Analyze logs and system
 3. Debugger: Identify root cause
 4. Planner: Create fix plan
-5. Main Agent: Implement solution
+5. Fullstack Developer: Implement solution
 6. Tester: Validate fix
 7. Code Reviewer: Review changes
 8. Git Manager: Commit fix
