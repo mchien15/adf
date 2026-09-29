@@ -221,6 +221,8 @@ describe('context-builder.cjs', () => {
 
       const sessionId = 'ctx-builder-abs-plan-test';
       // set-active-plan.cjs stores the plan path absolute (Issue #335).
+      // A session plan only counts while its dir exists (archived plans are ignored)
+      fs.mkdirSync(path.join(tempDir, 'plans/my-plan'), { recursive: true });
       writeSessionState(sessionId, { activePlan: path.join(tempDir, 'plans/my-plan') });
 
       const result = contextBuilder.buildReminderContext({
@@ -249,6 +251,8 @@ describe('context-builder.cjs', () => {
       process.chdir(tempDir);
 
       const sessionId = 'ctx-builder-slash-test';
+      // A session plan only counts while its dir exists (archived plans are ignored)
+      fs.mkdirSync(path.join(tempDir, 'plans/my-plan'), { recursive: true });
       writeSessionState(sessionId, { activePlan: path.join(tempDir, 'plans/my-plan') });
 
       const result = contextBuilder.buildReminderContext({

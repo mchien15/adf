@@ -17,8 +17,10 @@ const { execSync } = require('child_process');
 const {
   loadConfig,
   resolvePlanPath,
+  resolvePlansBaseDir,
   getReportsPath,
   resolveNamingPattern,
+  REPORT_TYPES,
 } = require('../../.agents/hooks/lib/ck-config-utils.cjs');
 
 // ─── Debounce ─────────────────────────────────────────────────────────────────
@@ -76,7 +78,13 @@ function ensureTrailingSlash(pathValue) {
 
 // ─── Reminder Content ─────────────────────────────────────────────────────────
 
-const REMINDER = `## Dev Rules Reminder (Codex)
+/**
+ * Build the static reminder text.
+ * @param {string} plansPath - Resolved plans dir (main git worktree aware)
+ * @returns {string}
+ */
+function buildReminder(plansPath) {
+  return `## Dev Rules Reminder (Codex)
 
 **Principles:** YAGNI (You Aren't Gonna Need It) · KISS (Keep It Simple, Stupid) · DRY (Don't Repeat Yourself)
 
@@ -92,31 +100,34 @@ const REMINDER = `## Dev Rules Reminder (Codex)
 - Read README.md before starting any new implementation
 
 **Reports / Docs:**
-- Plans → \`./plans/\` | Docs → \`./docs/\` | Reports → \`./plans/reports/\`
+- Plans → \`${plansPath}/\` | Docs → \`./docs/\` | Reports → the active plan's \`reports/\` dir, else \`${plansPath}/reports/{YYMM}/\`
 - Sacrifice grammar for concision in reports
 - List unresolved questions at end of reports`;
+}
 
-function buildPlanContext(projectRoot, sessionId) {
-  const config = loadConfig();
+function buildPlanContext(projectRoot, sessionId, config, plansBase) {
   const resolved = resolvePlanPath(sessionId, config);
   if (!resolved.path) return '';
 
   const gitBranch = execSafe('git branch --show-current') || 'unknown';
   const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths);
-  const absoluteReportsPath = path.isAbsolute(reportsPath) ? reportsPath : path.join(projectRoot, reportsPath);
+  const absoluteReportsPath = path.isAbsolute(reportsPath) ? reportsPath : path.join(plansBase, reportsPath);
   const reportPrefix = ensureTrailingSlash(absoluteReportsPath);
   const namePattern = resolveNamingPattern(config.plan, gitBranch);
 
   return [
     `## Plan Context`,
-    `- ${resolved.resolvedBy === 'session' ? 'Active' : 'Suggested'} Plan: ${resolved.path}`,
+    resolved.resolvedBy === 'session'
+      ? `- Active Plan: ${resolved.path}`
+      : `- Plan: ${resolved.path} (matched from branch)`,
     `- Reports: ${reportPrefix}`,
     `- Branch: ${gitBranch}`,
     `- Validation: mode=${config.plan.validation.mode}, questions=${config.plan.validation.minQuestions}-${config.plan.validation.maxQuestions}`,
     ``,
     `## Naming`,
     `- Report: \`${reportPrefix}{type}-${namePattern}.md\``,
-    `- Plan dir: \`${path.join(projectRoot, config.paths.plans, namePattern)}/\``,
+    `- Plan dir: \`${path.join(plansBase, config.paths.plans, namePattern)}/\``,
+    `- Replace \`{type}\` with one of: ${REPORT_TYPES.join(', ')}`,
   ].join('\n');
 }
 
@@ -131,7 +142,10 @@ try {
   if (fs.existsSync(projectRoot)) {
     process.chdir(projectRoot);
   }
-  const planContext = buildPlanContext(projectRoot, sessionId);
+  const config = loadConfig();
+  // plans/ and non-plan reports live in the main git worktree when running in a linked one
+  const plansBase = resolvePlansBaseDir(projectRoot);
+  const planContext = buildPlanContext(projectRoot, sessionId, config, plansBase);
   const recentlyInjected = wasRecentlyInjected(sessionId);
 
   if (recentlyInjected && !planContext) {
@@ -143,7 +157,7 @@ try {
   }
 
   const sections = [];
-  if (!recentlyInjected) sections.push(REMINDER);
+  if (!recentlyInjected) sections.push(buildReminder(path.join(plansBase, config.paths.plans)));
   if (planContext) sections.push(planContext);
 
   console.log(JSON.stringify({

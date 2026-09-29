@@ -22,9 +22,11 @@ const REMINDER_MARKER = 'Markdown files are organized in: Plans →';
 const {
   loadConfig,
   resolvePlanPath,
+  resolvePlansBaseDir,
   getReportsPath,
   resolveNamingPattern,
-  normalizePath
+  normalizePath,
+  REPORT_TYPES
 } = require('./ck-config-utils.cjs');
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -34,11 +36,12 @@ const {
 /**
  * Safely execute a command with timeout
  * @param {string} cmd - Command to execute
+ * @param {string} [cwd] - Working directory (default: process.cwd())
  * @returns {string|null} Output or null on error
  */
-function execSafe(cmd) {
+function execSafe(cmd, cwd) {
   try {
-    return execSync(cmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    return execSync(cmd, { encoding: 'utf8', cwd, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
   } catch (e) {
     return null;
   }
@@ -112,12 +115,13 @@ function resolveSkillsVenv(configDirName = '.claude') {
  * Build plan context from config and git info
  * @param {string|null} sessionId - Session ID
  * @param {Object} config - Loaded config
+ * @param {string} [cwd] - Directory to read the git branch and match plans from (default: process.cwd())
  * @returns {Object} Plan context object
  */
-function buildPlanContext(sessionId, config) {
+function buildPlanContext(sessionId, config, cwd) {
   const { plan, paths } = config;
-  const gitBranch = execSafe('git branch --show-current');
-  const resolved = resolvePlanPath(sessionId, config);
+  const gitBranch = execSafe('git branch --show-current', cwd);
+  const resolved = resolvePlanPath(sessionId, config, cwd);
   const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, plan, paths);
 
   // Compute naming pattern directly for reliable injection
@@ -126,7 +130,7 @@ function buildPlanContext(sessionId, config) {
   const planLine = resolved.resolvedBy === 'session'
     ? `- Plan: ${resolved.path}`
     : resolved.resolvedBy === 'branch'
-      ? `- Plan: none | Suggested: ${resolved.path}`
+      ? `- Plan: ${resolved.path} (matched from branch)`
       : `- Plan: none`;
 
   // Validation config (injected so LLM can reference it)
@@ -439,7 +443,7 @@ function buildNamingSection({ reportsPath, plansPath, namePattern }) {
     `## Naming`,
     `- Report: \`${reportsPath}{type}-${namePattern}.md\``,
     `- Plan dir: \`${plansPath}/${namePattern}/\``,
-    `- Replace \`{type}\` with: agent name, report type, or context`,
+    `- Replace \`{type}\` with one of: ${REPORT_TYPES.join(', ')}`,
     `- Replace \`{slug}\` in pattern with: descriptive-kebab-slug`
   ];
 }
@@ -518,10 +522,16 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
   const skillsVenv = resolveSkillsVenv(configDirName);
 
   // Build plan context
-  const planCtx = buildPlanContext(sessionId, cfg);
+  const cwd = baseDir || process.cwd();
+  const planCtx = buildPlanContext(sessionId, cfg, cwd);
 
   // Issue #327: Use baseDir for absolute path resolution (subdirectory workflow support)
-  // If baseDir provided, resolve paths as absolute; otherwise use relative paths
+  // If baseDir provided, resolve paths as absolute; otherwise use relative paths.
+  // plans/ and non-plan reports live in the main git worktree (plansBase differs from cwd
+  // only inside a linked worktree, where relative paths would point at a lost copy), so
+  // that case is always absolute. docs/ stays with cwd: it is committed per branch.
+  const plansBase = resolvePlansBaseDir(cwd);
+  const plansAbsolute = Boolean(baseDir) || plansBase !== cwd;
   const effectiveBaseDir = baseDir || null;
   const plansPathRel = normalizePath(cfg.paths?.plans) || 'plans';
   const docsPathRel = normalizePath(cfg.paths?.docs) || 'docs';
@@ -540,10 +550,10 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
     skillsVenv,
     // resolve, not join: reportsPath carries an absolute active-plan path (Issue #335) and
     // paths.* may be configured absolute — join would append them and double the prefix.
-    reportsPath: effectiveBaseDir
-      ? withTrailingSlash(path.resolve(effectiveBaseDir, planCtx.reportsPath))
+    reportsPath: plansAbsolute
+      ? withTrailingSlash(path.resolve(plansBase, planCtx.reportsPath))
       : planCtx.reportsPath,
-    plansPath: effectiveBaseDir ? path.resolve(effectiveBaseDir, plansPathRel) : plansPathRel,
+    plansPath: plansAbsolute ? path.resolve(plansBase, plansPathRel) : plansPathRel,
     docsPath: effectiveBaseDir ? path.resolve(effectiveBaseDir, docsPathRel) : docsPathRel,
     docsMaxLoc: Math.max(1, parseInt(cfg.docs?.maxLoc, 10) || 800),
     docsCodeLevelOnly: cfg.docs?.codeLevelOnly === true,

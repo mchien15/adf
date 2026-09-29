@@ -12,6 +12,7 @@ Use the naming pattern from the `## Naming` section injected by hooks for report
 **IMPORTANT:** Sacrifice grammar for the sake of concision when writing reports.
 **IMPORTANT:** In reports, list any unresolved questions at the end, if any.
 **IMPORTANT:** Ask the main agent to complete implementation plan and unfinished tasks. Emphasize how important it is to finish the plan!
+**IMPORTANT:** Plan and phase `status` values are exactly `pending | in-progress | completed | cancelled` — never `done`, `implemented` or others; the archive step keys on `completed`/`cancelled`.
 
 ## Team Mode (when spawned as teammate)
 

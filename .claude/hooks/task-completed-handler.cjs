@@ -17,7 +17,7 @@ try {
   const fs = require('fs');
   const path = require('path');
   const os = require('os');
-  const { isHookEnabled } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled, resolveCurrentReportsPath } = require('./lib/ck-config-utils.cjs');
 
   if (!isHookEnabled('task-completed-handler')) {
     process.exit(0);
@@ -48,11 +48,13 @@ function countTasks(teamName) {
   } catch { return null; }
 }
 
-function logCompletion(teamName, taskId, taskSubject, teammateName) {
-  const reportsPath = process.env.CK_REPORTS_PATH;
-  if (!reportsPath) return;
-  const logFile = path.join(reportsPath, `team-${teamName}-completions.md`);
+function logCompletion(teamName, taskId, taskSubject, teammateName, sessionId, cwd) {
+  // CK_REPORTS_PATH only marks "a CK session is running": its value was captured at session
+  // start and goes stale when the plan is archived, so the path is re-resolved from live state.
+  if (!process.env.CK_REPORTS_PATH) return;
   try {
+    const reportsPath = resolveCurrentReportsPath(sessionId, cwd);
+    const logFile = path.join(reportsPath, `team-${teamName}-completions.md`);
     fs.mkdirSync(path.dirname(logFile), { recursive: true });
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     const line = `- [${timestamp}] Task #${taskId} "${taskSubject}" completed by ${teammateName}\n`;
@@ -70,7 +72,9 @@ function main() {
     if (!team_name) process.exit(0);
 
     // Log completion to report file
-    logCompletion(team_name, task_id, task_subject, teammate_name);
+    const sessionId = payload.session_id || process.env.CK_SESSION_ID || null;
+    const cwd = payload.cwd?.trim() || process.cwd();
+    logCompletion(team_name, task_id, task_subject, teammate_name, sessionId, cwd);
 
     // Count task progress
     const counts = countTasks(team_name);

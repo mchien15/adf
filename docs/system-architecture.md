@@ -157,7 +157,7 @@ temperature: 0.1
 #### 2.3 Agent Communication Protocol
 
 **Communication Medium**: File system (markdown files)
-**Report Location**: `./plans/<plan-name>/reports/`
+**Report Location**: `./plans/<plan-name>/reports/` (active or branch-matched plan), otherwise `./plans/reports/{YYMM}/`. Finished plans move to `./plans/archive/{YYMM}/` via `.claude/scripts/tidy-plans.cjs`
 **Naming Convention**: `{date}-from-[source]-to-[dest]-[task]-report.md`
 
 **Report Structure**:

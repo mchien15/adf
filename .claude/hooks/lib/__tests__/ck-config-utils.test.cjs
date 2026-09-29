@@ -183,6 +183,12 @@ test('getGitRoot returns path when in git repo', () => {
   }
 });
 
+// Unplanned reports are bucketed by month: plans/reports/{YYMM}
+function currentYymm() {
+  const d = new Date();
+  return String(d.getFullYear()).slice(-2) + String(d.getMonth() + 1).padStart(2, '0');
+}
+
 console.log('\n=== getReportsPath with baseDir tests (Issue #291) ===\n');
 
 test('getReportsPath returns absolute path when baseDir provided', () => {
@@ -191,7 +197,7 @@ test('getReportsPath returns absolute path when baseDir provided', () => {
   const baseDir = '/home/user/project';
 
   const result = getReportsPath(null, null, planConfig, pathsConfig, baseDir);
-  assertEquals(result, '/home/user/project/plans/reports');
+  assertEquals(result, `/home/user/project/plans/reports/${currentYymm()}`);
 });
 
 test('getReportsPath returns relative path when no baseDir', () => {
@@ -199,7 +205,7 @@ test('getReportsPath returns relative path when no baseDir', () => {
   const pathsConfig = { plans: 'plans' };
 
   const result = getReportsPath(null, null, planConfig, pathsConfig);
-  assertEquals(result, 'plans/reports/');
+  assertEquals(result, `plans/reports/${currentYymm()}/`);
 });
 
 test('getReportsPath uses plan path for session-resolved plans', () => {
@@ -211,13 +217,13 @@ test('getReportsPath uses plan path for session-resolved plans', () => {
   assertEquals(result, '/home/user/project/plans/my-plan/reports');
 });
 
-test('getReportsPath ignores plan path for branch-resolved plans', () => {
+test('getReportsPath uses plan path for branch-resolved plans', () => {
   const planConfig = { reportsDir: 'reports' };
   const pathsConfig = { plans: 'plans' };
   const baseDir = '/home/user/project';
 
   const result = getReportsPath('plans/my-plan', 'branch', planConfig, pathsConfig, baseDir);
-  assertEquals(result, '/home/user/project/plans/reports');
+  assertEquals(result, '/home/user/project/plans/my-plan/reports');
 });
 
 // Regression: set-active-plan.cjs stores an ABSOLUTE plan path (Issue #335) while the
@@ -354,7 +360,7 @@ test('getReportsPath with empty reportsDir falls back to "reports"', () => {
   const baseDir = '/home/user/project';
 
   const result = getReportsPath(null, null, planConfig, pathsConfig, baseDir);
-  assertEquals(result, '/home/user/project/plans/reports');
+  assertEquals(result, `/home/user/project/plans/reports/${currentYymm()}`);
 });
 
 test('getReportsPath with null reportsDir falls back to "reports"', () => {
@@ -363,7 +369,7 @@ test('getReportsPath with null reportsDir falls back to "reports"', () => {
   const baseDir = '/home/user/project';
 
   const result = getReportsPath(null, null, planConfig, pathsConfig, baseDir);
-  assertEquals(result, '/home/user/project/plans/reports');
+  assertEquals(result, `/home/user/project/plans/reports/${currentYymm()}`);
 });
 
 test('getReportsPath with empty plansDir falls back to "plans"', () => {
@@ -372,7 +378,7 @@ test('getReportsPath with empty plansDir falls back to "plans"', () => {
   const baseDir = '/home/user/project';
 
   const result = getReportsPath(null, null, planConfig, pathsConfig, baseDir);
-  assertEquals(result, '/home/user/project/plans/reports');
+  assertEquals(result, `/home/user/project/plans/reports/${currentYymm()}`);
 });
 
 test('getReportsPath with null plansDir falls back to "plans"', () => {
@@ -381,7 +387,7 @@ test('getReportsPath with null plansDir falls back to "plans"', () => {
   const baseDir = '/home/user/project';
 
   const result = getReportsPath(null, null, planConfig, pathsConfig, baseDir);
-  assertEquals(result, '/home/user/project/plans/reports');
+  assertEquals(result, `/home/user/project/plans/reports/${currentYymm()}`);
 });
 
 console.log('\n=== sanitizeConfig tests ===\n');
@@ -717,13 +723,24 @@ function cleanupSession(sessionId) {
   try { fs.unlinkSync(tempPath); } catch (e) {}
 }
 
+// A session plan only resolves while its dir exists (an archived plan must not keep
+// receiving reports), so these tests use real directories.
+function makeProjectWithPlan() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ck-session-plan-'));
+  const origin = path.join(root, 'project', 'subfolder');
+  fs.mkdirSync(path.join(origin, 'plans', '260111-feature'), { recursive: true });
+  return { root, origin };
+}
+
 test('resolvePlanPath returns absolute path as-is (Issue #335)', () => {
   const sessionId = generateTestSessionId();
+  const { root, origin } = makeProjectWithPlan();
   try {
+    const absolutePlan = path.join(origin, 'plans', '260111-feature');
     // Store absolute path in session
     writeSessionState(sessionId, {
-      sessionOrigin: '/project/subfolder',
-      activePlan: '/project/subfolder/plans/260111-feature',
+      sessionOrigin: origin,
+      activePlan: absolutePlan,
       timestamp: Date.now()
     });
 
@@ -731,18 +748,20 @@ test('resolvePlanPath returns absolute path as-is (Issue #335)', () => {
     const result = resolvePlanPath(sessionId, config);
 
     assertEquals(result.resolvedBy, 'session');
-    assertEquals(result.path, '/project/subfolder/plans/260111-feature');
+    assertEquals(result.path, absolutePlan);
   } finally {
     cleanupSession(sessionId);
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
 test('resolvePlanPath resolves relative path using sessionOrigin (Issue #335)', () => {
   const sessionId = generateTestSessionId();
+  const { root, origin } = makeProjectWithPlan();
   try {
     // Store relative path (legacy behavior)
     writeSessionState(sessionId, {
-      sessionOrigin: '/project/subfolder',
+      sessionOrigin: origin,
       activePlan: 'plans/260111-feature',  // Relative
       timestamp: Date.now()
     });
@@ -752,16 +771,20 @@ test('resolvePlanPath resolves relative path using sessionOrigin (Issue #335)', 
 
     assertEquals(result.resolvedBy, 'session');
     // Should resolve using sessionOrigin
-    assertEquals(result.path, '/project/subfolder/plans/260111-feature');
+    assertEquals(result.path, path.join(origin, 'plans', '260111-feature'));
   } finally {
     cleanupSession(sessionId);
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
 test('resolvePlanPath without sessionOrigin uses relative path as-is', () => {
   const sessionId = generateTestSessionId();
+  const { root, origin } = makeProjectWithPlan();
+  const originalCwd = process.cwd();
   try {
-    // No sessionOrigin (edge case)
+    // No sessionOrigin (edge case): the relative dir is checked against the current dir
+    process.chdir(origin);
     writeSessionState(sessionId, {
       activePlan: 'plans/260111-feature',
       timestamp: Date.now()
@@ -774,7 +797,9 @@ test('resolvePlanPath without sessionOrigin uses relative path as-is', () => {
     // Without sessionOrigin, returns as-is (relative)
     assertEquals(result.path, 'plans/260111-feature');
   } finally {
+    process.chdir(originalCwd);
     cleanupSession(sessionId);
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
 

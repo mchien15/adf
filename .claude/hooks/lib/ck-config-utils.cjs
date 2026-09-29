@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
     reportsDir: 'reports',
     resolution: {
       // CHANGED: Removed 'mostRecent' - only explicit session state activates plans
-      // Branch matching now returns 'suggested' not 'active'
+      // Branch matching resolves as 'branch' (gets reports) not 'session' (active)
       order: ['session', 'branch'],
       branchPattern: '(?:feat|fix|chore|refactor|docs)/(?:[^/]+/)?(.+)'
     },
@@ -270,7 +270,8 @@ function execSafe(cmd, options = {}) {
   const allowedCommands = [
     'git branch --show-current',
     'git rev-parse --abbrev-ref HEAD',
-    'git rev-parse --show-toplevel'
+    'git rev-parse --show-toplevel',
+    'git rev-parse --show-toplevel --git-dir --git-common-dir'
   ];
   if (!allowedCommands.includes(cmd)) {
     return null;
@@ -293,18 +294,111 @@ function execSafe(cmd, options = {}) {
 }
 
 /**
+ * Report types accepted in report filenames: {type}-{name-pattern}.md
+ * Single source of truth for the Naming section injected by session/prompt/codex hooks.
+ */
+const REPORT_TYPES = Object.freeze([
+  'researcher',
+  'brainstormer',
+  'scout',
+  'planner',
+  'tester',
+  'debugger',
+  'code-reviewer',
+  'docs-manager',
+  'project-manager',
+  'audit',
+  'fullstack-developer',
+  'ui-ux-designer',
+  'business-analyst',
+  'testcase-writer'
+]);
+
+/** cwd -> resolved plans base dir (see resolvePlansBaseDir) */
+const plansBaseDirCache = new Map();
+
+/**
+ * Directory that plans/ (and non-plan reports) resolve against.
+ *
+ * plans/ is gitignored, so a copy inside each linked git worktree is lost with the
+ * worktree and diverges from the main one. In a linked worktree this maps cwd onto the
+ * main worktree (same relative subdirectory); everywhere else cwd is returned unchanged
+ * (normal repo, subdirectory of a repo - Issue #327, non-git dir, git error, bare repo).
+ * docs/ is committed per branch and must keep resolving against cwd, not this.
+ *
+ * @param {string} [cwd=process.cwd()] - Working directory
+ * @returns {string} Base directory for plans/
+ */
+function resolvePlansBaseDir(cwd = process.cwd()) {
+  // Hooks are short-lived processes, so a per-process memo cannot go stale in practice
+  // and saves a git spawn each time several code paths ask for the same cwd.
+  if (!plansBaseDirCache.has(cwd)) plansBaseDirCache.set(cwd, computePlansBaseDir(cwd));
+  return plansBaseDirCache.get(cwd);
+}
+
+/** Uncached worker for resolvePlansBaseDir */
+function computePlansBaseDir(cwd) {
+  const out = execSafe('git rev-parse --show-toplevel --git-dir --git-common-dir', { cwd });
+  if (!out) return cwd;
+  const [toplevel, gitDir, commonDir] = out.split('\n').map(line => line.trim());
+  if (!toplevel || !gitDir || !commonDir) return cwd;
+
+  try {
+    // git may print --git-dir / --git-common-dir relative to cwd (and inconsistently so),
+    // so resolve both against the real cwd before comparing.
+    const realCwd = fs.realpathSync(cwd);
+    const absGitDir = path.resolve(realCwd, gitDir);
+    const absCommonDir = path.resolve(realCwd, commonDir);
+    // Same dir = main worktree. Only a plain <root>/.git common dir has a main root.
+    if (absGitDir === absCommonDir || path.basename(absCommonDir) !== '.git') return cwd;
+    return path.join(path.dirname(absCommonDir), path.relative(toplevel, realCwd));
+  } catch (e) {
+    return cwd;
+  }
+}
+
+/**
+ * Directories under plans/ that are never plan dirs (report buckets, archive, templates, visuals).
+ * A branch named fix/reports must not adopt plans/reports as its plan. Shared with tidy-plans.
+ */
+const RESERVED_PLAN_DIRS = Object.freeze(['reports', 'archive', 'templates', 'visuals']);
+
+/**
+ * Find the plan dir a branch slug refers to: a non-reserved dir holding a plan.md whose name
+ * is the slug or ends with '-<slug>' (plan names are {date}-{issue}-{slug}). Latest wins.
+ * @param {string} plansRoot - Absolute plans directory
+ * @param {string} slug - Slug extracted from the branch name
+ * @returns {string|null} Plan dir name or null
+ */
+function findBranchPlanName(plansRoot, slug) {
+  const names = fs.readdirSync(plansRoot, { withFileTypes: true })
+    .filter(e => e.isDirectory()
+      && !RESERVED_PLAN_DIRS.includes(e.name)
+      && (e.name === slug || e.name.endsWith(`-${slug}`))
+      && fs.existsSync(path.join(plansRoot, e.name, 'plan.md')))
+    .map(e => e.name)
+    .sort();
+  return names.length > 0 ? names[names.length - 1] : null;
+}
+
+/**
  * Resolve active plan path using cascading resolution with tracking
  *
  * Resolution semantics:
- * - 'session': Explicitly set via set-active-plan.cjs → ACTIVE (directive)
- * - 'branch': Matched from git branch name → SUGGESTED (hint only)
+ * - 'session': Explicitly set via set-active-plan.cjs → ACTIVE (directive). Skipped when the
+ *   plan dir no longer exists (archived/deleted), so nothing keeps routing into a ghost dir.
+ * - 'branch': Matched from git branch name → the plan for this branch; it receives reports
+ *   but is never persisted as the session's activePlan
  * - 'mostRecent': REMOVED - was causing stale plan pollution
  *
  * @param {string} sessionId - Session identifier (optional)
  * @param {Object} config - ClaudeKit config
+ * @param {string} [cwd] - Directory whose branch and plans/ are matched (default: process.cwd()). In a linked
+ *   git worktree plans/ is looked up in the main worktree and the returned path is absolute.
  * @returns {{ path: string|null, resolvedBy: 'session'|'branch'|null }} Resolution result with tracking
  */
-function resolvePlanPath(sessionId, config) {
+function resolvePlanPath(sessionId, config, cwd) {
+  const workDir = cwd || process.cwd();
   const plansDir = config?.paths?.plans || 'plans';
   const resolution = config?.plan?.resolution || {};
   const order = resolution.order || ['session', 'branch'];
@@ -323,22 +417,26 @@ function resolvePlanPath(sessionId, config) {
             // Resolve relative path using session origin directory
             resolvedPath = path.join(state.sessionOrigin, resolvedPath);
           }
-          return { path: resolvedPath, resolvedBy: 'session' };
+          // Dir gone (cook archived it, or it was deleted): fall through to the next method
+          if (fs.existsSync(resolvedPath)) {
+            return { path: resolvedPath, resolvedBy: 'session' };
+          }
         }
         break;
       }
       case 'branch': {
         try {
-          const branch = execSafe('git branch --show-current');
+          const branch = execSafe('git branch --show-current', { cwd: workDir });
           const slug = extractSlugFromBranch(branch, branchPattern);
-          if (slug && fs.existsSync(plansDir)) {
-            const entries = fs.readdirSync(plansDir, { withFileTypes: true })
-              .filter(e => e.isDirectory() && e.name.includes(slug));
-            if (entries.length > 0) {
-              return {
-                path: path.join(plansDir, entries[entries.length - 1].name),
-                resolvedBy: 'branch'
-              };
+          if (slug) {
+            const plansBase = resolvePlansBaseDir(workDir);
+            const plansRootAbs = path.resolve(plansBase, plansDir);
+            // Relative plansDir stays relative when it resolves against cwd itself; only a
+            // linked worktree (plans/ lives in the main worktree) needs an absolute path.
+            const plansRoot = plansBase === workDir ? plansDir : plansRootAbs;
+            const planName = fs.existsSync(plansRootAbs) ? findBranchPlanName(plansRootAbs, slug) : null;
+            if (planName) {
+              return { path: path.join(plansRoot, planName), resolvedBy: 'branch' };
             }
           }
         } catch (e) {
@@ -350,6 +448,18 @@ function resolvePlanPath(sessionId, config) {
     }
   }
   return { path: null, resolvedBy: null };
+}
+
+/**
+ * Plan explicitly activated for a session (set-active-plan), ignoring branch matching.
+ * Null when there is no session, no active plan, or its dir no longer exists.
+ * Shared by the statusline and cook-after-plan-reminder so none of them show an archived plan.
+ *
+ * @param {string|null} sessionId - Session identifier
+ * @returns {string|null} Absolute (or legacy relative) plan dir, or null
+ */
+function resolveSessionPlanPath(sessionId) {
+  return resolvePlanPath(sessionId, { plan: { resolution: { order: ['session'] } } }).path;
 }
 
 /**
@@ -575,8 +685,8 @@ function writeEnv(envFile, key, value) {
 
 /**
  * Get reports path based on plan resolution
- * Only uses plan-specific path for 'session' resolved plans (explicitly active)
- * Branch-matched (suggested) plans use default path to avoid pollution
+ * - 'session' (active) and 'branch' (branch-matched) plans -> {plan}/reports
+ * - otherwise -> {plans}/reports/{YYMM} (month bucket, keeps unplanned reports out of one flat dir)
  *
  * @param {string|null} planPath - The plan path
  * @param {string|null} resolvedBy - How plan was resolved ('session'|'branch'|null)
@@ -590,14 +700,13 @@ function getReportsPath(planPath, resolvedBy, planConfig, pathsConfig, baseDir =
   const plansDir = normalizePath(pathsConfig?.plans) || 'plans';
 
   let reportPath;
-  // Only use plan-specific reports path if explicitly active (session state)
   // Issue #327: Validate normalized path to prevent whitespace-only paths creating invalid directories
-  const normalizedPlanPath = planPath && resolvedBy === 'session' ? normalizePath(planPath) : null;
+  const hasPlan = resolvedBy === 'session' || resolvedBy === 'branch';
+  const normalizedPlanPath = planPath && hasPlan ? normalizePath(planPath) : null;
   if (normalizedPlanPath) {
     reportPath = `${normalizedPlanPath}/${reportsDir}`;
   } else {
-    // Default path for no plan or suggested (branch-matched) plans
-    reportPath = `${plansDir}/${reportsDir}`;
+    reportPath = `${plansDir}/${reportsDir}/${formatDate('YYMM')}`;
   }
 
   // Return absolute path if baseDir provided.
@@ -607,6 +716,23 @@ function getReportsPath(planPath, resolvedBy, planConfig, pathsConfig, baseDir =
     return path.resolve(baseDir, reportPath);
   }
   return reportPath + '/';
+}
+
+/**
+ * Reports directory right now, resolved from live state (session file, branch, plans on disk)
+ * rather than the CK_REPORTS_PATH env var captured at session start. That value goes stale when
+ * a plan is archived mid-session, and writing to it recreates the archived plan dir.
+ * Plan dirs are checked for existence during resolution, so the result never sits under a
+ * missing plan dir.
+ *
+ * @param {string|null} sessionId - Session identifier
+ * @param {string} [cwd=process.cwd()] - Working directory (plans base is derived from it)
+ * @returns {string} Absolute reports path (no trailing slash)
+ */
+function resolveCurrentReportsPath(sessionId, cwd = process.cwd()) {
+  const config = loadConfig({ includeProject: false, includeAssertions: false, includeLocale: false });
+  const resolved = resolvePlanPath(sessionId, config, cwd);
+  return getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths, resolvePlansBaseDir(cwd));
 }
 
 /**
@@ -766,7 +892,7 @@ function getGitRoot(cwd = null) {
 
 /**
  * Extract task list ID from plan resolution for Claude Code Tasks coordination
- * Only returns ID for session-resolved plans (explicitly active, not branch-suggested)
+ * Only returns ID for session-resolved plans (explicitly active, not branch-matched)
  *
  * Cross-platform: path.basename() handles both Unix/Windows separators
  *
@@ -813,7 +939,12 @@ module.exports = {
   getSessionTempPath,
   readSessionState,
   writeSessionState,
+  REPORT_TYPES,
+  RESERVED_PLAN_DIRS,
+  resolvePlansBaseDir,
   resolvePlanPath,
+  resolveSessionPlanPath,
+  resolveCurrentReportsPath,
   extractSlugFromBranch,
   findMostRecentPlan,
   getReportsPath,

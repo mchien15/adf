@@ -21,6 +21,8 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
+const { writeSessionState, getSessionTempPath } = require('../lib/ck-config-utils.cjs');
+
 const HOOK_PATH = path.join(__dirname, '..', 'team-context-inject.cjs');
 
 /**
@@ -32,9 +34,12 @@ const HOOK_PATH = path.join(__dirname, '..', 'team-context-inject.cjs');
 function runHook(inputData, options = {}) {
   return new Promise((resolve, reject) => {
     const proc = spawn('node', [HOOK_PATH], {
-      cwd: process.cwd(),
+      cwd: options.cwd || process.cwd(),
       env: {
         ...process.env,
+        // CK_* session values cleared by default so an outer session cannot leak in
+        CK_REPORTS_PATH: '', CK_PLANS_PATH: '', CK_PROJECT_ROOT: '', CK_NAME_PATTERN: '',
+        CK_GIT_BRANCH: '', CK_ACTIVE_PLAN: '', CK_SESSION_ID: '',
         // Clear team/task paths to simulate fresh environment
         ...(options.clearPaths ? {
           HOME: os.tmpdir(),
@@ -410,14 +415,16 @@ describe('team-context-inject.cjs', () => {
   describe('CK Stack Context Building', () => {
 
     it('includes CK context when environment variables are set', async () => {
-      const tmpDir = path.join(os.tmpdir(), 'team-inject-ck-' + Date.now());
-      fs.mkdirSync(tmpDir, { recursive: true });
+      const tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'team-inject-ck-')));
+      const project = path.join(tmpDir, 'project');
+      fs.mkdirSync(project, { recursive: true });
       try {
         createTestTeam(tmpDir, 'team-a');
 
         const result = await runHook({
           agent_id: 'alice@team-a'
         }, {
+          cwd: project,
           env: {
             HOME: tmpDir,
             CK_REPORTS_PATH: '/project/plans/reports',
@@ -431,10 +438,60 @@ describe('team-context-inject.cjs', () => {
         const context = result.output?.hookSpecificOutput?.additionalContext || '';
 
         assert.ok(context.includes('CK Context'), 'Should have CK Context section');
-        assert.ok(context.includes('/project/plans/reports'), 'Should include reports path');
+        // Reports is re-resolved at run time (month bucket here), not copied from the env var
+        assert.match(context, new RegExp(`Reports: ${project}/plans/reports/\\d{4}\\n`), 'Should include resolved reports path');
         assert.ok(context.includes('/project/plans'), 'Should include plans path');
         assert.ok(context.includes('main'), 'Should include git branch');
       } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('re-resolves reports + active plan at run time instead of trusting stale env', async () => {
+      const tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'team-inject-stale-')));
+      const project = path.join(tmpDir, 'project');
+      const gone = path.join(project, 'plans', '260101-0000-archived');
+      const sessionId = `team-inject-stale-${process.pid}-${Date.now()}`;
+      fs.mkdirSync(project, { recursive: true });
+      try {
+        createTestTeam(tmpDir, 'team-a');
+        writeSessionState(sessionId, { activePlan: gone, sessionOrigin: project, timestamp: Date.now() });
+
+        const result = await runHook({ agent_id: 'alice@team-a', session_id: sessionId }, {
+          cwd: project,
+          env: { HOME: tmpDir, CK_REPORTS_PATH: path.join(gone, 'reports'), CK_ACTIVE_PLAN: gone }
+        });
+
+        const context = result.output?.hookSpecificOutput?.additionalContext || '';
+        assert.ok(!context.includes('260101-0000-archived'), `stale plan leaked:\n${context}`);
+        assert.ok(!context.includes('Active plan:'), 'no Active plan line for an archived plan');
+        assert.match(context, new RegExp(`Reports: ${project}/plans/reports/\\d{4}\\n`));
+      } finally {
+        fs.rmSync(getSessionTempPath(sessionId), { force: true });
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('shows the active plan and its reports dir while the plan exists', async () => {
+      const tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'team-inject-live-')));
+      const project = path.join(tmpDir, 'project');
+      const planDir = path.join(project, 'plans', '260929-1200-live');
+      const sessionId = `team-inject-live-${process.pid}-${Date.now()}`;
+      fs.mkdirSync(planDir, { recursive: true });
+      try {
+        createTestTeam(tmpDir, 'team-a');
+        writeSessionState(sessionId, { activePlan: planDir, sessionOrigin: project, timestamp: Date.now() });
+
+        const result = await runHook({ agent_id: 'alice@team-a', session_id: sessionId }, {
+          cwd: project,
+          env: { HOME: tmpDir, CK_REPORTS_PATH: 'set-at-session-start' }
+        });
+
+        const context = result.output?.hookSpecificOutput?.additionalContext || '';
+        assert.ok(context.includes(`Active plan: ${planDir}`), context);
+        assert.ok(context.includes(`Reports: ${planDir}/reports`), context);
+      } finally {
+        fs.rmSync(getSessionTempPath(sessionId), { force: true });
         fs.rmSync(tmpDir, { recursive: true, force: true });
       }
     });
@@ -448,7 +505,8 @@ describe('team-context-inject.cjs', () => {
         const result = await runHook({
           agent_id: 'alice@team-a'
         }, {
-          env: { HOME: tmpDir }
+          // The CK Context section only renders once a CK session var exists
+          env: { HOME: tmpDir, CK_GIT_BRANCH: 'main' }
         });
 
         assert.strictEqual(result.exitCode, 0);

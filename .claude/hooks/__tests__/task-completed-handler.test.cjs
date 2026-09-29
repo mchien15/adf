@@ -11,6 +11,9 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
+const { writeSessionState, getSessionTempPath } = require('../lib/ck-config-utils.cjs');
+const { createRepoWithWorktree } = require('./helpers/temp-git-worktree.cjs');
+
 const HOOK_PATH = path.join(__dirname, '..', 'task-completed-handler.cjs');
 
 /**
@@ -19,8 +22,9 @@ const HOOK_PATH = path.join(__dirname, '..', 'task-completed-handler.cjs');
 function runHook(inputData, options = {}) {
   return new Promise((resolve, reject) => {
     const proc = spawn('node', [HOOK_PATH], {
-      cwd: process.cwd(),
-      env: { ...process.env, ...(options.env || {}) }
+      cwd: options.cwd || process.cwd(),
+      // CK_* cleared by default: an outer session's values must not steer where logs go
+      env: { ...process.env, CK_REPORTS_PATH: '', CK_SESSION_ID: '', ...(options.env || {}) }
     });
 
     let stdout = '';
@@ -157,26 +161,106 @@ describe('task-completed-handler.cjs', () => {
 
   describe('Completion logging', () => {
 
-    it('logs completion to report file when CK_REPORTS_PATH set', async () => {
-      const tmpDir = path.join(os.tmpdir(), 'tc-hook-log-' + Date.now());
-      const reportsDir = path.join(tmpDir, 'reports');
-      fs.mkdirSync(tmpDir, { recursive: true });
+    /** Current month bucket, plus neighbours within a minute of a month rollover */
+    function monthBuckets() {
+      const yymm = (d) => String(d.getFullYear()).slice(-2) + String(d.getMonth() + 1).padStart(2, '0');
+      const now = Date.now();
+      return [...new Set([yymm(new Date(now)), yymm(new Date(now + 60000)), yymm(new Date(now - 60000))])];
+    }
+
+    /** Find the completions log under `<base>/<bucket>/` for any current month bucket */
+    function findBucketLog(base, teamName) {
+      return monthBuckets()
+        .map((b) => path.join(base, b, `team-${teamName}-completions.md`))
+        .find((f) => fs.existsSync(f));
+    }
+
+    function setup(prefix) {
+      const tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), prefix)));
+      const project = path.join(tmpDir, 'project');
+      fs.mkdirSync(project, { recursive: true });
+      return { tmpDir, project };
+    }
+
+    const completion = (team, sessionId) => ({
+      task_id: '1', task_subject: 'Logged task', teammate_name: 'worker-1', team_name: team, session_id: sessionId
+    });
+
+    it('logs to the month bucket under the plans dir when no plan is active', async () => {
+      const { tmpDir, project } = setup('tc-hook-log-');
       try {
-        createTestTeam(tmpDir, 'log-team', [
-          { id: '1', status: 'completed', subject: 'Logged task' }
-        ]);
+        createTestTeam(tmpDir, 'log-team', [{ id: '1', status: 'completed', subject: 'Logged task' }]);
 
-        await runHook({
-          task_id: '1', task_subject: 'Logged task',
-          teammate_name: 'worker-1', team_name: 'log-team'
-        }, { env: { HOME: tmpDir, CK_REPORTS_PATH: reportsDir } });
+        // CK_REPORTS_PATH (captured at session start) marks a CK session but is not trusted
+        const stale = path.join(tmpDir, 'stale', 'reports');
+        await runHook(completion('log-team'), { cwd: project, env: { HOME: tmpDir, CK_REPORTS_PATH: stale } });
 
-        const logFile = path.join(reportsDir, 'team-log-team-completions.md');
-        assert.ok(fs.existsSync(logFile), 'Log file should exist');
+        const logFile = findBucketLog(path.join(project, 'plans', 'reports'), 'log-team');
+        assert.ok(logFile, 'Log file should be under plans/reports/{YYMM}/');
         const content = fs.readFileSync(logFile, 'utf-8');
         assert.ok(content.includes('Logged task'), 'Should contain task subject');
         assert.ok(content.includes('worker-1'), 'Should contain teammate name');
+        assert.ok(!fs.existsSync(stale), 'Stale env path must not be used');
       } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('logs into the active plan reports dir while the plan exists', async () => {
+      const { tmpDir, project } = setup('tc-hook-live-');
+      const sessionId = `tc-live-${process.pid}-${Date.now()}`;
+      try {
+        createTestTeam(tmpDir, 'live-team', [{ id: '1', status: 'completed', subject: 'Logged task' }]);
+        const planDir = path.join(project, 'plans', '260929-1200-live');
+        fs.mkdirSync(planDir, { recursive: true });
+        writeSessionState(sessionId, { activePlan: planDir, sessionOrigin: project, timestamp: Date.now() });
+
+        await runHook(completion('live-team', sessionId), {
+          cwd: project, env: { HOME: tmpDir, CK_REPORTS_PATH: path.join(planDir, 'reports') }
+        });
+
+        assert.ok(fs.existsSync(path.join(planDir, 'reports', 'team-live-team-completions.md')));
+      } finally {
+        fs.rmSync(getSessionTempPath(sessionId), { force: true });
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('does not recreate the reports dir of a plan archived mid-session', async () => {
+      const { tmpDir, project } = setup('tc-hook-archived-');
+      const sessionId = `tc-archived-${process.pid}-${Date.now()}`;
+      try {
+        createTestTeam(tmpDir, 'arch-team', [{ id: '1', status: 'completed', subject: 'Logged task' }]);
+        const gonePlan = path.join(project, 'plans', '260101-0000-archived');
+        writeSessionState(sessionId, { activePlan: gonePlan, sessionOrigin: project, timestamp: Date.now() });
+
+        // env still holds the path captured at session start, before the archive
+        await runHook(completion('arch-team', sessionId), {
+          cwd: project, env: { HOME: tmpDir, CK_REPORTS_PATH: path.join(gonePlan, 'reports') }
+        });
+
+        assert.ok(!fs.existsSync(gonePlan), 'archived plan dir must not be recreated');
+        assert.ok(findBucketLog(path.join(project, 'plans', 'reports'), 'arch-team'), 'falls back to the month bucket');
+      } finally {
+        fs.rmSync(getSessionTempPath(sessionId), { force: true });
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it('logs under the main worktree plans dir when run in a linked worktree', async () => {
+      const repo = createRepoWithWorktree();
+      const tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'tc-hook-wt-')));
+      try {
+        createTestTeam(tmpDir, 'wt-team', [{ id: '1', status: 'completed', subject: 'Logged task' }]);
+
+        await runHook(completion('wt-team'), {
+          cwd: repo.worktree, env: { HOME: tmpDir, CK_REPORTS_PATH: 'set' }
+        });
+
+        assert.ok(findBucketLog(path.join(repo.main, 'plans', 'reports'), 'wt-team'), 'log lands in main worktree');
+        assert.ok(!fs.existsSync(path.join(repo.worktree, 'plans')), 'no plans/ created in the linked worktree');
+      } finally {
+        repo.cleanup();
         fs.rmSync(tmpDir, { recursive: true, force: true });
       }
     });

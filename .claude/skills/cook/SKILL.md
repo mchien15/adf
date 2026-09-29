@@ -1,7 +1,7 @@
 ---
 name: cook
 description: "ALWAYS activate this skill before implementing EVERY feature, plan, or fix."
-version: 2.4.0
+version: 2.5.0
 argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test]"
 ---
 

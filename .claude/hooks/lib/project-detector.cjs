@@ -322,7 +322,7 @@ function buildContextOutput(config, detections, resolved, gitRoot) {
     if (resolved.resolvedBy === 'session') {
       lines.push(`Plan: ${resolved.path}`);
     } else {
-      lines.push(`Suggested: ${resolved.path}`);
+      lines.push(`Plan: ${resolved.path} (matched from branch)`);
     }
   }
 
