@@ -13,10 +13,9 @@ NON_INTERACTIVE=false
 JSON_OUTPUT=false
 STACKS=""
 COVERAGE="70"
-FILE_MAX_LOC="200"
 SCOPE_INCLUDE="src/,app/,lib/"
 SCOPE_EXCLUDE=""
-GATES="secrets,sast,deps,coverage,file-size"
+GATES="secrets,sast,deps,coverage"
 SONAR_HOST="${SONAR_HOST_URL:-}"
 SONAR_PROJECT_KEY=""
 ENABLE_SEMGREP=false
@@ -31,7 +30,6 @@ while [ $# -gt 0 ]; do
     --json)               JSON_OUTPUT=true; shift ;;
     --stacks=*)           STACKS="${1#--stacks=}"; shift ;;
     --coverage=*)         COVERAGE="${1#--coverage=}"; shift ;;
-    --file-max-loc=*)     FILE_MAX_LOC="${1#--file-max-loc=}"; shift ;;
     --scope=*)            SCOPE_INCLUDE="${1#--scope=}"; shift ;;
     --gates=*)            GATES="${1#--gates=}"; shift ;;
     --sonar-host=*)       SONAR_HOST="${1#--sonar-host=}"; export SONAR_HOST_URL="$SONAR_HOST"; shift ;;
@@ -44,7 +42,6 @@ done
 
 # Sanitize numeric inputs
 COVERAGE="${COVERAGE//[^0-9]/}"; [ -z "$COVERAGE" ] && COVERAGE=70
-FILE_MAX_LOC="${FILE_MAX_LOC//[^0-9]/}"; [ -z "$FILE_MAX_LOC" ] && FILE_MAX_LOC=200
 
 QG_DIR=".quality-gates"
 CONFIG_FILE="$QG_DIR/config.yaml"
@@ -98,14 +95,13 @@ if [ "$NON_INTERACTIVE" != "true" ]; then
   SCOPE_INCLUDE=$(prompt "Source code folders (comma-separated)" "$SCOPE_INCLUDE")
   SCOPE_EXCLUDE=$(prompt "Extra exclude patterns (comma-separated, blank for defaults)" "$SCOPE_EXCLUDE")
   COVERAGE=$(prompt "Minimum coverage threshold (%)" "$COVERAGE")
-  FILE_MAX_LOC=$(prompt "Max file size (lines of code)" "$FILE_MAX_LOC")
 fi
 
 # ── Step 2: Write .quality-gates/config.yaml via generate-config.sh ───────────
 
 mkdir -p "$QG_DIR"
 
-GEN_FLAGS="--non-interactive --coverage=${COVERAGE} --file-max-loc=${FILE_MAX_LOC} --scope=${SCOPE_INCLUDE} --gates=${GATES}"
+GEN_FLAGS="--non-interactive --coverage=${COVERAGE} --scope=${SCOPE_INCLUDE} --gates=${GATES}"
 [ -n "$STACKS" ]           && GEN_FLAGS="$GEN_FLAGS --stacks=${STACKS}"
 [ -n "$SCOPE_EXCLUDE" ]    && GEN_FLAGS="$GEN_FLAGS --scope-exclude=${SCOPE_EXCLUDE}"
 [ "$FORCE" = "true" ]      && GEN_FLAGS="$GEN_FLAGS --force"

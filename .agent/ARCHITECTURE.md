@@ -181,7 +181,7 @@ Global behavioral constraints and development standards.
 | Rule Set | Purpose |
 |----------|---------|
 | `primary-workflow` | End-to-end development pipeline |
-| `development-rules` | Code quality, file naming, modularization |
+| `development-rules` | Code quality, file naming |
 | `orchestration-protocol` | Agent delegation, sequential/parallel patterns |
 | `documentation-management` | Docs structure, update triggers, plan format |
 | `team-coordination-rules` | File ownership, git safety, communication |

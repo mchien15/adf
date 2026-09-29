@@ -17,6 +17,8 @@ const { execSync } = require('child_process');
 const USAGE_CACHE_FILE = path.join(os.tmpdir(), 'ck-usage-limits-cache.json');
 const WARN_THRESHOLD = 70;
 const CRITICAL_THRESHOLD = 90;
+// Distinctive text emitted in every reminder; wasRecentlyInjected() looks for it in the transcript
+const REMINDER_MARKER = 'Markdown files are organized in: Plans →';
 const {
   loadConfig,
   resolvePlanPath,
@@ -146,7 +148,7 @@ function wasRecentlyInjected(transcriptPath) {
     if (!transcriptPath || !fs.existsSync(transcriptPath)) return false;
     const transcript = fs.readFileSync(transcriptPath, 'utf-8');
     // Check last 150 lines (hook output is ~30 lines, so this covers ~5 user prompts)
-    return transcript.split('\n').slice(-150).some(line => line.includes('[IMPORTANT] Consider Modularization'));
+    return transcript.split('\n').slice(-150).some(line => line.includes(REMINDER_MARKER));
   } catch (e) {
     return false;
   }
@@ -354,7 +356,7 @@ function buildRulesSection({ devRulesPath, catalogScript, skillsVenv, plansPath,
   // Issue #476: Use absolute paths to prevent LLM confusion in multi-CLAUDE.md projects
   const plansRef = plansPath || 'plans';
   const docsRef = docsPath || 'docs';
-  lines.push(`- Markdown files are organized in: Plans → "${plansRef}" directory, Docs → "${docsRef}" directory`);
+  lines.push(`- ${REMINDER_MARKER} "${plansRef}" directory, Docs → "${docsRef}" directory`);
   lines.push(`- **IMPORTANT:** DO NOT create markdown files outside of "${plansRef}" or "${docsRef}" UNLESS the user explicitly requests it.`);
 
   if (catalogScript) {
@@ -373,23 +375,6 @@ function buildRulesSection({ devRulesPath, catalogScript, skillsVenv, plansPath,
   lines.push(``);
 
   return lines;
-}
-
-/**
- * Build modularization section
- * @returns {string[]} Lines for modularization section
- */
-function buildModularizationSection() {
-  return [
-    `## **[IMPORTANT] Consider Modularization:**`,
-    `- Check existing modules before creating new`,
-    `- Analyze logical separation boundaries (functions, classes, concerns)`,
-    `- Prefer kebab-case for JS/TS/Python/shell; respect language conventions (C#/Java use PascalCase, Go/Rust use snake_case)`,
-    `- Write descriptive code comments`,
-    `- After modularization, continue with main task`,
-    `- When not to modularize: Markdown files, plain text files, bash scripts, configuration files, environment variables files, etc.`,
-    ``
-  ];
 }
 
 /**
@@ -502,7 +487,6 @@ function buildReminder(params) {
     ...(contextEnabled ? buildContextSection(sessionId) : []),
     ...(usageEnabled ? buildUsageSection() : []),
     ...buildRulesSection({ devRulesPath, catalogScript, skillsVenv, plansPath, docsPath }),
-    ...buildModularizationSection(),
     ...buildPathsSection({ reportsPath, plansPath, docsPath, docsMaxLoc, docsCodeLevelOnly }),
     ...buildPlanContextSection({ planLine, reportsPath, gitBranch, validationMode, validationMin, validationMax }),
     ...buildNamingSection({ reportsPath, plansPath, namePattern })
@@ -589,7 +573,6 @@ function buildReminderContext({ sessionId, config, staticEnv, configDirName = '.
       context: contextEnabled ? buildContextSection(sessionId) : [],
       usage: usageEnabled ? buildUsageSection() : [],
       rules: buildRulesSection({ devRulesPath, catalogScript, skillsVenv, plansPath: params.plansPath, docsPath: params.docsPath }),
-      modularization: buildModularizationSection(),
       paths: buildPathsSection({ reportsPath: params.reportsPath, plansPath: params.plansPath, docsPath: params.docsPath, docsMaxLoc: params.docsMaxLoc, docsCodeLevelOnly: params.docsCodeLevelOnly }),
       planContext: buildPlanContextSection(planCtx),
       naming: buildNamingSection({ reportsPath: params.reportsPath, plansPath: params.plansPath, namePattern: params.namePattern })
@@ -612,7 +595,6 @@ module.exports = {
   buildContextSection,
   buildUsageSection,
   buildRulesSection,
-  buildModularizationSection,
   buildPathsSection,
   buildPlanContextSection,
   buildNamingSection,

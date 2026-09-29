@@ -323,10 +323,18 @@ describe('context-builder.cjs', () => {
       assert.ok(joined.includes('"docs"'), 'Should fall back to relative docs');
     });
 
-    it('buildModularizationSection returns array with Modularization', () => {
-      const lines = contextBuilder.buildModularizationSection();
-      assert.ok(Array.isArray(lines), 'Should return array');
-      assert.ok(lines.some(l => l.includes('Modularization')), 'Should include Modularization');
+    it('wasRecentlyInjected detects the marker emitted by buildRulesSection', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ck-dedup-'));
+      const transcript = path.join(tmpDir, 'transcript.jsonl');
+      try {
+        fs.writeFileSync(transcript, ['prior line', ...contextBuilder.buildRulesSection({})].join('\n'));
+        assert.strictEqual(contextBuilder.wasRecentlyInjected(transcript), true);
+
+        fs.writeFileSync(transcript, Array(10).fill('unrelated content').join('\n'));
+        assert.strictEqual(contextBuilder.wasRecentlyInjected(transcript), false);
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
     });
 
     it('buildPathsSection includes paths', () => {
@@ -438,7 +446,6 @@ describe('context-builder.cjs', () => {
         'buildLanguageSection',
         'buildSessionSection',
         'buildRulesSection',
-        'buildModularizationSection',
         'buildPathsSection',
         'buildPlanContextSection',
         'buildNamingSection',

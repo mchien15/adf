@@ -2,7 +2,7 @@
 /**
  * Development Rules Reminder - UserPromptSubmit Hook (Optimized)
  *
- * Injects context: session info, rules, modularization reminders, and Plan Context.
+ * Injects context: session info, rules, paths, and Plan Context.
  * Static env info (Node, Python, OS) now comes from SessionStart env vars.
  *
  * Exit Codes:

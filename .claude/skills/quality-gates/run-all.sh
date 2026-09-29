@@ -98,7 +98,7 @@ export QUALITY_GATES_RUN_DIR="${OUTPUT_DIR}/raw/${QUALITY_GATES_RUN_ID}"
 mkdir -p "$QUALITY_GATES_RUN_DIR"
 
 # ── Gate list (fixed order) ───────────────────────────────────────────────────
-GATES="secrets deps sast file-size coverage sonar dast"
+GATES="secrets deps sast coverage sonar dast"
 
 # is_gate_enabled — check gates.<gate>.enabled in config (default: true).
 is_gate_enabled() {
@@ -113,7 +113,6 @@ gate_script() {
     secrets)   echo "$CHECKS_DIR/check-secrets.sh" ;;
     deps)      echo "$CHECKS_DIR/check-deps.sh" ;;
     sast)      echo "$CHECKS_DIR/check-sast.sh" ;;
-    file-size) echo "$CHECKS_DIR/check-file-size.sh" ;;
     coverage)  echo "$CHECKS_DIR/check-coverage.sh" ;;
     sonar)     echo "$CHECKS_DIR/check-sonar.sh" ;;
     dast)      echo "$CHECKS_DIR/check-dast.sh" ;;
@@ -125,7 +124,7 @@ gate_script() {
 if [ -n "$SINGLE_GATE" ]; then
   SCRIPT="$(gate_script "$SINGLE_GATE")"
   if [ -z "$SCRIPT" ] || [ ! -f "$SCRIPT" ]; then
-    echo "Unknown gate: $SINGLE_GATE. Valid: secrets deps sast file-size coverage sonar dast" >&2
+    echo "Unknown gate: $SINGLE_GATE. Valid: secrets deps sast coverage sonar dast" >&2
     exit 1
   fi
   bash "$SCRIPT"

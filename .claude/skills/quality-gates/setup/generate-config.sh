@@ -10,9 +10,8 @@ source "$SKILL_DIR/checks/lib-gate-utils.sh"
 # ── Defaults ──────────────────────────────────────────────────────────────────
 STACKS=""
 COVERAGE=80
-FILE_MAX_LOC=200
 SCOPE_EXCLUDE=""
-GATES="secrets,sast,deps,coverage,file-size"
+GATES="secrets,sast,deps,coverage"
 SONAR_HOST_URL=""
 SONAR_PROJECT_KEY=""
 DAST_TAGS="owasp,sqli,xss"
@@ -30,7 +29,6 @@ while [ $# -gt 0 ]; do
     --dry-run)                     DRY_RUN=true; shift ;;
     --stacks=*)                    STACKS="${1#--stacks=}"; shift ;;
     --coverage=*)                  COVERAGE="${1#--coverage=}"; shift ;;
-    --file-max-loc=*)              FILE_MAX_LOC="${1#--file-max-loc=}"; shift ;;
     --exclude=*)                   SCOPE_EXCLUDE="${1#--exclude=}"; shift ;;
     --gates=*)                     GATES="${1#--gates=}"; shift ;;
     --sonar-host-url=*)            SONAR_HOST_URL="${1#--sonar-host-url=}"; shift ;;
@@ -45,9 +43,7 @@ done
 
 # ── Sanitize numeric values (strip non-numeric chars) ─────────────────────────
 COVERAGE="${COVERAGE//[^0-9]/}"
-FILE_MAX_LOC="${FILE_MAX_LOC//[^0-9]/}"
 [ -z "$COVERAGE" ]     && COVERAGE=80
-[ -z "$FILE_MAX_LOC" ] && FILE_MAX_LOC=200
 
 # ── Build YAML sections ────────────────────────────────────────────────────────
 
@@ -74,7 +70,7 @@ build_exclude_yaml() {
 # Gate enabled/disabled block based on GATES flag
 build_gates_yaml() {
   local enabled_gates="$GATES"
-  local all_gates="secrets deps sast dast coverage file-size sonar"
+  local all_gates="secrets deps sast dast coverage sonar"
   local yaml=""
   for gate in $all_gates; do
     # Check if gate name (or dash-normalized) appears in enabled list
@@ -131,7 +127,6 @@ scope:
 ${EXCLUDE_YAML}
 thresholds:
   coverage: ${COVERAGE}
-  file_max_loc: ${FILE_MAX_LOC}
 
 trivy:
   severity: CRITICAL,HIGH

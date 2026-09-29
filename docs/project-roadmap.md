@@ -61,7 +61,7 @@ First public release. Includes full agent orchestration, skills library, hook sy
 
 ### Completed Since v0.0.1
 - **quality-gates skill v1** (2026-03-31): Language-agnostic security and quality gates — production-ready release.
-  - **Gates**: secrets (gitleaks), deps (trivy), sast (semgrep), dast (nuclei), coverage, file-size, sonar (opt-in)
+  - **Gates**: secrets (gitleaks), deps (trivy), sast (semgrep), dast (nuclei), coverage, sonar (opt-in)
   - **Setup wizard**: 7-step Claude-executed wizard; reads project docs, infers stack excludes, asks SonarQube/DAST/hooks; generates config, gitleaks.toml, sonar-project.properties per stack
   - **Stack-aware config**: nuclei tags auto-selected from stack signals; gitleaks rules + allowlists composed per detected patterns; sonar-project.properties augmented with stack-specific coverage paths
   - **SonarQube**: API-based profile assignment (Sonar way Recommended); fetches dashboard metrics & issues list; PR decoration support

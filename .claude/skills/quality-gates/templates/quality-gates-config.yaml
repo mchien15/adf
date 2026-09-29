@@ -33,8 +33,6 @@ gates:
     enabled: true
   coverage:
     enabled: true
-  file-size:
-    enabled: true
   sonar:
     enabled: false   # opt-in: requires SONAR_HOST_URL + SONAR_TOKEN
   dast:
@@ -44,7 +42,6 @@ gates:
 thresholds:
   coverage: 70          # Minimum coverage % (exit 1 if below)
                         # Override: QUALITY_GATES_COVERAGE_THRESHOLD
-  file_max_loc: 200     # Warn if file exceeds this line count
 
 # ── Trivy (dependency scanning) ───────────────────────────────────────────────
 trivy:

@@ -61,15 +61,6 @@ This ensures packages installed by `install.sh` (google-genai, pypdf, etc.) are 
 
 **IMPORTANT:** When scripts of skills failed, don't stop, try to fix them directly.
 
-## [IMPORTANT] Consider Modularization
-- If a code file exceeds 200 lines of code, consider modularizing it
-- Check existing modules before creating new
-- Analyze logical separation boundaries (functions, classes, concerns)
-- Use kebab-case naming with long descriptive names, it's fine if the file name is long because this ensures file names are self-documenting for LLM tools (Grep, Glob, Search)
-- Write descriptive code comments
-- After modularization, continue with main task
-- When not to modularize: Markdown files, plain text files, bash scripts, configuration files, environment variables files, etc.
-
 ## Documentation Management
 
 We keep all important docs in `./docs` folder and keep updating them, structure like below:

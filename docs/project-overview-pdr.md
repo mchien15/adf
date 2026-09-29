@@ -537,7 +537,6 @@ Why this matters:
 - YAGNI (You Aren't Gonna Need It)
 - KISS (Keep It Simple, Stupid)
 - DRY (Don't Repeat Yourself)
-- Files < 500 lines
 - Comprehensive error handling
 - Security-first development
 

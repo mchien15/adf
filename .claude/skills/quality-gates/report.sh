@@ -104,15 +104,6 @@ gate_findings_summary() {
         echo "see $report"
       fi
       ;;
-    file-size)
-      local txt="$RAW_DIR/file-size-report.txt"
-      if [ -f "$txt" ]; then
-        COUNT=$(wc -l < "$txt" | tr -d ' ')
-        echo "${COUNT} file(s) over limit"
-      else
-        echo "—"
-      fi
-      ;;
     coverage)
       local exit_file="$RAW_DIR/${gate}.exit"
       [ -f "$exit_file" ] && [ "$(cat "$exit_file")" = "0" ] && echo "above threshold" || echo "below threshold"
@@ -148,7 +139,7 @@ gate_findings_summary() {
   echo "| Gate | Status | Findings |"
   echo "|------|--------|----------|"
 
-  for gate in secrets deps sast file-size coverage sonar dast; do
+  for gate in secrets deps sast coverage sonar dast; do
     STATUS=$(gate_status_icon "$gate")
     FINDINGS=$(gate_findings_summary "$gate")
     echo "| $gate | $STATUS | $FINDINGS |"
@@ -237,22 +228,6 @@ gate_findings_summary() {
       fi
     else
       echo "_No report file._"
-    fi
-    echo ""
-  fi
-
-  # File-size detail — always show if gate ran
-  if _gate_ran "file-size"; then
-    echo "### File Size"
-    echo ""
-    _print_cmd "file-size"
-    FILESIZE_REPORT="$RAW_DIR/file-size-report.txt"
-    if [ -f "$FILESIZE_REPORT" ] && [ -s "$FILESIZE_REPORT" ]; then
-      echo '```'
-      head -30 "$FILESIZE_REPORT"
-      echo '```'
-    else
-      echo "_No files over limit._"
     fi
     echo ""
   fi

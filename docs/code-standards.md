@@ -154,35 +154,6 @@ project-root/
   - `251026-oauth2-implementation-strategies.md`
   - `251026-performance-optimization-techniques.md`
 
-## File Size Management
-
-### Hard Limits
-- **Maximum file size**: 500 lines of code
-- Files exceeding 500 lines MUST be refactored
-- Exception: Auto-generated files (with clear marking)
-
-### Refactoring Strategies
-
-**When file exceeds 500 lines**:
-1. **Extract Utility Functions**: Move to separate `utils/` directory
-2. **Component Splitting**: Break into smaller, focused components
-3. **Service Classes**: Extract business logic to dedicated services
-4. **Module Organization**: Group related functionality into modules
-
-**Example Refactoring**:
-```
-Before:
-user-service.js (750 lines)
-
-After:
-services/
-├── user-service.js (200 lines)      # Core service
-├── user-validation.js (150 lines)   # Validation logic
-└── user-repository.js (180 lines)   # Database operations
-utils/
-└── password-hasher.js (80 lines)    # Utility functions
-```
-
 ## Naming Conventions
 
 ### Variables & Functions
@@ -573,7 +544,6 @@ test/integration-test-suite
 - ✅ All tests pass locally
 - ✅ Code follows style guidelines
 - ✅ No linting errors
-- ✅ Files under 500 lines
 - ✅ Conventional commit message
 
 ## Documentation Standards
@@ -932,8 +902,8 @@ const expensiveCalculation = memoize((n) => {
 **Documentation Required**:
 ```javascript
 /**
- * EXCEPTION: File exceeds 500 lines
- * REASON: Critical performance optimization requires monolithic structure
+ * EXCEPTION: Bypasses the repository layer with a raw SQL query
+ * REASON: Critical performance optimization for the hot path
  * TODO: Refactor when performance is no longer critical
  * DATE: 2025-10-26
  */
