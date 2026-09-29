@@ -300,6 +300,13 @@ describe('merge linked-worktree plans', () => {
     assert.equal(r.status, 0, r.stderr);
     return wt;
   }
+  /** Another linked worktree next to wt1. */
+  function addWorktree(name) {
+    const wt = path.join(tmp, '.claude', 'worktrees', name);
+    const r = git(tmp, 'worktree', 'add', '-q', wt, '-b', name);
+    assert.equal(r.status, 0, r.stderr);
+    return wt;
+  }
   const inWt = (wt, rel, content = 'x') => {
     const p = path.join(wt, rel);
     fs.mkdirSync(path.dirname(p), { recursive: true });
@@ -359,16 +366,154 @@ describe('merge linked-worktree plans', () => {
     assert.ok(exists('plans/260926-1000-b/plan.md'));
   });
 
-  test('a plan already archived in main is not resurrected from a worktree copy', () => {
+  test('a plan already archived in main is not resurrected; only differing or missing files are reported', () => {
     const wt = repoWithWorktree();
     write('plans/archive/2609/260925-1455-a/plan.md', 'archived');
-    inWt(wt, 'plans/260925-1455-a/plan.md', '---\nstatus: completed\n---\n');
-    inWt(wt, 'plans/260925-1455-a/extra.md', 'e');
+    write('plans/archive/2609/260925-1455-a/reports/r.md', 'report');
+    inWt(wt, 'plans/260925-1455-a/plan.md', 'older worktree edit'); // differs from the archived copy
+    inWt(wt, 'plans/260925-1455-a/reports/r.md', 'report'); // identical: silent
+    inWt(wt, 'plans/260925-1455-a/extra.md', 'e'); // archived copy has no such file
+    inWt(wt, 'plans/260925-1455-a/scratch/t.py', 'x'); // scratch is dropped on archive: silent
     const r = run(['--apply']);
     assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /! conflict \(1\)/);
+    assert.match(r.out, /260925-1455-a\/plan\.md differs from archived copy/);
     assert.match(r.out, /! skipped \(1\)/);
-    assert.match(r.out, /already archived/);
+    assert.match(r.out, /260925-1455-a\/extra\.md: plan already archived in main/);
+    assert.doesNotMatch(r.out, /r\.md|scratch/);
     assert.ok(!exists('plans/260925-1455-a'));
+  });
+
+  test('worktree files identical to the archived copy produce no output at all', () => {
+    const wt = repoWithWorktree();
+    write('plans/archive/2609/260925-1455-a/plan.md', 'archived');
+    inWt(wt, 'plans/260925-1455-a/plan.md', 'archived');
+    const r = run([]);
+    assert.equal(r.out.trim(), 'dry-run: 0 actions');
+  });
+
+  test('flat worktree report already bucketed in main: identical is silent, different is a conflict', () => {
+    const wt = repoWithWorktree();
+    write('plans/reports/2608/researcher-260814-0902-x.md', 'same');
+    write('plans/reports/2608/researcher-260814-0903-y.md', 'main version');
+    inWt(wt, 'plans/reports/researcher-260814-0902-x.md', 'same');
+    inWt(wt, 'plans/reports/researcher-260814-0903-y.md', 'worktree version');
+    const r = run(['--apply']);
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /! conflict \(1\)/);
+    assert.match(r.out, /researcher-260814-0903-y\.md differs from plans\/reports\/2608\/researcher-260814-0903-y\.md/);
+    assert.doesNotMatch(r.out, /merge|researcher-260814-0902-x/);
+    assert.ok(!exists('plans/reports/researcher-260814-0902-x.md'));
+    assert.ok(!exists('plans/reports/researcher-260814-0903-y.md'));
+    assert.equal(read('plans/reports/2608/researcher-260814-0903-y.md'), 'main version');
+  });
+
+  test('re-running is a no-op even when the worktree copy keeps a status main normalized (done, In-Progress)', () => {
+    const wt = repoWithWorktree();
+    // main has neither plan; the worktree holds stale copies whose status text main will rewrite
+    inWt(wt, 'plans/260925-1455-old/plan.md', '---\ntitle: t\nstatus: done\n---\n# t\n');
+    inWt(wt, 'plans/260925-1455-old/phase-01.md', 'p1');
+    inWt(wt, 'plans/260930-1000-live/plan.md', '---\ntitle: t\nstatus: In-Progress\n---\n# t\n');
+    inWt(wt, 'plans/260930-1000-live/phase-01.md', 'p1');
+
+    const first = run(['--apply']);
+    assert.equal(first.code, 0, first.err);
+    assert.match(read('plans/archive/2609/260925-1455-old/plan.md'), /status: completed/);
+    assert.match(read('plans/260930-1000-live/plan.md'), /status: in-progress/);
+
+    const second = run([]);
+    assert.equal(second.out.trim(), 'dry-run: 0 actions');
+    assert.equal(run(['--apply']).out.trim(), 'applied 0 actions');
+  });
+
+  test('a genuinely different plan.md is still a conflict (only the status text is normalized away)', () => {
+    const wt = repoWithWorktree();
+    write('plans/260930-1000-live/plan.md', '---\nstatus: in-progress\n---\nmain body\n');
+    inWt(wt, 'plans/260930-1000-live/plan.md', '---\nstatus: In-Progress\n---\nworktree body\n');
+    const r = run([]);
+    assert.match(r.out, /! conflict \(1\)/);
+  });
+
+  test('one worktree holding flat and bucketed copies of a report merges it once (no flat duplicate)', () => {
+    const wt = repoWithWorktree();
+    inWt(wt, 'plans/reports/researcher-260814-0902-x.md', 'same');
+    inWt(wt, 'plans/reports/2608/researcher-260814-0902-x.md', 'same');
+    const dry = run([]);
+    assert.match(dry.out, /merge \(1\)/);
+    assert.doesNotMatch(dry.out, /conflict/);
+    run(['--apply']);
+    assert.equal(read('plans/reports/2608/researcher-260814-0902-x.md'), 'same');
+    assert.ok(!exists('plans/reports/researcher-260814-0902-x.md'));
+    assert.equal(run([]).out.trim(), 'dry-run: 0 actions');
+  });
+
+  test('flat vs bucketed copies in two worktrees: merged once, a difference names the other worktree file', () => {
+    const wt1 = repoWithWorktree();
+    const wt2 = addWorktree('wt2');
+    inWt(wt1, 'plans/reports/researcher-260814-0902-x.md', 'one');
+    inWt(wt2, 'plans/reports/2608/researcher-260814-0902-x.md', 'two');
+    inWt(wt1, 'plans/reports/researcher-260814-0903-y.md', 'same');
+    inWt(wt2, 'plans/reports/2608/researcher-260814-0903-y.md', 'same');
+    const r = run(['--apply']);
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /merge \(2\)/);
+    assert.match(r.out, /! conflict \(1\)/);
+    // the conflict names the other worktree's file, not a main path that does not exist yet
+    assert.match(r.out, /wt2\/plans\/reports\/2608\/researcher-260814-0902-x\.md differs from \S*wt1\/plans\/reports\/researcher-260814-0902-x\.md/);
+    assert.equal(fs.readdirSync(path.join(tmp, 'plans/reports')).filter((n) => n.endsWith('.md')).length, 0);
+    assert.ok(exists('plans/reports/2608/researcher-260814-0903-y.md'));
+  });
+
+  test('bucketed worktree report whose flat twin still sits in main is recognised', () => {
+    const wt = repoWithWorktree();
+    write('plans/reports/researcher-260814-0902-x.md', 'same');
+    inWt(wt, 'plans/reports/2608/researcher-260814-0902-x.md', 'same');
+    const r = run([]);
+    assert.doesNotMatch(r.out, /merge|conflict/);
+    assert.match(r.out, /dry-run: 1 actions/); // only main's own bucketing of its flat copy
+  });
+
+  test('same plan in a legacy flat archive and a month dir: silent if any archived copy matches', () => {
+    const wt = repoWithWorktree();
+    write('plans/archive/2609/260925-1455-a/plan.md', 'M1');
+    write('plans/archive/2609/260925-1455-a/notes.md', 'M2');
+    write('plans/archive/260925-1455-a/plan.md', 'F1');
+    write('plans/archive/260925-1455-a/notes.md', 'F2');
+    inWt(wt, 'plans/260925-1455-a/plan.md', 'M1'); // matches the month copy only
+    inWt(wt, 'plans/260925-1455-a/notes.md', 'F2'); // matches the flat copy only
+    assert.equal(run([]).out.trim(), 'dry-run: 0 actions');
+  });
+
+  test('re-running --apply is a no-op: nothing to merge, nothing to flag', () => {
+    const wt = repoWithWorktree();
+    const done = '---\nstatus: completed\n---\n';
+    // main: a flat report and a finished plan; the worktree keeps an older copy of both plus one more report
+    write('plans/reports/researcher-260814-0902-x.md', 'a');
+    write('plans/260925-1455-done/plan.md', done);
+    write('plans/260925-1455-done/reports/r.md', 'r');
+    write('plans/260925-1455-done/scratch/tmp.py', 'x');
+    inWt(wt, 'plans/reports/researcher-260814-0902-x.md', 'a');
+    inWt(wt, 'plans/reports/planner-260929-1200-y.md', 'b');
+    inWt(wt, 'plans/260925-1455-done/plan.md', done);
+    inWt(wt, 'plans/260925-1455-done/reports/r.md', 'r');
+    inWt(wt, 'plans/260925-1455-done/scratch/tmp.py', 'x');
+
+    const first = run(['--apply']);
+    assert.equal(first.code, 0, first.err);
+    assert.match(first.out, /applied 4 actions/); // merge y, archive plan, bucket x and y
+    assert.equal(read('plans/reports/2608/researcher-260814-0902-x.md'), 'a');
+    assert.equal(read('plans/reports/2609/planner-260929-1200-y.md'), 'b');
+    assert.ok(exists('plans/archive/2609/260925-1455-done/plan.md'));
+
+    const second = run([]);
+    assert.equal(second.code, 0, second.err);
+    assert.equal(second.out.trim(), 'dry-run: 0 actions');
+    const wtBefore = snapshot(path.join(wt, 'plans'));
+    const third = run(['--apply']);
+    assert.equal(third.out.trim(), 'applied 0 actions');
+    assert.ok(!exists('plans/reports/researcher-260814-0902-x.md')); // no flat duplicates came back
+    assert.ok(!exists('plans/reports/planner-260929-1200-y.md'));
+    assert.deepEqual(snapshot(path.join(wt, 'plans')), wtBefore);
   });
 
   test('legacy flat archive/<plan>/ does not make reports/ (or other children) look archived', () => {
@@ -376,13 +521,13 @@ describe('merge linked-worktree plans', () => {
     write('plans/archive/legacy-plan-a/plan.md', 'archived');
     write('plans/archive/legacy-plan-a/reports/r.md', 'old report');
     inWt(wt, 'plans/reports/researcher-260929-1200-x.md', 'worktree report');
-    inWt(wt, 'plans/legacy-plan-a/plan.md', '---\nstatus: completed\n---\n');
+    inWt(wt, 'plans/legacy-plan-a/plan.md', 'archived'); // identical to the flat archived copy
 
     const dry = run([]);
     assert.equal(dry.code, 0, dry.err);
-    assert.match(dry.out, /merge \(1\)/); // the report; not skipped as "archived"
-    assert.match(dry.out, /legacy-plan-a: plan already archived in main/); // flat entry counts by its own name
-    assert.doesNotMatch(dry.out, /reports: plan already archived/);
+    assert.match(dry.out, /merge \(1\)/); // the report; not treated as "archived"
+    // the flat entry counts by its own name: its identical copy is silently recognised, not merged
+    assert.doesNotMatch(dry.out, /legacy-plan-a|already archived/);
 
     run(['--apply']);
     assert.equal(read('plans/reports/2609/researcher-260929-1200-x.md'), 'worktree report'); // merged, then bucketed

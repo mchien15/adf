@@ -80,30 +80,67 @@ function copyNew(src, dest) {
   fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
 }
 
-function sameContent(a, b) {
-  try { return fs.readFileSync(a).equals(fs.readFileSync(b)); } catch { return false; }
+/**
+ * Byte-identical, or (for a plan.md) identical once both frontmatter statuses are normalized, so a
+ * worktree's stale `status: done` does not clash with the `completed` this tool wrote into main.
+ */
+function sameContent(a, b, planMd = false) {
+  try {
+    const x = fs.readFileSync(a);
+    const y = fs.readFileSync(b);
+    if (x.equals(y)) return true;
+    return planMd && withCanonicalStatus(x.toString('utf8')) === withCanonicalStatus(y.toString('utf8'));
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Names of plan dirs already archived: children of the archive/YYMM month dirs, plus legacy flat
- * entries archive/<plan>/ (counted by their own name, only when they hold a plan.md, so their
- * children such as reports/ never count as archived plans).
+ * Plan dirs already archived, as Map<name, archived dirs[]> (a plan may sit both in a month dir and
+ * in a legacy flat entry): children of the archive/YYMM month dirs, plus legacy flat entries
+ * archive/<plan>/ (counted by their own name, only when they hold a plan.md, so their children
+ * such as reports/ never count as archived plans).
  */
-function archivedNames(plans) {
+function archivedPlans(plans) {
   const root = path.join(plans, 'archive');
-  const names = new Set();
-  if (!exists(root)) return names;
+  const found = new Map();
+  const add = (name, dir) => found.set(name, [...(found.get(name) || []), dir]);
+  if (!exists(root)) return found;
   for (const b of fs.readdirSync(root, { withFileTypes: true })) {
     if (!b.isDirectory()) continue;
-    if (/^\d{4}$/.test(b.name)) fs.readdirSync(path.join(root, b.name)).forEach((n) => names.add(n));
-    else if (exists(path.join(root, b.name, 'plan.md'))) names.add(b.name);
+    const dir = path.join(root, b.name);
+    if (/^\d{4}$/.test(b.name)) fs.readdirSync(dir).forEach((n) => add(n, path.join(dir, n)));
+    else if (exists(path.join(dir, 'plan.md'))) add(b.name, dir);
   }
-  return names;
+  return found;
+}
+
+/**
+ * Where main may already hold worktree file `sub` (relative to plans/), and its final location.
+ * A dated report lives flat (reports/<name>) until the bucket step files it under
+ * reports/YYMM/<name>, so both spellings are the same file; `final` is the bucketed one.
+ */
+function locate(plans, sub) {
+  const dest = path.join(plans, sub);
+  const parts = sub.split(path.sep);
+  if (parts[0] === 'reports') {
+    if (parts.length === 2 && reportBucket(parts[1])) {
+      const bucketed = path.join(plans, 'reports', reportBucket(parts[1]), parts[1]);
+      return { dest, final: bucketed, paths: [dest, bucketed] };
+    }
+    if (parts.length === 3 && reportBucket(parts[2]) === parts[1]) {
+      return { dest, final: dest, paths: [dest, path.join(plans, 'reports', parts[2])] };
+    }
+  }
+  return { dest, final: dest, paths: [dest] };
 }
 
 /**
  * Step 1: copy files that linked worktrees hold in their own <plans> dir but main lacks.
- * Identical files are skipped, differing ones are reported as conflicts, worktree copies stay.
+ * Main "has" a file at its final location, so re-runs stay a no-op: a flat reports/<name> may
+ * sit bucketed at reports/YYMM/<name>, and a plan's files may sit in its archived copy (except
+ * scratch/, dropped on archive). Identical files are skipped silently, differing ones are
+ * reported as conflicts, worktree copies stay.
  */
 function stepMerge(ctx) {
   const wts = ctx.worktrees.filter(exists).map((w) => fs.realpathSync(w));
@@ -116,9 +153,8 @@ function stepMerge(ctx) {
   if (!home) return [];
   const rel = path.relative(home, path.join(rootReal, path.relative(ctx.root, ctx.plans)));
   const items = [];
-  const archived = archivedNames(ctx.plans);
-  const noted = new Set();
-  const planned = new Map(); // dest -> source already queued for copy
+  const archived = archivedPlans(ctx.plans);
+  const planned = new Map(); // final location -> worktree file already queued for copy
   for (const wt of wts) {
     if (wt === home) continue;
     const wtPlans = path.join(wt, rel);
@@ -126,24 +162,31 @@ function stepMerge(ctx) {
     if (!st || !st.isDirectory()) continue; // absent, or a symlink (e.g. to main's plans)
     for (const src of listTree(wtPlans).files.sort()) {
       const sub = path.relative(wtPlans, src);
-      const top = sub.split(path.sep)[0];
-      const dest = path.join(ctx.plans, sub);
-      if (archived.has(top) && !RESERVED_PLAN_DIRS.includes(top)) {
-        if (!noted.has(top)) {
-          const msg = `${ctx.show(path.join(wtPlans, top))}: plan already archived in main`;
+      const [top, ...restParts] = sub.split(path.sep);
+      const planMd = restParts.length === 1 && restParts[0] === 'plan.md';
+      const archivedDirs = restParts.length && !RESERVED_PLAN_DIRS.includes(top) && archived.get(top);
+      if (archivedDirs) {
+        if (restParts[0] === 'scratch') continue; // dropped when the plan was archived
+        const copies = archivedDirs.map((d) => path.join(d, ...restParts)).filter(exists);
+        if (!copies.length) {
+          const msg = `${ctx.show(src)}: plan already archived in main, its archived copy has no such file`;
           items.push({ kind: 'skipped', msg });
-        }
-        noted.add(top);
-        continue;
-      }
-      const existing = planned.get(dest) || (exists(dest) ? dest : null);
-      if (existing) {
-        if (!sameContent(existing, src)) {
-          items.push({ kind: 'conflict', msg: `${ctx.show(src)} differs from ${ctx.show(dest)}` });
+        } else if (!copies.some((c) => sameContent(c, src, planMd))) {
+          items.push({ kind: 'conflict', msg: `${ctx.show(src)} differs from archived copy ${ctx.show(copies[0])}` });
         }
         continue;
       }
-      planned.set(dest, src);
+      const { dest, final, paths } = locate(ctx.plans, sub);
+      const inMain = paths.find(exists);
+      const queued = planned.get(final);
+      const other = queued || inMain;
+      if (other) {
+        if (!sameContent(other, src, planMd)) {
+          items.push({ kind: 'conflict', msg: `${ctx.show(src)} differs from ${ctx.show(other)}` });
+        }
+        continue;
+      }
+      planned.set(final, src);
       items.push({ kind: 'merge', msg: `${ctx.show(src)} -> ${ctx.show(dest)}`, run: () => copyNew(src, dest) });
     }
   }
@@ -151,13 +194,12 @@ function stepMerge(ctx) {
 }
 
 /**
- * Read the frontmatter `status:` of a plan.md.
+ * Parse the frontmatter `status:` of a plan.md text.
  * @returns {{raw: string, bare: string, value: string, start: number, end: number}|null} bare is
  *   the de-quoted value as written, value its lowercase form; start/end delimit the raw value in
- *   the file text. null when there is no status.
+ *   the text. null when there is no status.
  */
-function readStatus(file) {
-  const text = fs.readFileSync(file, 'utf8');
+function parseStatus(text) {
   const fm = /^---\r?\n([\s\S]*?)\r?\n---/d.exec(text);
   if (!fm) return null;
   const line = /^(status:[ \t]*)(.*?)[ \t]*$/m.exec(fm[1]);
@@ -167,6 +209,22 @@ function readStatus(file) {
   const bare = raw.replace(/^["']+|["']+$/g, '').trim();
   return { raw, bare, value: bare.toLowerCase(), start, end: start + raw.length };
 }
+
+/** Canonical status of a parsed status: done/complete/implemented -> completed, valid ones lowercased, else null. */
+function canonicalStatus(st) {
+  if (!st) return null;
+  if (STATUS_SYNONYMS.has(st.value)) return 'completed';
+  return VALID_STATUSES.includes(st.value) ? st.value : null;
+}
+
+/** Text with its frontmatter status rewritten to the canonical value; unchanged if unknown or already canonical. */
+function withCanonicalStatus(text) {
+  const st = parseStatus(text);
+  const target = canonicalStatus(st);
+  return target && st.bare !== target ? `${text.slice(0, st.start)}${target}${text.slice(st.end)}` : text;
+}
+
+const readStatus = (file) => parseStatus(fs.readFileSync(file, 'utf8'));
 
 /** Top-level dirs of plans/ split into plan dirs (have plan.md) and everything else. */
 function listPlanDirs(plans) {
@@ -189,7 +247,7 @@ function stepNormalize(ctx) {
   for (const dir of listPlanDirs(ctx.plans).plans) {
     const file = path.join(dir, 'plan.md');
     const st = readStatus(file);
-    const target = st && (STATUS_SYNONYMS.has(st.value) ? 'completed' : VALID_STATUSES.includes(st.value) && st.value);
+    const target = canonicalStatus(st);
     if (!target) {
       items.push({ kind: 'unknown-status', msg: `${ctx.show(file)}: ${st ? st.raw : '(no status)'}` });
       continue;
@@ -199,10 +257,7 @@ function stepNormalize(ctx) {
     items.push({
       kind: 'normalize-status',
       msg: `${ctx.show(file)}: ${st.raw} -> ${target}`,
-      run: () => {
-        const text = fs.readFileSync(file, 'utf8');
-        fs.writeFileSync(file, `${text.slice(0, st.start)}${target}${text.slice(st.end)}`);
-      },
+      run: () => fs.writeFileSync(file, withCanonicalStatus(fs.readFileSync(file, 'utf8'))),
     });
   }
   return items;
@@ -376,7 +431,7 @@ function archiveOne(o, cwd) {
     throw new Error(`plan dir must sit directly in the plans root (${ctx.plans}): ${dir}`);
   }
   const st = readStatus(path.join(dir, 'plan.md'));
-  const status = st && (STATUS_SYNONYMS.has(st.value) ? 'completed' : st.value);
+  const status = canonicalStatus(st);
   if (!ARCHIVABLE.has(status)) {
     console.warn(`warning: status is ${st ? st.raw : '(none)'}, not completed/cancelled; archiving anyway`);
   }
