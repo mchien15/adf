@@ -358,20 +358,19 @@ describe('ck-config-utils.cjs', () => {
       assert.ok(result.includes('reports'), 'Should include reports dir');
     });
 
-    it('uses default path for branch-resolved plans', () => {
+    it('uses plan-specific path for branch-resolved plans', () => {
       const result = getReportsPath('plans/my-plan', 'branch', planConfig, pathsConfig);
-      assert.ok(!result.includes('my-plan'), 'Should NOT include plan name for branch');
-      assert.ok(result.includes('reports'), 'Should include reports dir');
+      assert.strictEqual(result, 'plans/my-plan/reports/');
     });
 
-    it('uses default path for null plan', () => {
+    it('uses the month bucket for null plan', () => {
       const result = getReportsPath(null, null, planConfig, pathsConfig);
-      assert.strictEqual(result, 'plans/reports/');
+      assert.match(result, /^plans\/reports\/\d{4}\/$/, 'Should be plans/reports/{YYMM}/');
     });
 
     it('handles whitespace-only planPath (Issue #327)', () => {
       const result = getReportsPath('   ', 'session', planConfig, pathsConfig);
-      assert.strictEqual(result, 'plans/reports/', 'Should use default for whitespace');
+      assert.match(result, /^plans\/reports\/\d{4}\/$/, 'Should use the month bucket for whitespace');
     });
 
     it('returns absolute path when baseDir provided', () => {

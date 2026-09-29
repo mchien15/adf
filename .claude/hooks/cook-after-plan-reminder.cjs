@@ -13,7 +13,7 @@
 try {
   const fs = require('fs');
   const path = require('path');
-  const { isHookEnabled, readSessionState } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled, resolveSessionPlanPath } = require('./lib/ck-config-utils.cjs');
 
   // Early exit if hook disabled in config
   if (!isHookEnabled('cook-after-plan-reminder')) {
@@ -25,20 +25,8 @@ try {
     const stdin = fs.readFileSync(0, 'utf-8').trim();
     if (!stdin) process.exit(0);
 
-    // Get active plan path from session state
-    const sessionId = process.env.CK_SESSION_ID;
-    let planPath = null;
-
-    if (sessionId) {
-      const state = readSessionState(sessionId);
-      if (state?.activePlan) {
-        planPath = state.activePlan;
-        // Ensure it's absolute
-        if (!path.isAbsolute(planPath) && state.sessionOrigin) {
-          planPath = path.resolve(state.sessionOrigin, planPath);
-        }
-      }
-    }
+    // Active plan path from session state; null once its dir is gone (archived/deleted)
+    const planPath = resolveSessionPlanPath(process.env.CK_SESSION_ID);
 
     // Output reminder with full absolute path if available
     console.log('MUST invoke /cook --auto skill before implementing the plan');

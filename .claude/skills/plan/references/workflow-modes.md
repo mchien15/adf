@@ -138,7 +138,7 @@ This reminder is **NON-NEGOTIABLE** — always output after presenting the plan.
 
 Check `## Plan Context` in injected context:
 - **"Plan: {path}"** → Ask "Continue with existing plan? [Y/n]"
-- **"Suggested: {path}"** → Branch hint only, ask if activate or create new
+- **"Plan: {path} (matched from branch)"** → Plan found from the branch name (its `reports/` already receives reports); ask "Continue? [Y/n]" or create new
 - **"Plan: none"** → Create new using `Plan dir:` from `## Naming`
 
 After creating: `node .claude/scripts/set-active-plan.cjs {plan-dir}`

@@ -26,12 +26,13 @@ If user selects "Yes":
 
 ### Step 3: Ask user to confirm the action before archiving these plans
 Use `AskUserQuestion` tool to ask if user wants to proceed with archiving these plans, select specific plans to archive or all completed plans only.
-Use `AskUserQuestion` tool to ask if user wants to delete permanently or move to the `./plans/archive` directory.
+Use `AskUserQuestion` tool to ask if user wants to delete permanently or move to `./plans/archive/{YYMM}/`.
+For a whole messy tree, show `node .claude/scripts/tidy-plans.cjs` (dry-run) output first — it also merges worktree plans, normalizes statuses and buckets loose reports.
 
 ### Step 4: Archive the plans
 Start archiving the plans based on the user's choice:
-- Move the plans to the `./plans/archive` directory.
-- Delete the plans permanently: `rm -rf ./plans/<plan-1> ./plans/<plan-2> ...`
+- Move: `node .claude/scripts/tidy-plans.cjs archive "$CK_PLANS_PATH/<plan>" --apply` per plan (→ `plans/archive/{YYMM}/`; `$CK_PLANS_PATH` is the shared plans dir, also correct inside a git worktree), or `node .claude/scripts/tidy-plans.cjs --apply` for the full tidy the user approved
+- Delete the plans permanently: `rm -rf "$CK_PLANS_PATH/<plan-1>" "$CK_PLANS_PATH/<plan-2>" ...`
 
 ### Step 5: Ask if user wants to commit the changes
 Use `AskUserQuestion` tool to ask if user wants to commit the changes with these options:

@@ -46,7 +46,7 @@ agentic-development-framework/
 │   └── cmc/                   # CMC git workflow overrides for .claude/.agent
 ├── docs/                     # Project documentation
 ├── plans/                    # Implementation plans and reports
-│   └── reports/             # Agent-to-agent communication
+│   └── reports/             # Agent reports not tied to a plan, by month ({YYMM}/)
 ├── .github/                  # GitHub workflows
 ├── opencode.json            # OpenCode project config (model, permissions)
 ├── CLAUDE.md                # Claude Code instruction file

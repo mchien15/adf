@@ -190,8 +190,9 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
    - Update `plan.md` status/progress (`pending`/`in-progress`/`completed`) from actual checkbox state.
    - Return unresolved mappings if any completed task cannot be matched to a phase file.
 3. Use `TaskUpdate` to mark Claude Tasks complete after sync-back confirmation.
-4. Onboarding check (API keys, env vars)
-5. Summarize verification proof before claiming completion
+4. If `plan.md` is now `completed` (all phases done), archive it: `node .claude/scripts/tidy-plans.cjs archive <plan-dir> --apply` → `plans/archive/{YYMM}/`. Mention the new path in the summary
+5. Onboarding check (API keys, env vars)
+6. Summarize verification proof before claiming completion
 
 **Why the sweep at step 0 and not only at Gate 2.** Step 2b fires right after planning, when the least is known, and it reads a four-row Impact table that has no architecture row. Decisions worth a record mostly appear *during* implementation. Measured on the plan that built this feature: 18 Decision Log rows, **zero** of them written at `Post-Plan`, and its Impact table never ticked `Breaking change` — so Gate 2 would have stayed silent for all 18.
 

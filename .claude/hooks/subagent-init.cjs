@@ -20,6 +20,7 @@ try {
     getGitBranch,
     getGitRoot,
     resolvePlanPath,
+    resolvePlansBaseDir,
     getReportsPath,
     normalizePath,
     extractTaskListId,
@@ -80,6 +81,9 @@ async function main() {
     // Issue #327: Use CWD as base for subdirectory workflow support
     // Git root is kept for reference but CWD determines where files are created
     const baseDir = effectiveCwd;
+    // plans/ and non-plan reports resolve against the main git worktree when running in a
+    // linked worktree; docs/ stays with baseDir (committed per branch)
+    const plansBase = resolvePlansBaseDir(baseDir);
 
     // Debug logging for path resolution troubleshooting
     if (process.env.CK_DEBUG) {
@@ -90,14 +94,14 @@ async function main() {
     // Resolve plan and reports path - use absolute paths based on CWD (Issue #327)
     // Use session_id from payload to resolve active plan context (Issue #321)
     const sessionId = payload.session_id || process.env.CK_SESSION_ID || null;
-    const resolved = resolvePlanPath(sessionId, config);
-    const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths, baseDir);
+    const resolved = resolvePlanPath(sessionId, config, baseDir);
+    const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths, plansBase);
     const activePlan = resolved.resolvedBy === 'session' ? resolved.path : '';
-    const suggestedPlan = resolved.resolvedBy === 'branch' ? resolved.path : '';
+    const branchPlan = resolved.resolvedBy === 'branch' ? resolved.path : '';
 
     // Extract task list ID for Claude Code Tasks coordination (shared helper, DRY)
     const taskListId = extractTaskListId(resolved);
-    const plansPath = path.join(baseDir, normalizePath(config.paths?.plans) || 'plans');
+    const plansPath = path.join(plansBase, normalizePath(config.paths?.plans) || 'plans');
     const docsPath = path.join(baseDir, normalizePath(config.paths?.docs) || 'docs');
     const thinkingLanguage = config.locale?.thinkingLanguage || '';
     const responseLanguage = config.locale?.responseLanguage || '';
@@ -119,8 +123,8 @@ async function main() {
       if (taskListId) {
         lines.push(`- Task List: ${taskListId} (shared with session)`);
       }
-    } else if (suggestedPlan) {
-      lines.push(`- Plan: none | Suggested: ${suggestedPlan}`);
+    } else if (branchPlan) {
+      lines.push(`- Plan: ${branchPlan} (matched from branch)`);
     } else {
       lines.push(`- Plan: none`);
     }

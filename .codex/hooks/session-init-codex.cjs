@@ -18,9 +18,11 @@ const {
   loadConfig,
   readSessionState,
   resolvePlanPath,
+  resolvePlansBaseDir,
   getReportsPath,
   resolveNamingPattern,
   writeSessionState,
+  REPORT_TYPES,
 } = require('../../.agents/hooks/lib/ck-config-utils.cjs');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -71,17 +73,18 @@ function ensureTrailingSlash(pathValue) {
   return /[/\\]$/.test(pathValue) ? pathValue : `${pathValue}/`;
 }
 
-function buildPlanContext(projectRoot, sessionId) {
-  const config = loadConfig();
+function buildPlanContext(projectRoot, sessionId, config, plansBase) {
   const resolved = resolvePlanPath(sessionId, config);
   const gitBranch = execSafe('git branch --show-current') || 'unknown';
   const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths);
-  const absoluteReportsPath = path.isAbsolute(reportsPath) ? reportsPath : path.join(projectRoot, reportsPath);
+  const absoluteReportsPath = path.isAbsolute(reportsPath) ? reportsPath : path.join(plansBase, reportsPath);
   const reportPrefix = ensureTrailingSlash(absoluteReportsPath);
   const namePattern = resolveNamingPattern(config.plan, gitBranch);
-  const planLabel = resolved.path
-    ? `${resolved.resolvedBy === 'session' ? 'Active' : 'Suggested'} Plan: ${resolved.path}`
-    : 'Active Plan: none';
+  const planLabel = !resolved.path
+    ? 'Active Plan: none'
+    : resolved.resolvedBy === 'session'
+      ? `Active Plan: ${resolved.path}`
+      : `Plan: ${resolved.path} (matched from branch)`;
 
   return [
     `## Plan Context`,
@@ -92,8 +95,8 @@ function buildPlanContext(projectRoot, sessionId) {
     ``,
     `## Naming`,
     `- Report: \`${reportPrefix}{type}-${namePattern}.md\``,
-    `- Plan dir: \`${path.join(projectRoot, config.paths.plans, namePattern)}/\``,
-    `- Replace \`{type}\` with: agent name, report type, or context`,
+    `- Plan dir: \`${path.join(plansBase, config.paths.plans, namePattern)}/\``,
+    `- Replace \`{type}\` with one of: ${REPORT_TYPES.join(', ')}`,
     `- Replace \`{slug}\` in pattern with: descriptive-kebab-slug`,
   ].join('\n');
 }
@@ -117,6 +120,8 @@ try {
   const nodeVersion = execSafe('node --version') || 'unknown';
   const platform = `${os.type()} ${os.release()}`;
   const config = loadConfig();
+  // plans/ and non-plan reports live in the main git worktree when running in a linked one
+  const plansBase = resolvePlansBaseDir(projectRoot);
   const resolved = resolvePlanPath(sessionId, config);
   const currentState = readSessionState(sessionId) || {};
 
@@ -145,7 +150,7 @@ try {
     `- Principles: YAGNI, KISS, DRY`,
     `- Naming: kebab-case for JS/TS/shell, snake_case for Python; match surrounding names`,
     `- Docs: \`./docs/\` directory`,
-    `- Plans: \`./plans/\` directory`,
+    `- Plans: \`${path.join(plansBase, config.paths.plans)}/\` directory`,
     ``,
     `## Support Surface`,
     `- Skills authored in: \`.claude/skills/\` and exposed to Codex via \`.agents/skills/\` (44 skills)`,
@@ -153,7 +158,7 @@ try {
     `- After editing \`.claude/agents/*.md\`, run: node scripts/generate-tool-configs.js`,
     `- Workflow model is shared with Claude/OpenCode, but Codex invocation stays tool-native`,
     ``,
-    buildPlanContext(projectRoot, sessionId),
+    buildPlanContext(projectRoot, sessionId, config, plansBase),
   ].join('\n');
 
   console.log(JSON.stringify({

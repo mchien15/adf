@@ -64,8 +64,10 @@ project-root/
 │       ├── .claude/           # Claude/OpenCode/Codex git overrides
 │       └── .agent/            # Antigravity git overrides
 ├── docs/                       # Project documentation
-├── plans/                      # Implementation plans
-│   ├── reports/               # Agent communication reports
+├── plans/                      # Implementation plans (one tree shared by all git worktrees)
+│   ├── {date}-{slug}/          # Live plan: plan.md, phase files, reports/, scratch/
+│   ├── reports/{YYMM}/        # Reports not tied to a plan
+│   ├── archive/{YYMM}/        # Completed / cancelled plans
 │   └── templates/             # Plan templates
 ├── src/                        # Source code (if applicable)
 ├── tests/                      # Test suites (if applicable)

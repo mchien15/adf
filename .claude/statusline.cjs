@@ -17,7 +17,7 @@ const path = require('path');
 const { green, yellow, red, cyan, magenta, dim, coloredBar, RESET, shouldUseColor } = require('./hooks/lib/colors.cjs');
 const { parseTranscript } = require('./hooks/lib/transcript-parser.cjs');
 const { countConfigs } = require('./hooks/lib/config-counter.cjs');
-const { loadConfig } = require('./hooks/lib/ck-config-utils.cjs');
+const { loadConfig, resolveSessionPlanPath } = require('./hooks/lib/ck-config-utils.cjs');
 const { getGitInfo } = require('./hooks/lib/git-info-cache.cjs');
 
 // Buffer constant matching /context output (22.5% of 200k)
@@ -399,21 +399,14 @@ async function main() {
     const gitAhead = gitInfo?.ahead || 0;
     const gitBehind = gitInfo?.behind || 0;
 
-    // Active plan detection - read from session temp file
+    // Active plan detection - session state, ignoring plans whose dir is gone (archived)
     let activePlan = '';
     try {
-      const sessionId = data.session_id;
-      if (sessionId) {
-        const sessionPath = path.join(os.tmpdir(), `ck-session-${sessionId}.json`);
-        if (fs.existsSync(sessionPath)) {
-          const session = JSON.parse(fs.readFileSync(sessionPath, 'utf8'));
-          const planPath = session.activePlan?.trim();
-          if (planPath) {
-            // Extract slug from path like "plans/260106-1554-statusline-visual"
-            const match = planPath.match(/plans\/\d+-\d+-(.+?)(?:\/|$)/);
-            activePlan = match ? match[1] : planPath.split('/').pop();
-          }
-        }
+      const planPath = resolveSessionPlanPath(data.session_id)?.trim();
+      if (planPath) {
+        // Extract slug from path like "plans/260106-1554-statusline-visual"
+        const match = planPath.match(/plans\/\d+-\d+-(.+?)(?:\/|$)/);
+        activePlan = match ? match[1] : planPath.split('/').pop();
       }
     } catch {}
 

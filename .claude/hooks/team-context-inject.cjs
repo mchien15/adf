@@ -12,7 +12,7 @@ try {
   const fs = require('fs');
   const path = require('path');
   const os = require('os');
-  const { isHookEnabled } = require('./lib/ck-config-utils.cjs');
+  const { isHookEnabled, resolveCurrentReportsPath, resolveSessionPlanPath } = require('./lib/ck-config-utils.cjs');
 
   if (!isHookEnabled('team-context-inject')) {
     process.exit(0);
@@ -60,18 +60,23 @@ function buildPeerList(config, currentAgentId) {
 
 /**
  * Build CK stack context from environment variables
- * Set by session-init.cjs, available to subagents via SubagentStart
+ * Set by session-init.cjs, available to subagents via SubagentStart.
+ * Reports path and active plan can change mid-session (plan archived), so those two are
+ * re-resolved from live state instead of copied from the env vars captured at session start.
+ * @param {string|null} sessionId - Session identifier
+ * @param {string} cwd - Working directory of the spawned agent
  */
-function buildCkContext() {
+function buildCkContext(sessionId, cwd) {
   const ctx = [];
   const env = process.env;
 
-  if (env.CK_REPORTS_PATH) ctx.push(`Reports: ${env.CK_REPORTS_PATH}`);
+  if (env.CK_REPORTS_PATH) ctx.push(`Reports: ${resolveCurrentReportsPath(sessionId, cwd)}`);
   if (env.CK_PLANS_PATH) ctx.push(`Plans: ${env.CK_PLANS_PATH}`);
   if (env.CK_PROJECT_ROOT) ctx.push(`Project: ${env.CK_PROJECT_ROOT}`);
   if (env.CK_NAME_PATTERN) ctx.push(`Naming: ${env.CK_NAME_PATTERN}`);
   if (env.CK_GIT_BRANCH) ctx.push(`Branch: ${env.CK_GIT_BRANCH}`);
-  if (env.CK_ACTIVE_PLAN) ctx.push(`Active plan: ${env.CK_ACTIVE_PLAN}`);
+  const activePlan = resolveSessionPlanPath(sessionId);
+  if (activePlan) ctx.push(`Active plan: ${activePlan}`);
   ctx.push('Commits: conventional (feat:, fix:, docs:, refactor:, test:, chore:)');
 
   return ctx;
@@ -133,7 +138,8 @@ function main() {
     }
 
     // CK stack context
-    const ckCtx = buildCkContext();
+    const sessionId = payload.session_id || process.env.CK_SESSION_ID || null;
+    const ckCtx = buildCkContext(sessionId, payload.cwd?.trim() || process.cwd());
     if (ckCtx.length > 1) { // >1 = has env vars beyond the always-present commit convention line
       lines.push('');
       lines.push('## CK Context');

@@ -70,11 +70,11 @@ Load: `references/output-standards.md`
 
 ## Workflow Process
 
-1. **Pre-Creation Check** → Check Plan Context for active/suggested/none
+1. **Pre-Creation Check** → Check Plan Context for active / matched-from-branch / none
 2. **Mode Detection** → Auto-detect or use explicit flag (see `workflow-modes.md`)
 3. **Research Phase** → Spawn researchers (skip in fast mode)
 4. **Codebase Analysis** → Read docs, scout if needed, **and read existing ADRs** (see below)
-5. **Plan Documentation** → Write comprehensive plan via planner subagent
+5. **Plan Documentation** → Write comprehensive plan via planner subagent, then move the brainstorm/research/scout reports it was built from (usually in `plans/reports/{YYMM}/`) into `{plan-dir}/reports/`
 6. **Impact Check** → Read the plan's `## Impact` table; suggest an ADR when warranted (see below)
 7. **Audit Review** → Use `Skill` tool: `Skill(skill: "plan", args: "audit {plan-path}")` (hard/parallel/two modes)
 8. **Post-Plan Validation** → Use `Skill` tool: `Skill(skill: "plan", args: "validate {plan-path}")` (hard/parallel/two modes)
@@ -131,15 +131,15 @@ Load: `references/task-management.md` for hydration pattern, TaskCreate patterns
 
 Check `## Plan Context` injected by hooks:
 - **"Plan: {path}"** → Active plan. Ask "Continue? [Y/n]"
-- **"Suggested: {path}"** → Branch hint only. Ask if activate or create new.
+- **"Plan: {path} (matched from branch)"** → Plan found from the branch name; reports already go to its `reports/`. Ask "Continue? [Y/n]"; if the user creates a new plan instead, move the reports written for it into the new plan.
 - **"Plan: none"** → Create new using `Plan dir:` from `## Naming`
 
 After creating plan: `node .claude/scripts/set-active-plan.cjs {plan-dir}`
-Reports: Active plans → plan-specific path. Suggested → default path.
+Reports: active or branch-matched plan → `{plan-dir}/reports/`. No plan → `plans/reports/{YYMM}/`.
 
 ### Important
 DO NOT create plans or reports in USER directory.
-ALWAYS create plans or reports in CURRENT WORKING PROJECT DIRECTORY.
+ALWAYS create plans or reports at the `Plans:` / `Reports:` paths injected by hooks (in a git worktree these point at the main worktree's `plans/`).
 
 ## Subcommands
 

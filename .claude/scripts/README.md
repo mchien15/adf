@@ -10,6 +10,16 @@ Install required dependencies:
 pip install -r requirements.txt
 ```
 
+## tidy-plans.cjs
+
+Keeps `plans/` clean: merges plans left in git worktrees back into the main tree, normalizes plan `status`, archives completed/cancelled plans to `plans/archive/{YYMM}/`, buckets loose reports into `plans/reports/{YYMM}/`, flags dirs without `plan.md`, and removes junk (`__pycache__`, `*.pyc`, `.DS_Store`). Dry-run by default, never overwrites. Run it from the project root (the same directory the hooks resolve `plans/` against); inside a git worktree it works on the main worktree's `plans/`, like the hooks.
+
+```bash
+node .claude/scripts/tidy-plans.cjs                               # dry-run: show what would change
+node .claude/scripts/tidy-plans.cjs --apply                       # do it
+node .claude/scripts/tidy-plans.cjs archive "$CK_PLANS_PATH/<plan>" --apply  # archive one plan (cook finalize)
+```
+
 ## resolve_env.py
 
 Centralized environment variable resolver that follows Claude Code's hierarchy.

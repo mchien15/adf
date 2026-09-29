@@ -10,16 +10,24 @@ Use `Plan dir:` from `## Naming` section injected by hooks. This is the full com
 
 ### File Organization
 
-IN CURRENT WORKING PROJECT DIRECTORY:
+Use the `Plans:` path injected by hooks. In a git worktree it points at the **main** worktree's `plans/`, so every worktree shares one plans tree.
+```
+plans/
+├── {plan-dir}/                                # Live plans only (pending / in-progress)
+│   ├── reports/                               # Every report for this plan
+│   │   ├── researcher-{date}-{slug}.md
+│   │   └── ...
+│   ├── scratch/                               # Throwaway scripts/experiments — removed on archive
+│   └── plan.md, phase-XX-*.md
+├── reports/{YYMM}/                            # Reports not tied to any plan, by month
+└── archive/{YYMM}/                            # completed / cancelled plans, with their reports
+```
+
+Plan dir contents:
 ```
 {plan-dir}/                                    # From `Plan dir:` in ## Naming
-├── research/
-│   ├── researcher-XX-report.md
-│   └── ...
-├── reports/
-│   ├── scout-report.md
-│   ├── researcher-report.md
-│   └── ...
+├── reports/                                   # researcher-, scout-, tester-… reports
+├── scratch/                                   # optional; never commit-worthy code here
 ├── plan.md                                    # Overview access point
 ├── phase-01-setup-environment.md              # Setup environment
 ├── phase-02-implement-database.md             # Database models
@@ -40,9 +48,15 @@ After creating plan.md and phase files, hydrate tasks (unless `--no-tasks`):
 ### Active Plan State Tracking
 
 See SKILL.md "Active Plan State" section for full rules. Key points:
-- Check `## Plan Context` injected by hooks for active/suggested/none state
+- Check `## Plan Context` injected by hooks for active / matched-from-branch / none state
 - After creating plan: `node .claude/scripts/set-active-plan.cjs {plan-dir}`
-- Active plans use plan-specific reports path; suggested plans use default path
+- Active or branch-matched plans get `{plan-dir}/reports/`; with no plan, reports go to `plans/reports/{YYMM}/`
+
+### Lifecycle
+
+- `status` is one of `pending | in-progress | completed | cancelled` — nothing else (`done`, `implemented` are not valid)
+- When a plan is `completed` or `cancelled`, archive it: `node .claude/scripts/tidy-plans.cjs archive {plan-dir} --apply` → `plans/archive/{YYMM}/` (drops `scratch/`)
+- Bulk cleanup of an existing messy tree: `node .claude/scripts/tidy-plans.cjs` (dry-run), then `--apply`
 
 ## File Structure
 

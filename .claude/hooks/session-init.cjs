@@ -21,6 +21,7 @@ try {
     writeEnv,
     writeSessionState,
     resolvePlanPath,
+    resolvePlansBaseDir,
     getReportsPath,
     resolveNamingPattern,
     extractTaskListId,
@@ -162,22 +163,22 @@ async function main() {
     // Resolve plan - now returns { path, resolvedBy }
     const resolved = resolvePlanPath(null, config);
 
-    // CRITICAL FIX: Only persist explicitly-set plans to session state
-    // Branch-matched plans are "suggested" - stored separately, not as activePlan
+    // CRITICAL FIX: Only persist explicitly-set plans to session state as activePlan
+    // Branch-matched plans are stored separately (suggestedPlan), never as activePlan
     // This prevents stale plan pollution on fresh sessions
     if (sessionId) {
       writeSessionState(sessionId, {
         sessionOrigin: process.cwd(),
         // Only session-resolved plans are truly "active"
         activePlan: resolved.resolvedBy === 'session' ? resolved.path : null,
-        // Track suggested plan separately (for UI hints, not for report paths)
+        // Branch-matched plan, tracked apart from activePlan (it still receives reports below)
         suggestedPlan: resolved.resolvedBy === 'branch' ? resolved.path : null,
         timestamp: Date.now(),
         source
       });
     }
 
-    // Reports path only uses active plans, not suggested ones
+    // Reports go to the resolved plan's reports/ (session or branch-matched), else the month bucket
     const reportsPath = getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths);
 
     // Extract task list ID for Claude Code Tasks coordination (shared helper)
@@ -200,6 +201,10 @@ async function main() {
     // Compute base directory for absolute paths (Issue #327: use CWD for subdirectory support)
     // Git root is kept in staticEnv for reference, but CWD determines where files are created
     const baseDir = process.cwd();
+    // plans/ and non-plan reports live once per repo: in a linked git worktree they resolve
+    // against the main worktree (plans are gitignored, a per-worktree copy is lost and diverges).
+    // docs/ is committed per branch, so it keeps resolving against baseDir.
+    const plansBase = resolvePlansBaseDir(baseDir);
 
     // Compute resolved naming pattern (date + issue resolved, {slug} kept as placeholder)
     const namePattern = resolveNamingPattern(config.plan, staticEnv.gitBranch);
@@ -232,9 +237,9 @@ async function main() {
       // set-active-plan.cjs, or an absolute paths.* in config). join would append them to
       // baseDir and double the prefix.
       writeEnv(envFile, 'CK_GIT_ROOT', staticEnv.gitRoot || '');
-      writeEnv(envFile, 'CK_REPORTS_PATH', path.resolve(baseDir, reportsPath));
+      writeEnv(envFile, 'CK_REPORTS_PATH', path.resolve(plansBase, reportsPath));
       writeEnv(envFile, 'CK_DOCS_PATH', path.resolve(baseDir, config.paths.docs));
-      writeEnv(envFile, 'CK_PLANS_PATH', path.resolve(baseDir, config.paths.plans));
+      writeEnv(envFile, 'CK_PLANS_PATH', path.resolve(plansBase, config.paths.plans));
       writeEnv(envFile, 'CK_PROJECT_ROOT', process.cwd());
 
       // Project detection
