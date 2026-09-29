@@ -4,7 +4,8 @@
  * Run: node --test .claude/hooks/__tests__/descriptive-name.test.cjs
  *
  * Issue #440: Hook should respect language-specific naming conventions
- * - JS/TS/Python/shell: kebab-case preferred
+ * - JS/TS/shell: kebab-case preferred
+ * - Python: snake_case (kebab-case modules cannot be imported)
  * - C#/Java/Kotlin/Swift: PascalCase (language convention)
  * - Go/Rust: snake_case (language convention)
  */
@@ -116,17 +117,45 @@ describe('descriptive-name.cjs', () => {
   });
 
   describe('Language-aware guidance content (Issue #440)', () => {
-    it('mentions kebab-case preference for JS/TS/Python/shell', async () => {
+    it('mentions kebab-case preference for JS/TS/shell', async () => {
       const { parsed } = await runHook();
       const context = parsed.hookSpecificOutput.additionalContext;
 
       assert.ok(
-        context.includes('kebab-case') && context.includes('JS/TS/Python'),
-        'Should mention kebab-case for JS/TS/Python/shell'
+        context.includes('kebab-case for JS/TS/shell'),
+        'Should mention kebab-case for JS/TS/shell'
       );
       assert.ok(
         context.includes('.sh'),
         'Should mention .sh extension for shell scripts'
+      );
+    });
+
+    it('asks for snake_case in Python, never kebab-case', async () => {
+      const { parsed } = await runHook();
+      const context = parsed.hookSpecificOutput.additionalContext;
+
+      assert.ok(
+        context.includes('Python uses snake_case'),
+        'Should mention snake_case for Python'
+      );
+      assert.ok(
+        !context.includes('JS/TS/Python'),
+        'Should NOT group Python with the kebab-case languages'
+      );
+    });
+
+    it('does not ask for long names or for splitting files by size', async () => {
+      const { parsed } = await runHook();
+      const context = parsed.hookSpecificOutput.additionalContext.toLowerCase();
+
+      assert.ok(
+        context.includes('never to keep another file short'),
+        'Should say a new file is for a new concept, not for file size'
+      );
+      assert.ok(
+        !context.includes('long file name') && !context.includes('long descriptive'),
+        'Should NOT encourage long names'
       );
     });
 
@@ -195,13 +224,13 @@ describe('descriptive-name.cjs', () => {
       );
     });
 
-    it('mentions LLM tool discoverability goal', async () => {
+    it('asks to match the names already used around the file', async () => {
       const { parsed } = await runHook();
       const context = parsed.hookSpecificOutput.additionalContext;
 
       assert.ok(
-        context.includes('Grep') || context.includes('Glob') || context.includes('Search'),
-        'Should mention LLM tools (Grep, Glob, Search) for discoverability'
+        context.includes('Match the names already used'),
+        'Should ask to follow the surrounding names'
       );
     });
   });

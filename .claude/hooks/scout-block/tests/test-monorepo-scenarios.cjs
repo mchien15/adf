@@ -58,8 +58,8 @@ const scenarios = [
   },
   {
     input: { tool_name: 'Bash', tool_input: { command: 'cat apps/api/build/server.js' } },
-    expected: 'BLOCKED',
-    desc: '[BUG FIX] cat subfolder build'
+    expected: 'ALLOWED',
+    desc: 'cat subfolder build (re-allowed by !build in adf-ignore.txt)'
   },
 
   // === Root level blocking (should still work) ===

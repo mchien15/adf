@@ -53,14 +53,14 @@ else
     echo "✗ FAIL: dist/ not blocked"
 fi
 
-# Test 6: Blocked - build/
+# Test 6: Blocked - dist/
 echo ""
-echo "Test 6: Blocked pattern - build/"
-echo '{"tool_input":{"command":"rm -rf build/"}}' | node .claude/hooks/scout-block.js 2>/dev/null
+echo "Test 6: Blocked pattern - dist/"
+echo '{"tool_input":{"command":"rm -rf dist/"}}' | node .claude/hooks/scout-block.js 2>/dev/null
 if [ $? -eq 2 ]; then
-    echo "✓ PASS: build/ blocked"
+    echo "✓ PASS: dist/ blocked"
 else
-    echo "✗ FAIL: build/ not blocked"
+    echo "✗ FAIL: dist/ not blocked"
 fi
 
 # Test 7: Allowed - .env file (should NOT be blocked)
