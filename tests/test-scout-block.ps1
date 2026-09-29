@@ -38,7 +38,7 @@ $tests = @(
     @{Name="Blocked - .git/"; Command="cd .git/ && ls"; Expected=2},
     @{Name="Blocked - __pycache__"; Command="find __pycache__"; Expected=2},
     @{Name="Blocked - dist/"; Command="cat dist/bundle.js"; Expected=2},
-    @{Name="Blocked - build/"; Command="rm -rf build/"; Expected=2},
+    @{Name="Blocked - dist/"; Command="rm -rf dist/"; Expected=2},
     @{Name="Allowed - .env file"; Command="cat .env"; Expected=0}
 )
 

@@ -12,10 +12,12 @@ try {
   try {
   let injectedPrompt = `## File naming guidance:
 - Skip this guidance if you are creating markdown or plain text files
-- Prefer kebab-case for JS/TS/Python/shell (.js, .ts, .py, .sh) with descriptive names
+- Prefer kebab-case for JS/TS/shell (.js, .ts, .sh)
+- Python uses snake_case (.py): a kebab-case module cannot be imported
 - Respect language conventions: C#/Java/Kotlin/Swift use PascalCase (.cs, .java, .kt, .swift), Go/Rust use snake_case (.go, .rs)
 - Other languages: follow their ecosystem's standard naming convention
-- Goal: self-documenting names for LLM tools (Grep, Glob, Search)`
+- Match the names already used around the file; a short name for what the module holds beats a long one
+- Add a new file only for a new concept, never to keep another file short`
 
   console.log(JSON.stringify({
     "hookSpecificOutput": {
