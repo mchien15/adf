@@ -93,7 +93,7 @@ agentic-development-framework/
 
 **Core Development Commands**:
 - `/plan` - Research and planning (--fast, --hard, --two, --parallel variants)
-- `/cook` - Risk-gated feature implementation (--auto skips approval gates only, --fast, --parallel, policy-limited --no-test, --final-review for one review at the end, mandatory verification)
+- `/cook` - Risk-gated feature implementation (--auto skips approval gates only, --fast, --parallel, policy-limited --no-test, one test + review after the last phase (--per-phase to review each phase), mandatory verification)
 - `/test` - Test execution and coverage analysis
 - `/ask` - Technical consultation
 - `/bootstrap` - Project initialization

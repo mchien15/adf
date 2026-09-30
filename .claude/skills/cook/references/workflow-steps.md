@@ -93,8 +93,11 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 - The subagent works test-first (TDD): failing test → minimal code → full suite green, and reports RED/GREEN evidence per behavior. A behavior change without evidence and without an allowed skip reason goes back to the subagent
 - On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
 - Wrong or incomplete → `SendMessage` the findings to the same subagent (it keeps its context); spawn a fresh one if it is stuck. Do not patch the code yourself
+- Once the phase is verified, `TaskUpdate` its tasks to `completed` — this unblocks the next phase's `addBlockedBy`; Step 7 sync-back only reconciles
 - Use `ai-multimodal` for image assets
-- If high-risk, or medium-risk with 3+ touched files or cross-cutting behavior: run checkpoint review before leaving the phase
+- If high-risk: run checkpoint review before leaving the phase. With `--per-phase`, also for medium-risk phases with 3+ touched files or cross-cutting behavior (by default those are covered by the final review)
+- Default scope: once the phase is verified, go straight to the next phase — no tester, reviewer or finalize in between (see Review Scope)
+- Fixes from the final test/review span several phases' files: `SendMessage` each finding to the subagent that owns the file, or give the full list to one fresh `fullstack-developer` if those subagents are gone
 
 **Parallel mode:**
 - Utilize all tools of Claude Tasks: `TaskCreate`, `TaskUpdate`, `TaskGet` and `TaskList`
@@ -111,6 +114,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **Output:** `✓ Step 3: Checkpoint review complete - [phase] - [approved|fixes applied]`
 
 ### [Review Gate 3] Post-Implementation (skip if auto mode)
+- Default scope: asked once, after the last phase; with `--per-phase`, after every phase
 - Present implementation summary (files changed, key changes)
 - Use `AskUserQuestion` to ask: "Proceed to testing?" / "Request implementation changes" / "Abort"
 - **Auto mode:** Skip this gate
@@ -122,7 +126,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 - **MUST** spawn `tester` subagent: `Task(subagent_type="tester", prompt="Run test suite", description="Run tests")`
 - If failures: **MUST** spawn `debugger` subagent → `fullstack-developer` applies the fix → repeat
 - **Forbidden:** fake mocks, commented tests, changed assertions, skipping subagent delegation
-- Pass the implementer's RED/GREEN evidence in the tester handoff
+- Pass the implementer's RED/GREEN evidence in the tester handoff (every phase's evidence in the default scope)
 
 **Output:** `✓ Step 4: Tests [X/X passed] - tester subagent invoked`
 
@@ -200,9 +204,9 @@ The sweep is also the only ADR checkpoint that survives `code` mode. Entering wi
 
 **CRITICAL:** Step 7 is INCOMPLETE without spawning all 3 subagents. DO NOT skip subagent delegation.
 
-**Auto mode:** Continue to next phase automatically, start from **Step 3**.
-**Others:** Ask user before next phase
-**`--final-review`:** Step 7 runs once, after the final review — there is no next phase to start
+**Default scope:** Step 7 runs once, after the final review — there is no next phase to start.
+**`--per-phase`:** auto mode continues to the next phase from **Step 3**; other modes ask the user before the next phase.
+**Run stops early** (abort, blocked phase, escalation): still run Step 7 for the phases completed so far — sync-back and verification summary — and skip the archive, since the plan is not completed.
 
 **Output:** `✓ Step 7: Verified before completion - [proof summary] - Finalized`
 
@@ -210,44 +214,47 @@ The sweep is also the only ADR checkpoint that survives `code` mode. Entering wi
 
 Legend: `[R]` = Review Gate (human approval required)
 
+`3(1…N)` = phases 1 to N back to back, each verified; checkpoint review only for high-risk phases. `3(groups)` = parallel groups one after another, phases inside a group at once.
+
 ```
-interactive: 0 → 1 → [R] → 2 → [R] → 3 → [R] → 4 → [R] → 5 → 6(user) → 7
-auto:        0 → 1 → 2 → 3 → 4 → 5 → 6(auto) → 7 → next phase
-fast:        0 → skip → 2(fast) → [R] → 3 → [R] → 4 → [R] → 5 → 6(simple) → 7
-parallel:    0 → 1? → [R] → 2(parallel) → [R] → 3(multi-agent) → checkpoint? → 4 → [R] → 5 → 6(user) → 7
-no-test:     0 → 1 → [R] → 2 → [R] → 3 → [R] → skip(policy) → 5 → 6(user) → 7
-code:        0 → skip → skip → 3 → checkpoint? → 4 → [R] → 5 → 6(user) → 7
+interactive: 0 → 1 → [R] → 2 → [R] → 3(1…N) → [R] → 4 → [R] → 5 → 6(user) → 7
+auto:        0 → 1 → 2 → 3(1…N) → 4 → 5 → 6(auto) → 7
+fast:        0 → skip → 2(fast) → [R] → 3(1…N) → [R] → 4 → [R] → 5 → 6(simple) → 7
+parallel:    0 → 1? → [R] → 2(parallel) → [R] → 3(groups, checkpoint per group) → 4 → [R] → 5 → 6(user) → 7
+no-test:     0 → 1 → [R] → 2 → [R] → 3(1…N) → [R] → skip(policy) → 5 → 6(user) → 7
+code:        0 → skip → skip → 3(1…N) → 4 → [R] → 5 → 6(user) → 7
 
-+ --final-review (any mode; approval gates [R] follow the mode):
-             0 → 1? → 2? → 3(phase 1) → 3(phase 2) … 3(phase N) → [R] → 4(once) → [R] → 5(whole plan) → 6(once) → 7(once)
-auto + final-review:
-             0 → 1 → 2 → 3(all phases, no stops) → 4 → 5 → 6(auto, once) → 7
++ --per-phase (any mode): the same steps, but 3 → 7 run for one phase at a time (parallel: one group at a time)
+  (gates [R] follow the mode; auto continues to the next phase, other modes ask first)
 ```
 
-## Review Scope: `--final-review`
+## Review Scope
 
-Default scope is **per phase**: Steps 3→7 repeat for every phase. `--final-review` (or "review at the end", "review cuối") changes only *when* Steps 4–7 run:
+**Default — final.** Phases run back to back and Steps 4–7 run once for every phase implemented in this run (the whole plan, or only the phases still open when resuming or cooking a single `phase-*.md`):
 
 1. **Per phase — Step 3 only.** Dispatch the phase to `fullstack-developer` (TDD; its Verify GREEN runs the full suite), check `git diff --stat` + typecheck, mark the phase's tasks complete, go straight to the next phase. No `tester`, no `code-reviewer`, no finalize between phases.
-   - Checkpoint review still runs for **high-risk** phases (hard gate). Medium-risk checkpoints are deferred to the final review.
+   - Checkpoint review still runs for **high-risk** phases (hard gate). Medium-risk checkpoints are covered by the final review.
    - A phase that fails verification is fixed (same subagent) before the next phase starts — never carry a red suite forward.
-2. **After the last phase — once:** Step 4 `tester` (full suite, all phases' RED/GREEN evidence) → Step 5 plan-conformance across the whole plan → Step 6 one `code-reviewer` pass over the whole plan diff; fixes go to `fullstack-developer`, cycle limits per mode → Step 7 finalize once (sync-back all phases, docs, git, archive).
-3. **Approval gates** still follow the mode: interactive asks once at Gate 3 (after all phases), Gate 4, and review; `auto` asks nothing.
+   - Keep each phase's report, with its TDD Evidence, in the plan's `reports/` so Step 4 can hand all of it to `tester` — also after compaction or a resume.
+2. **After the last phase — once:** Step 4 `tester` (full suite, every phase's RED/GREEN evidence) → Step 5 plan-conformance across the phases of this run → Step 6 one `code-reviewer` pass over their diff; fixes go to `fullstack-developer`, cycle limits per mode → Step 7 finalize once (sync-back all phases, docs, git, archive).
+3. **Approval gates** still follow the mode: interactive asks once at Gate 3 (after all phases), Gate 4, and review; `auto` asks no approval questions (hard gates such as the high-risk in-place acknowledgement still apply).
 
-Trade-off: one larger review instead of several small ones. Findings in early phases surface later and may touch more code, so prefer per-phase scope for high-risk plans.
+**`--per-phase`** (or "review each phase", "review từng phase"): Steps 3→7 repeat for every phase, and medium-risk phases with 3+ files or cross-cutting behavior get a checkpoint review too. `--final-review` is still accepted and means the default.
+
+Trade-off: the default runs one tester, one reviewer and one finalize instead of one per phase, so it is much faster. Findings in early phases surface later and may touch more code; choose `--per-phase` for high-risk plans where early feedback matters more than speed.
 
 
 ## Critical Rules
 
 - Never skip steps without mode justification
 - Never skip hard gates because of mode flags
-- **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly. With `--final-review`, Steps 4, 6, 7 run once for the whole plan instead of per phase
+- **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly. By default Steps 4, 6, 7 run once for all phases of the run; with `--per-phase`, once per phase
   - Step 3: `fullstack-developer` per phase (`ui-ux-designer` for UI) — also for every fix requested by tester, debugger or code-reviewer
   - Step 4: `tester` (and `debugger` if failures)
   - Step 6: `code-reviewer`
   - Step 7: `project-manager`, `docs-manager`, `git-manager`
 - Use `TaskCreate` to create Claude Tasks for each unchecked item with priority order and dependencies.
 - Use `TaskUpdate` to mark Claude Tasks `in_progress` when picking up a task.
-- Use `TaskUpdate` to mark Claude Tasks `complete` immediately after finalizing the task.
+- Use `TaskUpdate` to mark Claude Tasks `completed` as soon as their phase is verified (Step 3); Step 7 only reconciles.
 - All step outputs follow format: `✓ Step [N]: [status] - [metrics]`
 - **VALIDATION:** If Task tool calls = 0 at end of workflow, the workflow is INCOMPLETE.

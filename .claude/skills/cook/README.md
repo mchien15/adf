@@ -43,6 +43,9 @@ The skill automatically detects your intent and routes to the appropriate workfl
 
 # No-test mode (low-risk only)
 /cook update docs copy --no-test
+
+# Test + review after every phase (default: once, after the last phase)
+/cook plans/260519-auth/plan.md --per-phase
 ```
 
 ## Modes
@@ -59,7 +62,7 @@ The skill automatically detects your intent and routes to the appropriate workfl
 ## Intent Detection
 
 The skill detects mode from:
-1. **Explicit flags:** `--fast`, `--auto`, `--parallel`, `--no-test`
+1. **Explicit flags:** `--fast`, `--auto`, `--parallel`, `--no-test` (plus the `--per-phase` scope modifier)
 2. **Plan paths:** `./plans/*`, `plan.md`, `phase-*.md`
 3. **Keywords:** "fast", "quick", "trust me", "auto", "no test"
 4. **Feature count:** 3+ features → parallel mode
@@ -67,14 +70,16 @@ The skill detects mode from:
 ## Workflow
 
 ```
-[Detect + Risk + Isolation] → [Research?] → [Plan] → [Implement] → [Checkpoint?] → [Test?] → [Plan-Conformance] → [Review] → [Finalize + Verify]
+[Detect + Risk + Isolation] → [Research?] → [Plan] → [Implement all phases (checkpoint: high-risk)] → [Test?] → [Plan-Conformance] → [Review] → [Finalize + Verify]
 ```
+
+Test, plan-conformance, review and finalize run once after the last phase; `--per-phase` runs them after every phase.
 
 ## New Guardrails
 
 - Verification before completion always runs, even in `--auto` and allowed `--no-test` flows
-- Medium/high-risk behavior work needs TDD evidence
-- High-risk work, and some medium-risk multi-file phases, trigger checkpoint review
+- Behavior changes need TDD evidence at every risk level
+- High-risk phases trigger checkpoint review (with `--per-phase`, some medium-risk multi-file phases too)
 - `--no-test` is not a universal bypass
 - Plan-conformance is checked before final code-quality review
 

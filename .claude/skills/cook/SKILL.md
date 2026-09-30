@@ -1,8 +1,8 @@
 ---
 name: cook
 description: "ALWAYS activate this skill before implementing EVERY feature, plan, or fix."
-version: 2.6.0
-argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test] [--final-review]"
+version: 2.7.0
+argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test] [--per-phase]"
 ---
 
 # Cook - Smart Feature Implementation
@@ -26,14 +26,15 @@ End-to-end implementation with automatic workflow detection.
 - `--no-test`: Request testing-step skip when policy allows
 - `--auto`: Skip approval gates, keep hard gates
 
-**Optional modifier (combines with any mode):**
-- `--final-review`: Implement every phase first, then test, review and finalize **once** for the whole plan (instead of per phase). See `references/workflow-steps.md` → Review Scope
+**Review scope (combines with any mode):** by default every phase is implemented back to back, then test, review and finalize run **once** for all phases of the run.
+- `--per-phase`: Test, review and finalize after **each** phase instead. See `references/workflow-steps.md` → Review Scope
+- `--final-review` is still accepted; it is the default now
 
 **Example:**
 ```
 /cook "Add user authentication to the app" --fast
-/cook path/to/plan.md --auto
-/cook path/to/plan.md --auto --final-review   # no approval stops, one review at the end
+/cook path/to/plan.md --auto               # no approval stops, one review at the end
+/cook path/to/plan.md --per-phase          # test + review after every phase
 ```
 
 ## Smart Intent Detection
@@ -46,14 +47,14 @@ End-to-end implementation with automatic workflow detection.
 | Lists 3+ features OR "parallel" | parallel | Multi-agent execution |
 | Contains "no test", "skip test" | no-test | Request testing-step skip when policy allows |
 | Default | interactive | Full workflow with user input |
-| `--final-review` or "review at the end" / "review cuối" | *(modifier)* | Phases implemented back to back; test → review → finalize once |
+| `--per-phase` or "review each phase" / "review từng phase" | *(scope modifier)* | Test → review → finalize after every phase (default: once, after the last phase) |
 
 See `references/intent-detection.md` for detection logic.
 
 ## Workflow Overview
 
 ```
-[Detect + Risk + Isolation] → [Research?] → [Review] → [Plan] → [Review] → [Implement] → [Checkpoint?] → [Test?] → [Plan-Conformance] → [Review] → [Finalize + Verify]
+[Detect + Risk + Isolation] → [Research?] → [Review] → [Plan] → [Review] → [Implement all phases (checkpoint: high-risk)] → [Test?] → [Plan-Conformance] → [Review] → [Finalize + Verify]
 ```
 
 **Default (non-auto):** Stops at `[Review]` gates for human approval before each major step.
@@ -64,12 +65,14 @@ See `references/risk-and-gates.md` for risk classification, hard gates, and over
 
 | Mode | Research | Testing Step | Review Gates | Hard Gates | Phase Progression |
 |------|----------|--------------|--------------|------------|-------------------|
-| interactive | ✓ | ✓ | **User approval at each step** | Always on | One at a time |
-| auto | ✓ | ✓ | Skipped | Always on | All at once (no approval stops) |
-| fast | ✗ | ✓ | **User approval at each step** | Always on | One at a time |
+| interactive | ✓ | ✓ | **User approval at each step** | Always on | Back to back |
+| auto | ✓ | ✓ | Skipped | Always on | Back to back (no approval stops) |
+| fast | ✗ | ✓ | **User approval at each step** | Always on | Back to back |
 | parallel | Optional | ✓ | **User approval at each step** | Always on | Parallel groups |
-| no-test | ✓ | Policy-limited skip | **User approval at each step** | Always on | One at a time |
-| code | ✗ | ✓ | **User approval at each step** | Always on | Per plan |
+| no-test | ✓ | Policy-limited skip | **User approval at each step** | Always on | Back to back |
+| code | ✗ | ✓ | **User approval at each step** | Always on | Back to back |
+
+Phases run back to back (each verified: TDD, full suite green, typecheck), then Steps 4–7 run once. With `--per-phase`, every phase goes through test → review → finalize before the next one starts.
 
 ## Step Output Format
 
@@ -89,11 +92,11 @@ Human review required at these checkpoints (skipped with `--auto`):
 - **Risk + Isolation:** classify risk first, then follow isolation policy from `risk-and-gates.md`
 - **Verification:** proof before completion is mandatory in every mode
 - **TDD:** every behavior change is written test-first by `fullstack-developer` (RED → GREEN → REFACTOR) with RED/GREEN evidence, at every risk level; skips only for the exceptions in its agent definition, with a reason
-- **Checkpoint Review:** required for high-risk work and medium-risk phases that touch 3+ files or cross-cutting behavior (with `--final-review`: high-risk phases only)
+- **Checkpoint Review:** required for high-risk phases; with `--per-phase`, also for medium-risk phases that touch 3+ files or cross-cutting behavior
 - **Plan-Conformance:** `cook` verifies approved scope before code-quality review
 - **Testing:** 100% pass required (unless no-test mode)
 - **`no-test` limits:** cannot bypass verification and should not be used for bugfix/high-risk logic work
-- **Code Review:** User approval OR auto-approve (score≥9.5, 0 critical). Per phase by default; once over the whole plan diff with `--final-review`
+- **Code Review:** User approval OR auto-approve (score≥9.5, 0 critical). Once over the diff of all phases in the run by default; per phase with `--per-phase`
 - **Finalize (MANDATORY - never skip):**
   1. `project-manager` subagent → run full plan sync-back (all completed tasks/steps across all `phase-XX-*.md`, not only current phase), then update `plan.md` status/progress
   2. `docs-manager` subagent → update `./docs` if changes warrant

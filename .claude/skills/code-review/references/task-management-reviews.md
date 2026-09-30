@@ -124,10 +124,10 @@ Limit to 3 cycles. If still failing after cycle 3 → escalate to user.
 Review tasks are **separate from** cook/planning phase tasks.
 
 **When cook spawns review:**
-1. Cook completes implementation phase → creates review pipeline tasks
+1. Cook completes implementation (all phases by default; one phase with `--per-phase`) → creates review pipeline tasks
 2. Review pipeline executes (scout → review → fix → verify)
-3. All review tasks complete → cook marks phase as reviewed
-4. Cook proceeds to next phase
+3. All review tasks complete → cook marks the reviewed scope
+4. Cook proceeds to finalize (Step 7), or to the next phase with `--per-phase`
 
 Review tasks reference the phase but don't block it directly — the orchestrator manages handoff.
 

@@ -1,6 +1,6 @@
 # Code Review Cycle
 
-Interactive review-fix cycle used in code workflows. With `--final-review` it runs once over the whole plan diff instead of per phase. Every "fix" below is delegated to a `fullstack-developer` subagent with the findings; the main agent never patches code itself.
+Interactive review-fix cycle used in code workflows. By default it runs once over the diff of all phases in the run; with `--per-phase`, once per phase. Every "fix" below is delegated to a `fullstack-developer` subagent with the findings; the main agent never patches code itself.
 
 Terminology:
 - `review gate`: human approval checkpoint

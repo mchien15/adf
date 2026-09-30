@@ -33,7 +33,7 @@ First public release. Includes full agent orchestration, skills library, hook sy
 
 **Workflows:**
 - `/plan` — research + phased implementation plans (--fast, --hard, --two, --parallel)
-- `/cook` — risk-gated end-to-end implementation (--auto approval-skip only, --fast, --parallel, policy-limited --no-test, --final-review for one review at the end, mandatory verification)
+- `/cook` — risk-gated end-to-end implementation (--auto approval-skip only, --fast, --parallel, policy-limited --no-test, one test + review after the last phase (--per-phase to review each phase), mandatory verification)
 - `/fix` — intelligent bug fixing (--quick, --parallel, specialized: test, types, ui, ci, logs)
 - `/test` — test execution and coverage analysis
 - `/code-review` — multi-pass automated review with edge case scouting
