@@ -30,10 +30,9 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
 
 #### 2. Testing
 - Delegate to `tester` agent to run tests on the **simplified code**
-  - Tests were written first during implementation (TDD); check the RED/GREEN evidence and add tests only for gaps
-  - Ensure high code coverage
-  - Test error scenarios
-  - Validate performance requirements
+  - Tests were written first during implementation (TDD); check the RED/GREEN evidence and add a test only for a named gap (changed behavior, error path or integration point no test exercises)
+  - Coverage is a diagnostic, not a target: follow the project's configured threshold, never add tests just to raise it
+  - Validate performance only when the task sets a performance requirement
 - Tests verify the FINAL code that will be reviewed and merged
 - **DO NOT** ignore failing tests just to pass the build.
 - **IMPORTANT:** make sure you don't use fake data, mocks, cheats, tricks, temporary solutions, just to pass the build or github actions.

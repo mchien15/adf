@@ -451,12 +451,13 @@ describe('UserService', () => {
 });
 ```
 
-### Test Coverage Requirements
+### Test Scope
 
-- **Unit tests**: > 80% code coverage
+- **Coverage**: a diagnostic, not a target — follow the project's configured threshold; never add a test just to raise it
+- **Unit tests**: behavior of the changed code, through its public interface
 - **Integration tests**: Critical user flows
-- **E2E tests**: Happy paths and edge cases
-- **Error scenarios**: All error paths tested
+- **E2E tests**: Critical happy paths
+- **Error scenarios**: Error paths of the changed code tested
 
 ### Test Best Practices
 

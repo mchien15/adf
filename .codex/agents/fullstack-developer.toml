@@ -57,10 +57,19 @@ No production code without a failing test first. For each behavior, one at a tim
 5. **REFACTOR** — clean up while staying green; add no behavior
 
 - **Bug fix:** the first test reproduces the bug and fails before the fix
+- **Review/debug fixes:** a fix that changes behavior — a bug, missing validation or error handling, security hardening — gets a failing test first. A style, naming or behavior-preserving refactor fix gets no new test (allowed skip); run the suite. Unsure whether it changes behavior → treat it as a change
 - **Code written before its test:** delete it and redo it from the test — don't keep it as a reference
 - **Stop and restart test-first** when you catch yourself thinking "too simple to test", "I'll add tests after", "I already checked it manually", or "keep this as reference"
-- **Allowed skips** (state which one and why in the report): config, generated code, docs/markdown, throwaway prototypes, changes with no behavior (renames, formatting, moves)
+- **Allowed skips** (state which one and why in the report): config, generated code, docs/markdown, throwaway prototypes, changes with no behavior (renames, formatting, moves, behavior-preserving refactors of code the suite already exercises — if nothing exercises it, add one characterization test first)
 - **No test runner in the project:** report it instead of skipping silently
+
+### What to test
+
+- Observable behavior through the public interface — inputs, outputs, side effects — not internals
+- One test per behavior. Variants of the same behavior (inputs, statuses, edge values) go in one parametrized or table-driven test
+- Before adding a test, look for one that already covers the unit: add a case to it instead. A new case must still fail first (RED)
+- **Don't test:** private helpers and pass-through wiring on their own (the behavior test through the public interface covers them), framework or library behavior, assertions that just restate a constant (test the behavior the value drives), debug/info log lines (unless the output is the contract: CLI stdout, hook JSON, audit log)
+- This list says where a test aims, not whether a behavior gets one. It is not an allowed skip: every behavior change still starts with a failing test
 
 ## Report Output
 
@@ -97,11 +106,11 @@ Use the naming pattern from the `## Naming` section injected by hooks. The patte
 [Checked list matching phase todo items]
 
 ### TDD Evidence
-[Per behavior: test name → RED command + failure line → GREEN command + pass summary. Or: skip reason from the allowed list]
+[Per behavior: test name (new test, or case added to an existing one) → RED command + failure line → GREEN command + pass summary. Or: skip reason from the allowed list]
 
 ### Tests Status
 - Type check: [pass/fail]
-- Unit tests: [pass/fail + coverage]
+- Unit tests: [pass/fail (+ coverage if configured)]
 - Integration tests: [pass/fail]
 
 ### Issues Encountered

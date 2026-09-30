@@ -555,10 +555,10 @@ Why this matters:
 - Proper versioning
 
 ### Testing Standards
-- Unit test coverage > 80%
+- Test-first (TDD) for behavior changes; coverage is a diagnostic, not a target
 - Integration tests for workflows
-- Error scenario coverage
-- Performance validation
+- Error scenario coverage for changed code
+- Performance validation when a requirement is set
 - Security testing
 
 ## Glossary

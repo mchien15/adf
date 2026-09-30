@@ -57,7 +57,7 @@ Research → Scout → Plan with file ownership → Audit → Validate → Hydra
 - Each phase self-contained, no runtime deps on other phases
 - Clear file boundaries — each file modified in ONE phase only
 - Group by: architectural layer, feature domain, or technology stack
-- Example: Phases 1-3 parallel (DB/API/UI), Phase 4 sequential (integration tests)
+- Example: Phases 1-3 parallel (DB/API/UI), Phase 4 sequential (wire the layers together, with its integration tests written test-first)
 
 ## Two-Approach Mode (`--two`)
 

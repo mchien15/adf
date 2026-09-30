@@ -36,7 +36,7 @@ Task(subagent_type="ui-ux-designer", prompt="Implement [feature] UI per ./docs/d
 
 ## Testing
 ```
-Task(subagent_type="tester", prompt="Run the full test suite for plan phase [phase-name]. Check the implementer's RED/GREEN evidence: [evidence]. Add tests only for uncovered edge cases/errors and report exact proof used.", description="Test [phase]")
+Task(subagent_type="tester", prompt="Run the full test suite for plan phase [phase-name]. Check the implementer's RED/GREEN evidence: [evidence]. Add a test only for a concrete gap (changed behavior, error path or integration point no test exercises), naming the gap; otherwise add none. Report exact proof used.", description="Test [phase]")
 ```
 - Tests are written test-first in Implementation; the tester verifies and fills gaps
 - Must achieve 100% pass rate

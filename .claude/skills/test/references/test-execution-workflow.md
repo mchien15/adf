@@ -3,7 +3,7 @@
 ## Step 1: Identify Scope
 
 Determine what to test based on recent changes:
-- New feature → full test suite + new test cases
+- New feature → full test suite; new tests only for gaps the implementer's test-first tests leave (name each gap)
 - Bug fix → regression tests + targeted fix validation
 - Refactor → existing test suite (no new tests unless gaps found)
 - Coverage check → full suite with coverage flags
@@ -65,15 +65,9 @@ Focus on:
 
 ## Step 5: Coverage Analysis
 
-Thresholds:
-- **80%+** line coverage — standard minimum
-- **70%+** branch coverage — acceptable for most projects
-- Focus on critical paths: auth, payment, data mutations
+Coverage is a diagnostic, not a target. Enforce only the threshold the project configures (e.g. jest/vitest `coverageThreshold`, pytest-cov `fail_under`, a CI gate). If none is set, report the numbers without enforcing one.
 
-Identify gaps:
-- Uncovered error handlers
-- Missing edge case branches
-- Untested utility functions
+Use the report to find changed code that no test exercises — above all critical paths: auth, payment, data mutations. Never add a test just to raise the percentage.
 
 ## Step 6: Build Verification
 
@@ -93,10 +87,10 @@ Check for:
 ## Quality Checklist
 
 - [ ] All tests pass (zero failures)
-- [ ] Coverage meets project threshold
+- [ ] Coverage meets the project's configured threshold (if any)
 - [ ] No flaky tests detected
 - [ ] Build completes without errors
-- [ ] Error scenarios tested
+- [ ] Error paths of the changed code exercised
 - [ ] Test isolation verified (no shared state)
 - [ ] Test data cleaned up after execution
 - [ ] Mocks/stubs properly configured

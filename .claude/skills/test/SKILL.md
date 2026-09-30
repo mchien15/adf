@@ -27,7 +27,7 @@ Present as options via `AskUserQuestion` with header "Test Operation", question 
 ## When to Use
 
 - **After implementation**: Validate new features or bug fixes
-- **Coverage checks**: Ensure coverage meets project thresholds (80%+)
+- **Coverage checks**: Compare against the project's configured threshold; coverage is a diagnostic, not a target
 - **UI verification**: Visual regression, responsive layout, accessibility
 - **Build validation**: Verify build process, dependencies, CI/CD compatibility
 - **Pre-commit/push**: Final quality gate
@@ -88,8 +88,7 @@ Reports        → report-format.md
 
 ## Quality Standards
 
-- All critical paths must have test coverage
-- Validate happy path AND error scenarios
+- Critical paths and error paths in the changed code are exercised by at least one test
 - Ensure test isolation — no interdependencies
 - Tests must be deterministic and reproducible
 - Clean up test data after execution
