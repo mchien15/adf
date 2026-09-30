@@ -444,7 +444,7 @@ function buildNamingSection({ reportsPath, plansPath, namePattern }) {
     `- Report: \`${reportsPath}{type}-${namePattern}.md\``,
     `- Plan dir: \`${plansPath}/${namePattern}/\``,
     `- Replace \`{type}\` with one of: ${REPORT_TYPES.join(', ')}`,
-    `- Replace \`{slug}\` in pattern with: descriptive-kebab-slug`
+    `- Replace \`{slug}\` in pattern with: short-kebab-slug (2–4 plain words)`
   ];
 }
 

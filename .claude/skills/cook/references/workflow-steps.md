@@ -66,7 +66,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **Output:** `✓ Step 2b: Impact reviewed - ADR [suggested|n/a]`
 
 ### [Review Gate 2] Post-Plan (skip if auto mode)
-- Present plan overview with phases
+- Present plan overview with phases, and one **New names** table merged across phases (skip phases with none) — names are cheapest to change before any code exists. In auto mode nobody sees it; the reviewer's New Vocabulary section is then the only naming check
 - Use `AskUserQuestion` to ask: "Validate the plan or approve plan to start implementation?" - "Validate" / "Approve" / "Abort" / "Other" ("Request revisions")
   - "Validate": run `/plan validate` slash command
   - "Approve": continue to implementation
@@ -115,7 +115,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 
 ### [Review Gate 3] Post-Implementation (skip if auto mode)
 - Default scope: asked once, after the last phase; with `--per-phase`, after every phase
-- Present implementation summary (files changed, key changes)
+- Present implementation summary (files changed, key changes, and the New names the developers added outside the plan's table)
 - Use `AskUserQuestion` to ask: "Proceed to testing?" / "Request implementation changes" / "Abort"
 - **Auto mode:** Skip this gate
 

@@ -389,6 +389,18 @@ describe('context-builder.cjs', () => {
       assert.ok(lines.some(l => l.includes('Naming')), 'Should include Naming');
     });
 
+    it('buildNamingSection asks for a short plain slug', () => {
+      const lines = contextBuilder.buildNamingSection({
+        reportsPath: '/reports/',
+        plansPath: '/plans',
+        namePattern: '{date}-{slug}'
+      });
+      const slugLine = lines.find(l => l.startsWith('- Replace `{slug}`'));
+      assert.ok(slugLine, 'Should emit a slug line');
+      assert.match(slugLine, /short/, 'Should ask for a short slug');
+      assert.doesNotMatch(slugLine, /descriptive/, 'Should not ask for a descriptive slug');
+    });
+
   });
 
   describe('Hooks config behavior (Issue #413)', () => {

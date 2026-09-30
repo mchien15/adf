@@ -109,7 +109,7 @@ export default async function adfHooksPlugin({ project }) {
             `## Dev Rules`,
             `- Rules: \`.claude/rules/development-rules.md\` (follow strictly)`,
             `- Principles: YAGNI, KISS, DRY`,
-            `- Naming: kebab-case for JS/TS/shell, snake_case for Python; match surrounding names`,
+            `- Naming: kebab-case for JS/TS/shell, snake_case for Python; plain conventional words, one term per concept, no metaphors; match surrounding names; unclear one → keep it for its concept and flag it`,
             ``,
             `## Skills & Agents`,
             `- Skills: \`.claude/skills/\` (discovered natively by OpenCode)`,

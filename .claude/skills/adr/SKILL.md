@@ -63,9 +63,9 @@ Use the numbering rule in [`references/docs-root-detection.md`](references/docs-
 
 Before writing, confirm no existing record already carries the chosen number **under any scheme**. If one does, stop and ask — never overwrite, never silently skip to the next free number, because either hides a numbering assumption that just proved wrong.
 
-File name: `NNNN-YYMMDD-kebab-title.md` — e.g. `0007-260730-choose-postgres-over-mongodb.md`. Cited in prose as `ADR-0007`.
+File name: `NNNN-YYMMDD-short-topic.md` — e.g. `0007-260730-postgres-over-mongodb.md`. The slug is a 2–4 word topic in plain terms, not the title sentence: `0019-260915-one-directory-per-module.md`, never `0019-260915-a-capability-lives-in-one-directory-and-owns-only-what-only-it-reads.md`. Derive it from the decision title: drop the verb (choose, use, adopt) and filler words, keep the nouns. The decision sentence stays as the title inside the file. Cited in prose as `ADR-0007`.
 
-**If the directory already holds records, keep their naming**, including zero-padding width. If they are `NNNN-slug.md` with no date, match them. One consistent convention beats the better convention applied to half the files. If their scheme is one this skill does not recognise — `20200601-use-postgres.md`, the log4brains default — **stop and ask** rather than starting over at `0001` beside them.
+**If the directory already holds records, match their numbering scheme**: zero-padding width, and whether a date is present. If they are `NNNN-slug.md` with no date, match that. Slug style is not part of the scheme — a new record gets a short topic slug even when older ones are sentences. Don't rename existing records: links point at their file names. One consistent numbering scheme beats a better one applied to half the files. If their scheme is one this skill does not recognise — `20200601-use-postgres.md`, the log4brains default — **stop and ask** rather than starting over at `0001` beside them.
 
 The date is not decoration. Highest-plus-one collides across branches, and with the number alone the collision is silent. `templates/adr-readme.md` documents how to resolve one.
 

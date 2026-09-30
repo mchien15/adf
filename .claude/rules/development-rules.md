@@ -6,7 +6,12 @@
 **IMPORTANT — Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected each session as `Docs → <path>` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
 
 ## General
-- **File Naming**: Follow each language's convention — kebab-case for JS/TS/shell, snake_case for Python (a kebab-case module cannot be imported), PascalCase for C#/Java/Kotlin/Swift, snake_case for Go/Rust. Match the names already used around the file; a short name for what the module holds beats a long one. Add a new file only for a new concept, never to keep another file short.
+- **Naming** (files, identifiers, tests, branches, ADRs, and terms in plans/reports — plan words end up in code):
+  - The plain term a developer in this stack would search for, the one the library or domain uses (`compacted_at`, not `folded_at`; `pending_tool_results`, not `owed`). Unknown to a new teammate → a common word, or define it in the repo's glossary (none yet → `## Glossary` in `$CK_DOCS_PATH/project-overview-pdr.md`)
+  - One term per concept, one meaning per term. Existing unclear term: keep it for its concept, flag it as a rename candidate, never reuse the word for something new
+  - No metaphors, invented jargon or sentence-shaped identifiers, files or branches (`stamp_ids`, `reads-its-own-record`); things are nouns, actions are verbs
+  - Tests: the behavior in about 8 words or fewer. Branch, plan and ADR slugs: 2–4 plain words (formats: `git` and `adr` skills)
+  - Casing follows the language: kebab-case for JS/TS/shell, snake_case for Python (a kebab-case module cannot be imported), PascalCase for C#/Java/Kotlin/Swift, snake_case for Go/Rust. A short name for what the module holds beats a long one. Add a new file only for a new concept, never to keep another file short.
 - When looking for docs, activate `docs-seeker` skill (`context7` reference) for exploring latest docs.
 - Use `gh` bash command to interact with Github features if needed
 - Use `psql` bash command to query Postgres database for debugging if needed

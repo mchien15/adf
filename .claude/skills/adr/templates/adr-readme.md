@@ -7,10 +7,10 @@ Each file here records **one decision**, why it was made, and what was rejected 
 ## File naming
 
 ```
-NNNN-YYMMDD-kebab-title.md
+NNNN-YYMMDD-short-topic.md
 
-0007-260730-choose-postgres-over-mongodb.md
-│    │      └── short slug, lowercase, hyphens
+0007-260730-postgres-over-mongodb.md
+│    │      └── 2–4 word topic in plain terms (the decision sentence is the title inside)
 │    └── date the decision was made (YYMMDD)
 └── sequence number, zero-padded to 4
 ```
@@ -26,8 +26,8 @@ The next number is "highest existing + 1". That is fine on one branch and unreli
 Number-only naming makes this **silent** — two `0007-*.md` files sort next to each other and look deliberate. With the date in the name the collision is legible at a glance:
 
 ```
-0007-260730-choose-postgres-over-mongodb.md
-0007-260802-adopt-feature-flags.md          ← same number, different day. Collision.
+0007-260730-postgres-over-mongodb.md
+0007-260802-feature-flags.md          ← same number, different day. Collision.
 ```
 
 This is a real failure mode, not a hypothetical: an audit of one 22-record repo using number-only naming found **four colliding pairs**, plus one slug duplicated across two numbers from a half-finished renumber. Nobody had noticed.

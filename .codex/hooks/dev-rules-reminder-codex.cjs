@@ -89,7 +89,7 @@ function buildReminder(plansPath) {
 **Principles:** YAGNI (You Aren't Gonna Need It) · KISS (Keep It Simple, Stupid) · DRY (Don't Repeat Yourself)
 
 **Code Quality:**
-- File names: kebab-case for JS/TS/shell, snake_case for Python; match surrounding names, prefer short names
+- Naming: kebab-case for JS/TS/shell, snake_case for Python; plain conventional words, one term per concept, no metaphors; match surrounding names; unclear one → keep it for its concept and flag it; prefer short names
 - No syntax errors — code must compile/run cleanly
 - Use try/catch for error handling at system boundaries
 
