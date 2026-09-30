@@ -12,12 +12,16 @@ Structured QA report template. Sacrifice grammar for concision.
 - **Passed**: X | **Failed**: X | **Skipped**: X
 - **Duration**: Xs
 
-## Coverage Metrics
-| Metric   | Value | Threshold | Status |
-|----------|-------|-----------|--------|
-| Lines    | X%    | 80%       | PASS/FAIL |
-| Branches | X%    | 70%       | PASS/FAIL |
-| Functions| X%    | 80%       | PASS/FAIL |
+## Tests Added
+- `test/path/file.test.ts` — TestName — gap: [changed behavior / error path / integration point no test exercised]
+- (or: none)
+
+## Coverage Metrics (when the test runner produces coverage)
+| Metric   | Value | Project threshold      | Status |
+|----------|-------|------------------------|--------|
+| Lines    | X%    | [configured or "none"] | PASS/FAIL/n-a |
+| Branches | X%    | [configured or "none"] | PASS/FAIL/n-a |
+| Functions| X%    | [configured or "none"] | PASS/FAIL/n-a |
 
 ## Failed Tests
 ### `test/path/file.test.ts` — TestName
@@ -42,7 +46,7 @@ Structured QA report template. Sacrifice grammar for concision.
 1. [Blocking issue description + impact]
 
 ## Recommendations
-1. [Actionable improvement with priority]
+1. [Fix for a finding above, with priority — not a list of extra tests]
 
 ## Unresolved Questions
 - [Any open questions, if any]
@@ -51,7 +55,7 @@ Structured QA report template. Sacrifice grammar for concision.
 ## Guidelines
 
 - Include ALL failed tests with error messages — don't summarize away details
-- Coverage: highlight specific uncovered files/functions, not just percentages
+- Coverage: name uncovered changed code, not just percentages; a number below the project threshold is a finding, not a reason to add filler tests
 - Screenshots: embed paths directly in report for easy access
 - Recommendations: prioritize by impact (critical > high > medium > low)
 - Keep report under 200 lines — split into sections if larger scope needed

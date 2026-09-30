@@ -34,9 +34,10 @@ Plan dir contents:
 ├── phase-03-implement-api-endpoints.md        # API endpoints
 ├── phase-04-implement-ui-components.md        # UI components
 ├── phase-05-implement-authentication.md       # Auth & authorization
-├── phase-06-implement-profile.md              # Profile page
-└── phase-07-write-tests.md                    # Tests
+└── phase-06-implement-profile.md              # Profile page
 ```
+
+No separate test phase: each phase writes its own tests test-first (TDD) and names the behaviors they prove in its Success Criteria.
 
 ### Task Hydration
 
@@ -100,8 +101,7 @@ Brief description of what this plan accomplishes.
 | # | Phase | Status | Effort | Link |
 |---|-------|--------|--------|------|
 | 1 | Setup | Pending | 2h | [phase-01](./phase-01-setup.md) |
-| 2 | Implementation | Pending | 4h | [phase-02](./phase-02-impl.md) |
-| 3 | Testing | Pending | 2h | [phase-03](./phase-03-test.md) |
+| 2 | Implementation | Pending | 6h | [phase-02](./phase-02-impl.md) |
 
 ## Dependencies
 
@@ -182,6 +182,7 @@ Each phase file should contain:
 **Success Criteria**
 - Definition of done
 - Validation methods
+- Behaviors this phase proves with tests (written test-first here, not in a later phase)
 
 **Risk Assessment**
 - Potential issues

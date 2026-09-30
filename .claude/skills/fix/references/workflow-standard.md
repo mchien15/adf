@@ -70,7 +70,7 @@ Task("Bash", "Run build", "Verify build")
 `TaskUpdate(T4, status="in_progress")`
 Use `tester` subagent to run tests.
 
-- Write new tests if needed
+- The reproducing test already exists from Step 3; add a test only for a gap the tester names
 - Run existing test suite
 - If fail → use `debugger`, fix, repeat
 

@@ -118,7 +118,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 ## Step 4: Testing (skip if no-test mode)
 
 **All modes (except no-test):**
-- Tests already exist from Step 3 (TDD). `tester` runs the full suite, checks the RED/GREEN evidence, and adds tests only for gaps (edge cases, errors, integration)
+- Tests already exist from Step 3 (TDD). `tester` runs the full suite, checks the RED/GREEN evidence, and adds a test only for a gap it names (changed behavior, error path or integration point no test exercises)
 - **MUST** spawn `tester` subagent: `Task(subagent_type="tester", prompt="Run test suite", description="Run tests")`
 - If failures: **MUST** spawn `debugger` subagent → `fullstack-developer` applies the fix → repeat
 - **Forbidden:** fake mocks, commented tests, changed assertions, skipping subagent delegation

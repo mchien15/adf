@@ -79,8 +79,8 @@ See `references/parallel-exploration.md`
 `TaskUpdate(T6, status="in_progress")`
 Use `tester` subagent.
 
-- Comprehensive testing
-- Edge cases, security, performance
+- Full suite + the implementer's RED/GREEN evidence; add a test only for a gap the tester names
+- Check edge cases and security paths the fix touches; performance only if the bug is a performance bug
 - If fail → debug, fix, repeat
 
 `TaskUpdate(T6, status="completed")`
