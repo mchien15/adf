@@ -1,8 +1,8 @@
 ---
 name: cook
 description: "ALWAYS activate this skill before implementing EVERY feature, plan, or fix."
-version: 2.5.0
-argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test]"
+version: 2.6.0
+argument-hint: "[task|plan-path] [--interactive|--fast|--parallel|--auto|--no-test] [--final-review]"
 ---
 
 # Cook - Smart Feature Implementation
@@ -26,10 +26,14 @@ End-to-end implementation with automatic workflow detection.
 - `--no-test`: Request testing-step skip when policy allows
 - `--auto`: Skip approval gates, keep hard gates
 
+**Optional modifier (combines with any mode):**
+- `--final-review`: Implement every phase first, then test, review and finalize **once** for the whole plan (instead of per phase). See `references/workflow-steps.md` → Review Scope
+
 **Example:**
 ```
 /cook "Add user authentication to the app" --fast
 /cook path/to/plan.md --auto
+/cook path/to/plan.md --auto --final-review   # no approval stops, one review at the end
 ```
 
 ## Smart Intent Detection
@@ -42,6 +46,7 @@ End-to-end implementation with automatic workflow detection.
 | Lists 3+ features OR "parallel" | parallel | Multi-agent execution |
 | Contains "no test", "skip test" | no-test | Request testing-step skip when policy allows |
 | Default | interactive | Full workflow with user input |
+| `--final-review` or "review at the end" / "review cuối" | *(modifier)* | Phases implemented back to back; test → review → finalize once |
 
 See `references/intent-detection.md` for detection logic.
 
@@ -84,11 +89,11 @@ Human review required at these checkpoints (skipped with `--auto`):
 - **Risk + Isolation:** classify risk first, then follow isolation policy from `risk-and-gates.md`
 - **Verification:** proof before completion is mandatory in every mode
 - **TDD:** every behavior change is written test-first by `fullstack-developer` (RED → GREEN → REFACTOR) with RED/GREEN evidence, at every risk level; skips only for the exceptions in its agent definition, with a reason
-- **Checkpoint Review:** required for high-risk work and medium-risk phases that touch 3+ files or cross-cutting behavior
+- **Checkpoint Review:** required for high-risk work and medium-risk phases that touch 3+ files or cross-cutting behavior (with `--final-review`: high-risk phases only)
 - **Plan-Conformance:** `cook` verifies approved scope before code-quality review
 - **Testing:** 100% pass required (unless no-test mode)
 - **`no-test` limits:** cannot bypass verification and should not be used for bugfix/high-risk logic work
-- **Code Review:** User approval OR auto-approve (score≥9.5, 0 critical)
+- **Code Review:** User approval OR auto-approve (score≥9.5, 0 critical). Per phase by default; once over the whole plan diff with `--final-review`
 - **Finalize (MANDATORY - never skip):**
   1. `project-manager` subagent → run full plan sync-back (all completed tasks/steps across all `phase-XX-*.md`, not only current phase), then update `plan.md` status/progress
   2. `docs-manager` subagent → update `./docs` if changes warrant

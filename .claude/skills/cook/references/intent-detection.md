@@ -35,7 +35,6 @@ FUNCTION detectMode(input):
 
   # Default: interactive workflow
   RETURN "interactive"
-```
 
 FUNCTION detectRisk(input, mode):
   keywords = lowercase(input)
@@ -49,7 +48,16 @@ FUNCTION detectRisk(input, mode):
     RETURN "medium"
 
   RETURN "medium"
+
+FUNCTION detectReviewScope(input):   # modifier, independent of mode
+  keywords = lowercase(input)
+  IF input contains "--final-review": RETURN "final"
+  IF keywords contains ["final review", "review at the end", "review once", "review cuối", "review một lần"]:
+    RETURN "final"
+  RETURN "per-phase"
 ```
+
+`--final-review` combines with any mode: `/cook plan.md --auto --final-review` → mode `auto` (flag beats path) + scope `final`.
 
 ## Feature Extraction
 
@@ -120,6 +128,9 @@ Reject or re-route `--no-test` requests when:
 
 "/cook implement dashboard trust me"
 → Mode: auto ("trust me" keyword, no approval-gate stops)
+
+"/cook plans/260120-auth/plan.md --auto --final-review"
+→ Mode: auto + scope: final (all phases back to back, one test/review/finalize at the end)
 ```
 
 **Note:** Only `--auto` flag or "trust me"/"auto"/"yolo" keywords enable continuous execution. Continuous execution still respects hard gates.

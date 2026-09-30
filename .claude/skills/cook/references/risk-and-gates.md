@@ -38,6 +38,8 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 | no-test | no | no | skips test step only when policy allows |
 | code | no | no | executes approved plan directly |
 
+`--final-review` is a modifier, not a mode: it moves testing, plan-conformance, code review and finalize to once after the last phase. It never skips verification, TDD evidence, plan-conformance or the final code review, and high-risk phases still get their checkpoint review.
+
 ## Override Rules
 
 1. `verification` always runs, even in `--auto` and `--no-test`.

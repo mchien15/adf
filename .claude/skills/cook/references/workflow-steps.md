@@ -202,6 +202,7 @@ The sweep is also the only ADR checkpoint that survives `code` mode. Entering wi
 
 **Auto mode:** Continue to next phase automatically, start from **Step 3**.
 **Others:** Ask user before next phase
+**`--final-review`:** Step 7 runs once, after the final review — there is no next phase to start
 
 **Output:** `✓ Step 7: Verified before completion - [proof summary] - Finalized`
 
@@ -216,13 +217,31 @@ fast:        0 → skip → 2(fast) → [R] → 3 → [R] → 4 → [R] → 5 �
 parallel:    0 → 1? → [R] → 2(parallel) → [R] → 3(multi-agent) → checkpoint? → 4 → [R] → 5 → 6(user) → 7
 no-test:     0 → 1 → [R] → 2 → [R] → 3 → [R] → skip(policy) → 5 → 6(user) → 7
 code:        0 → skip → skip → 3 → checkpoint? → 4 → [R] → 5 → 6(user) → 7
+
++ --final-review (any mode; approval gates [R] follow the mode):
+             0 → 1? → 2? → 3(phase 1) → 3(phase 2) … 3(phase N) → [R] → 4(once) → [R] → 5(whole plan) → 6(once) → 7(once)
+auto + final-review:
+             0 → 1 → 2 → 3(all phases, no stops) → 4 → 5 → 6(auto, once) → 7
 ```
+
+## Review Scope: `--final-review`
+
+Default scope is **per phase**: Steps 3→7 repeat for every phase. `--final-review` (or "review at the end", "review cuối") changes only *when* Steps 4–7 run:
+
+1. **Per phase — Step 3 only.** Dispatch the phase to `fullstack-developer` (TDD; its Verify GREEN runs the full suite), check `git diff --stat` + typecheck, mark the phase's tasks complete, go straight to the next phase. No `tester`, no `code-reviewer`, no finalize between phases.
+   - Checkpoint review still runs for **high-risk** phases (hard gate). Medium-risk checkpoints are deferred to the final review.
+   - A phase that fails verification is fixed (same subagent) before the next phase starts — never carry a red suite forward.
+2. **After the last phase — once:** Step 4 `tester` (full suite, all phases' RED/GREEN evidence) → Step 5 plan-conformance across the whole plan → Step 6 one `code-reviewer` pass over the whole plan diff; fixes go to `fullstack-developer`, cycle limits per mode → Step 7 finalize once (sync-back all phases, docs, git, archive).
+3. **Approval gates** still follow the mode: interactive asks once at Gate 3 (after all phases), Gate 4, and review; `auto` asks nothing.
+
+Trade-off: one larger review instead of several small ones. Findings in early phases surface later and may touch more code, so prefer per-phase scope for high-risk plans.
+
 
 ## Critical Rules
 
 - Never skip steps without mode justification
 - Never skip hard gates because of mode flags
-- **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly.
+- **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly. With `--final-review`, Steps 4, 6, 7 run once for the whole plan instead of per phase
   - Step 3: `fullstack-developer` per phase (`ui-ux-designer` for UI) — also for every fix requested by tester, debugger or code-reviewer
   - Step 4: `tester` (and `debugger` if failures)
   - Step 6: `code-reviewer`
