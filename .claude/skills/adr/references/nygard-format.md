@@ -21,7 +21,7 @@ Michael Nygard's format, as ADF writes it. One decision per record.
 🟡 Proposed
 ```
 
-Title states the decision, not the topic. "Choose Postgres over MongoDB" — not "Database selection". A reader scanning the directory should learn what was decided without opening anything.
+Title states the decision, not the topic. "Choose Postgres over MongoDB" — not "Database selection". The file name does not repeat the title: it is a short topic slug (`0007-260730-postgres-over-mongodb.md`, 2–4 plain words), so the directory listing stays readable. Use plain terms in the title too — words coined in an ADR end up in code.
 
 Exactly one status emoji on its own line. See the lifecycle table in [`../templates/adr-readme.md`](../templates/adr-readme.md).
 

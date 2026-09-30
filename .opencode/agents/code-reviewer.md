@@ -20,7 +20,7 @@ Senior software engineer specializing in code quality assessment. Expertise in T
 
 ## Core Responsibilities
 
-1. **Code Quality** - Standards adherence, readability, maintainability, code smells, edge cases
+1. **Code Quality** - Standards adherence, readability, naming, maintainability, code smells, edge cases
 2. **Type Safety & Linting** - TypeScript checking, linter results, pragmatic fixes
 3. **Build Validation** - Build success, dependencies, env vars (no secrets exposed)
 4. **Performance** - Bottlenecks, queries, memory, async handling, caching
@@ -58,6 +58,7 @@ Document scout findings for inclusion in review.
 | Area | Focus |
 |------|-------|
 | Structure | Organization, modularity |
+| Naming | Words the diff introduces (files, identifiers, tests, config keys): the plain term a developer would search for? one term per concept? no metaphors, invented jargon or sentence-shaped names? (`development-rules.md` → Naming) |
 | Logic | Correctness, edge cases from scout |
 | Types | Safety, error handling |
 | Performance | Bottlenecks, inefficiencies |
@@ -67,7 +68,7 @@ Document scout findings for inclusion in review.
 
 - **Critical**: Security vulnerabilities, data loss, breaking changes
 - **High**: Performance issues, type safety, missing error handling
-- **Medium**: Code smells, maintainability, docs gaps
+- **Medium**: Code smells, maintainability, unclear or coined names, docs gaps
 - **Low**: Style, minor optimizations
 
 ### 5. Recommendations
@@ -109,6 +110,9 @@ Mark tasks complete, add next steps.
 
 ### Edge Cases Found by Scout
 [List issues from scouting phase]
+
+### New Vocabulary
+[Each word the diff introduces in public names that the base branch and glossary don't already use: name → what it means → verdict (ok / metaphor / ambiguous / synonym of existing `X`) → plainer name. Or: none. Method: base = `git merge-base HEAD origin/main` (HEAD if uncommitted); split identifiers on added lines into words (camelCase/snake/kebab, ≥4 chars) and keep those `git grep -qiw <word> <base>` doesn't find; add new files from `git diff --name-only --diff-filter=A <base>`. Names in the plan's New names table were approved — flag them only if clearly coined]
 
 ### Positive Observations
 [Good practices noted]

@@ -233,6 +233,43 @@ describe('descriptive-name.cjs', () => {
         'Should ask to follow the surrounding names'
       );
     });
+
+    it('keeps an unclear name for its concept instead of coining a second term', async () => {
+      const { parsed } = await runHook();
+      const context = parsed.hookSpecificOutput.additionalContext.toLowerCase();
+
+      assert.ok(context.includes('rename candidate'), 'Should flag unclear names as rename candidates');
+      assert.ok(
+        context.includes('never reuse the word for something new'),
+        'Should not reuse a word for a new concept'
+      );
+      assert.ok(!context.includes('unless they are unclear'), 'Should not allow a second term for one concept');
+    });
+
+    it('guides word choice, not only casing', async () => {
+      const { parsed } = await runHook();
+      const context = parsed.hookSpecificOutput.additionalContext.toLowerCase();
+
+      assert.ok(context.includes('plain term'), 'Should ask for the plain, searchable term');
+      assert.ok(context.includes('one term per concept'), 'Should ask for one term per concept');
+      assert.ok(context.includes('no metaphors'), 'Should rule out metaphors');
+    });
+
+    it('forces no casing on markdown but applies word choice to every file', async () => {
+      const { parsed } = await runHook();
+      const context = parsed.hookSpecificOutput.additionalContext.toLowerCase();
+
+      assert.ok(context.startsWith('## naming guidance'), 'Header should cover naming, not only file names');
+      assert.ok(
+        context.includes("casing lines don't apply to markdown or plain text"),
+        'Should not force casing on markdown or plain text'
+      );
+      assert.ok(
+        context.includes('word choice applies to every file'),
+        'Should apply word choice to every file, plans and reports included'
+      );
+      assert.ok(!context.includes('skip this guidance'), 'Should no longer skip all guidance for markdown');
+    });
   });
 
   describe('Hook disable functionality', () => {

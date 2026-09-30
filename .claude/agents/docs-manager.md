@@ -168,7 +168,7 @@ Review warnings and fix before considering task complete.
 ## Output Standards
 
 ### Documentation Files
-- Use clear, descriptive filenames following project conventions
+- Use short, plain filenames following project conventions
 - Maintain consistent Markdown formatting
 - Include proper headers, table of contents, and navigation
 - Add metadata (last updated, version, author) when relevant

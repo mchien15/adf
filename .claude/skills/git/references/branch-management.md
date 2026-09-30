@@ -2,7 +2,7 @@
 
 ## Naming Convention
 
-**Format:** `<type>/<descriptive-name>`
+**Format:** `<type>/<short-topic>` — 2–4 plain words naming the topic, not a sentence (`feature/oauth-login`, not `feature/users-can-sign-in-with-their-google-account`); a ticket ID prefix, if the team uses one, comes first
 
 | Type | Purpose | Example |
 |------|---------|---------|

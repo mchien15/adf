@@ -97,7 +97,7 @@ function buildPlanContext(projectRoot, sessionId, config, plansBase) {
     `- Report: \`${reportPrefix}{type}-${namePattern}.md\``,
     `- Plan dir: \`${path.join(plansBase, config.paths.plans, namePattern)}/\``,
     `- Replace \`{type}\` with one of: ${REPORT_TYPES.join(', ')}`,
-    `- Replace \`{slug}\` in pattern with: descriptive-kebab-slug`,
+    `- Replace \`{slug}\` in pattern with: short-kebab-slug (2–4 plain words)`,
   ].join('\n');
 }
 
@@ -148,7 +148,7 @@ try {
     `## Dev Rules`,
     `- Rules: \`.agent/rules/development-rules.md\` (follow strictly)`,
     `- Principles: YAGNI, KISS, DRY`,
-    `- Naming: kebab-case for JS/TS/shell, snake_case for Python; match surrounding names`,
+    `- Naming: kebab-case for JS/TS/shell, snake_case for Python; plain conventional words, one term per concept, no metaphors; match surrounding names; unclear one → keep it for its concept and flag it`,
     `- Docs: \`./docs/\` directory`,
     `- Plans: \`${path.join(plansBase, config.paths.plans)}/\` directory`,
     ``,

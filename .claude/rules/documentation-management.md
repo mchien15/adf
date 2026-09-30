@@ -38,7 +38,7 @@ The `project-manager` agent MUST update these documents when:
 ### Plans
 
 ### Plan Location
-Save plans in `./plans` directory with timestamp and descriptive name.
+Save plans in `./plans` directory with timestamp and a short topic slug (2–4 plain words).
 
 **Format:** Use naming pattern from `## Naming` section injected by hooks.
 

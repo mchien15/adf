@@ -172,6 +172,14 @@ Each phase file should contain:
 - List of files to create
 - List of files to delete
 
+**New names** — every new file, module, class, public function, DB column, API field and config key this phase introduces. Names picked here are copied into code, so this is the cheapest place to get them right (rules: `development-rules.md` → Naming). Private helpers are left to review.
+
+| Name | Kind | Meaning | Why this word (optional) |
+|---|---|---|---|
+| `compacted_at_seq` | DB column | sequence number at which compaction summarized the row | "folded_at_seq" rejected: metaphor |
+
+Fill "Why this word" only when a likelier word was rejected. Write "none" when the phase adds no public names. The user approves the names together with the plan.
+
 **Implementation Steps**
 - Detailed, numbered steps
 - Specific instructions

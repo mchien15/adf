@@ -104,7 +104,7 @@ project-root/
 
 **Documentation** (`docs/`):
 - Format: `[document-purpose].md`
-- Use kebab-case with descriptive names
+- Use kebab-case, short plain names
 - Examples:
   - `project-overview-pdr.md`
   - `codebase-summary.md`
@@ -143,7 +143,7 @@ project-root/
 **Plans** (`plans/`):
 - Format: `{date}-[feature-name]-plan.md`
 - Use date prefix for version tracking (format from `$CK_PLAN_DATE_FORMAT`)
-- Descriptive feature names in kebab-case
+- Short topic slug in kebab-case, 2–4 plain words
 - Examples:
   - `251026-user-authentication-plan.md`
   - `251026-database-migration-plan.md`
@@ -157,6 +157,22 @@ project-root/
   - `251026-performance-optimization-techniques.md`
 
 ## Naming Conventions
+
+### Word Choice
+
+Casing below is the easy part; the words are what make a name readable. The rule lives in `.claude/rules/development-rules.md` → **Naming**. In short:
+
+- The plain term a developer would search for, the one the library or domain already uses
+- One term per concept, one meaning per term
+- No metaphors, invented jargon or sentence-shaped names
+- Unknown term → a common one, or define it in the repo's glossary
+
+| Coined | Plain |
+|---|---|
+| `owed` | `pending_tool_results` |
+| `stamp_ids()` | `assign_message_ids()` |
+| `folded_at_seq` | `compacted_at_seq` |
+| `_copies_of()` | `clone_rows()` |
 
 ### Variables & Functions
 
@@ -433,6 +449,8 @@ tests/
 
 ### Test Naming
 
+The behavior in about 8 words or fewer, using the same vocabulary as the code — not a sentence that retells the scenario.
+
 ```javascript
 describe('UserService', () => {
   describe('authenticateUser', () => {
@@ -463,7 +481,7 @@ describe('UserService', () => {
 
 - **Arrange-Act-Assert** pattern
 - **Independent tests** (no test dependencies)
-- **Descriptive test names** (behavior, not implementation)
+- **Short behavior test names** (see Test Naming)
 - **Test one thing** per test
 - **Use fixtures** for complex test data
 - **Mock external dependencies**
@@ -522,7 +540,7 @@ docs: update installation guide with Docker setup
 
 ### Branch Naming
 
-**Format**: `type/description`
+**Format**: `type/short-topic` — 2–4 plain words naming the topic, not a sentence describing the change
 
 **Types**:
 - `feature/` - New features

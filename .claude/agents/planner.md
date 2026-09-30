@@ -110,10 +110,11 @@ created: {YYYY-MM-DD}
 
 Specified in [`.claude/skills/plan/references/plan-organization.md`](../skills/plan/references/plan-organization.md) — the single source of truth. Do not restate the spec here.
 
-Two of them are not optional and are easy to skip, because nothing errors when you do:
+Three of them are not optional and are easy to skip, because nothing errors when you do:
 
 - **`## Impact`** — four fixed rows (DB schema/migration · API contract · Security/permissions · Breaking change). `cook` Step 2b *reads* this table to decide whether to suggest an ADR, so omitting it silently breaks that chain. An empty table means "not assessed yet", not "nothing is affected".
 - **`## Decision Log`** — append-only. One row whenever a gate rejects something or an option is dropped, recording **why**. This is what survives compaction; without it the next session re-proposes the option you already ruled out.
+- **New names** (each phase file) — the implementer copies these into code, so apply `development-rules.md` → Naming to them and to the plan's own prose, slug and phase titles.
 
 ---
 

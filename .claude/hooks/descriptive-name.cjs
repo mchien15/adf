@@ -10,13 +10,15 @@ try {
   }
 
   try {
-  let injectedPrompt = `## File naming guidance:
-- Skip this guidance if you are creating markdown or plain text files
+  let injectedPrompt = `## Naming guidance:
+- Casing lines don't apply to markdown or plain text; word choice applies to every file, plans and reports included
 - Prefer kebab-case for JS/TS/shell (.js, .ts, .sh)
 - Python uses snake_case (.py): a kebab-case module cannot be imported
 - Respect language conventions: C#/Java/Kotlin/Swift use PascalCase (.cs, .java, .kt, .swift), Go/Rust use snake_case (.go, .rs)
 - Other languages: follow their ecosystem's standard naming convention
-- Match the names already used around the file; a short name for what the module holds beats a long one
+- Words: the plain term a developer in this stack would search for; the one the library or domain already uses
+- One term per concept; no metaphors, invented jargon or sentence-shaped names (things are nouns, actions are verbs)
+- Match the names already used around the file; if one is unclear, keep it for its concept and flag it as a rename candidate — never reuse the word for something new. A short name for what the module holds beats a long one
 - Add a new file only for a new concept, never to keep another file short`
 
   console.log(JSON.stringify({
