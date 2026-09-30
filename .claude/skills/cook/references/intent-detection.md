@@ -51,13 +51,17 @@ FUNCTION detectRisk(input, mode):
 
 FUNCTION detectReviewScope(input):   # modifier, independent of mode
   keywords = lowercase(input)
-  IF input contains "--final-review": RETURN "final"
-  IF keywords contains ["final review", "review at the end", "review once", "review cuối", "review một lần"]:
-    RETURN "final"
-  RETURN "per-phase"
+  # Explicit flags beat keywords; if both flags are given, the more cautious --per-phase wins
+  IF input contains "--per-phase": RETURN "per-phase"
+  IF input contains "--final-review": RETURN "final"   # accepted; same as the default
+  IF keywords contains ["per-phase", "review each phase", "review every phase", "review per phase", "review từng phase", "test từng phase"]:
+    RETURN "per-phase"
+  RETURN "final"
 ```
 
-`--final-review` combines with any mode: `/cook plan.md --auto --final-review` → mode `auto` (flag beats path) + scope `final`.
+Keywords are anchored on "review"/"test" on purpose: a bare "per phase" shows up in ordinary task text ("track cost per phase") and would silently undo the default.
+
+The scope combines with any mode: `/cook plan.md --auto` → mode `auto` (flag beats path) + scope `final`; `/cook plan.md --per-phase` → mode `code` + scope `per-phase`.
 
 ## Feature Extraction
 
@@ -129,8 +133,11 @@ Reject or re-route `--no-test` requests when:
 "/cook implement dashboard trust me"
 → Mode: auto ("trust me" keyword, no approval-gate stops)
 
-"/cook plans/260120-auth/plan.md --auto --final-review"
-→ Mode: auto + scope: final (all phases back to back, one test/review/finalize at the end)
+"/cook plans/260120-auth/plan.md --auto"
+→ Mode: auto + scope: final (default — all phases back to back, one test/review/finalize at the end)
+
+"/cook plans/260120-auth/plan.md --per-phase"
+→ Mode: code + scope: per-phase (test → review → finalize after every phase)
 ```
 
 **Note:** Only `--auto` flag or "trust me"/"auto"/"yolo" keywords enable continuous execution. Continuous execution still respects hard gates.

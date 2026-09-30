@@ -270,7 +270,7 @@ Explore different approaches simultaneously
 3. Planner: Create implementation plan
 4. Researchers: Explore auth solutions (parallel)
 5. Planner: Synthesize research, create detailed plan
-6. Fullstack Developer: Implement code test-first — failing test, then code (one fresh subagent per phase; the main agent orchestrates and never edits code)
+6. Fullstack Developer: Implement code test-first — failing test, then code (one fresh subagent per phase, phases back to back; the main agent orchestrates and never edits code). Steps 6–7 repeat per phase; 8–13 run once for the whole run, or after every phase with `--per-phase`
 7. Main Agent: Check the diff, run type checking/compilation and checkpoint review when policy requires it
 8. Tester: Run the full suite, check TDD evidence and fill test gaps, or reject `--no-test` if the work is not low-risk
 9. (If tests fail): Debugger analyzes, loop to step 6

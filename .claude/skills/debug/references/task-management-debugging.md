@@ -144,7 +144,7 @@ Debug tasks are **separate from** cook/planning phase tasks.
 1. Cook encounters failing tests → creates debug pipeline tasks
 2. Debug pipeline executes (assess → collect → analyze → fix → verify)
 3. All debug tasks complete → cook marks phase debugging as done
-4. Cook proceeds to next phase
+4. Cook re-runs tester (Step 4), then continues to plan-conformance
 
 ## Report Sync-Back
 

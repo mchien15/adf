@@ -23,7 +23,7 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 |--------|-----|--------|------|
 | Verification before completion | required | required | required |
 | TDD (test-first) evidence | required for behavior changes | required for behavior changes | required |
-| Checkpoint review | not required | required when phase touches 3+ files or cross-cutting behavior | required |
+| Checkpoint review | not required | with `--per-phase`: required when phase touches 3+ files or cross-cutting behavior (default scope: covered by the final review) | required |
 | Isolation check | note current workspace | recommend worktree or equivalent isolation | require worktree or explicit opt-out acknowledgement |
 | Plan-conformance check | required | required | required |
 
@@ -38,7 +38,7 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 | no-test | no | no | skips test step only when policy allows |
 | code | no | no | executes approved plan directly |
 
-`--final-review` is a modifier, not a mode: it moves testing, plan-conformance, code review and finalize to once after the last phase. It never skips verification, TDD evidence, plan-conformance or the final code review, and high-risk phases still get their checkpoint review.
+Review scope is a modifier, not a mode. By default testing, plan-conformance, code review and finalize run once after the last phase; `--per-phase` runs them after every phase. Neither scope skips verification, TDD evidence, plan-conformance or code review, and high-risk phases get their checkpoint review in both.
 
 ## Override Rules
 
