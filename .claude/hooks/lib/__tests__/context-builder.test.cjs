@@ -11,11 +11,20 @@
  * - Both directories: rules/ wins
  */
 
-const { describe, it, before, after } = require('node:test');
+const { describe, it, before, after, afterEach } = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+
+// The modules under test read os.homedir(): resolveRulesPath() falls back to ~/.claude/{rules,workflows}
+// on every call, and ck-config-utils computes GLOBAL_CONFIG_PATH once at load time. So HOME must point
+// at an empty dir BEFORE they are required, or a real ~/.claude on the machine leaks into the results.
+// (os.homedir() reads HOME on POSIX, USERPROFILE on Windows.)
+const originalHomeEnv = { HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE };
+const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), 'context-builder-home-'));
+process.env.HOME = fakeHome;
+process.env.USERPROFILE = fakeHome;
 
 // Import the module under test
 const contextBuilder = require('../context-builder.cjs');
@@ -55,6 +64,14 @@ function createTestFile(dir, filename, content = '# Test file\n') {
 
 describe('context-builder.cjs', () => {
 
+  after(() => {
+    for (const [key, value] of Object.entries(originalHomeEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    cleanupTempDir(fakeHome);
+  });
+
   describe('resolveRulesPath()', () => {
     let originalCwd;
     let tempDir;
@@ -63,9 +80,10 @@ describe('context-builder.cjs', () => {
       originalCwd = process.cwd();
     });
 
-    after(() => {
+    afterEach(() => {
       process.chdir(originalCwd);
       if (tempDir) cleanupTempDir(tempDir);
+      tempDir = undefined;
     });
 
     it('returns null when file does not exist anywhere', () => {
@@ -155,33 +173,41 @@ describe('context-builder.cjs', () => {
   });
 
   describe('Global path resolution', () => {
-    let tempDir;
-    let originalHome;
-
-    before(() => {
-      originalHome = os.homedir;
-    });
-
-    after(() => {
-      if (tempDir) cleanupTempDir(tempDir);
-    });
 
     it('checks global ~/.claude/rules/ path', () => {
-      // This test verifies the code path exists but we can't easily mock homedir
-      // Just verify the function handles missing global paths gracefully
+      // Verifies the function handles missing global paths gracefully (HOME is an empty dir)
       const tempDir = createTempDir(['.claude']);
       const originalCwd = process.cwd();
       process.chdir(tempDir);
 
       try {
-        // Should return null since local doesn't exist and we can't control global
+        // Neither local nor the (empty) global ~/.claude has it
         const result = contextBuilder.resolveRulesPath('nonexistent-file.md');
-        // Result depends on whether global ~/.claude/rules exists
-        assert.ok(result === null || typeof result === 'string',
-          'Should return null or valid path');
+        assert.strictEqual(result, null, 'Should return null when file exists nowhere');
       } finally {
         process.chdir(originalCwd);
         cleanupTempDir(tempDir);
+      }
+    });
+
+    // Also the positive control for the HOME isolation above: it only resolves if os.homedir()
+    // really points at fakeHome.
+    it('resolves a file from global ~/.claude/rules/ when it is not local', () => {
+      const tempDir = createTempDir(['.claude']);
+      const originalCwd = process.cwd();
+      const globalRules = path.join(fakeHome, '.claude', 'rules');
+      fs.mkdirSync(globalRules, { recursive: true });
+      createTestFile(globalRules, 'global-only.md');
+      process.chdir(tempDir);
+
+      try {
+        const result = contextBuilder.resolveRulesPath('global-only.md');
+        assert.strictEqual(result, '~/.claude/rules/global-only.md',
+          'Should resolve from the global rules directory');
+      } finally {
+        process.chdir(originalCwd);
+        cleanupTempDir(tempDir);
+        cleanupTempDir(path.join(fakeHome, '.claude'));
       }
     });
 
@@ -195,9 +221,10 @@ describe('context-builder.cjs', () => {
       originalCwd = process.cwd();
     });
 
-    after(() => {
+    afterEach(() => {
       process.chdir(originalCwd);
       if (tempDir) cleanupTempDir(tempDir);
+      tempDir = undefined;
     });
 
     it('returns content, lines, and sections', () => {
@@ -372,9 +399,10 @@ describe('context-builder.cjs', () => {
       originalCwd = process.cwd();
     });
 
-    after(() => {
+    afterEach(() => {
       process.chdir(originalCwd);
       if (tempDir) cleanupTempDir(tempDir);
+      tempDir = undefined;
     });
 
     it('disables context section when context-tracking: false', () => {
@@ -478,9 +506,10 @@ describe('context-builder.cjs', () => {
       originalCwd = process.cwd();
     });
 
-    after(() => {
+    afterEach(() => {
       process.chdir(originalCwd);
       if (tempDir) cleanupTempDir(tempDir);
+      tempDir = undefined;
     });
 
     it('resolves @rules/ references correctly', () => {

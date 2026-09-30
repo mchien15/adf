@@ -1,16 +1,24 @@
+#!/usr/bin/env node
 /**
  * project-detector.test.cjs - Comprehensive test suite for project-detector.cjs
+ * Run: node --test .claude/hooks/lib/__tests__/project-detector.test.cjs
  *
  * Tests all detection functions including edge cases identified in issue #455:
  * - Git detection with isGitRepo guard
  * - Python detection with `which`/`where` optimization
  * - Edge cases: deleted CWD, symlinks, worktrees, permissions
+ *
+ * Hermetic: every fixture lives in a realpath'd temp dir, tests that change cwd or
+ * env restore them, and real-git tests run against an isolated HOME/git config.
+ * Assumes os.tmpdir() is not itself inside a git repository.
  */
 
+const { describe, it, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 // Module under test
 const {
@@ -45,7 +53,9 @@ const {
  * @returns {string} Path to temp directory
  */
 function createTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'project-detector-test-'));
+  // realpath: macOS os.tmpdir() is under /var, a symlink to /private/var, while
+  // process.cwd() and `git rev-parse --show-toplevel` report the resolved path
+  return fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'project-detector-test-')));
 }
 
 /**
@@ -59,7 +69,8 @@ function createMockGitRepo(dir, options = {}) {
 
   if (options.worktree) {
     // Create .git file (worktree style) instead of directory
-    fs.writeFileSync(path.join(dir, '.git'), `gitdir: ${options.gitdir || '/tmp/main/.git/worktrees/test'}`);
+    const gitdir = options.gitdir || path.join(path.dirname(dir), 'main', '.git', 'worktrees', 'test');
+    fs.writeFileSync(path.join(dir, '.git'), `gitdir: ${gitdir}`);
   } else {
     // Create .git directory
     fs.mkdirSync(path.join(dir, '.git'), { recursive: true });
@@ -86,6 +97,67 @@ function cleanupTempDir(dir) {
   }
 }
 
+/**
+ * Set or unset env vars (undefined = unset)
+ * @param {Object<string, string|undefined>} overrides
+ * @returns {() => void} Function restoring the previous values
+ */
+function overrideEnv(overrides) {
+  const saved = {};
+  for (const [key, value] of Object.entries(overrides)) {
+    saved[key] = process.env[key];
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+  return () => {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  };
+}
+
+const HAS_GIT = spawnSync('git', ['--version']).status === 0;
+const SKIP_NO_GIT = HAS_GIT ? false : 'git is not installed';
+
+/**
+ * Run fn with cwd inside a freshly `git init`-ed repo under tempDir. git ignores the
+ * machine's real ~/.gitconfig and any GIT_* vars leaked from a parent git process
+ * (e.g. when the suite runs from a git hook). cwd and env are restored afterwards.
+ * @param {string} tempDir - Existing temp dir to build the repo and fake HOME in
+ * @param {{branch?: string, remoteUrl?: string}} options
+ * @param {(repoDir: string) => void} fn
+ */
+function withRealGitRepo(tempDir, { branch = 'main', remoteUrl } = {}, fn) {
+  const homeDir = path.join(tempDir, 'home');
+  const repoDir = path.join(tempDir, 'repo');
+  fs.mkdirSync(homeDir);
+  fs.mkdirSync(repoDir);
+
+  const originalCwd = process.cwd();
+  const restoreEnv = overrideEnv({
+    HOME: homeDir,
+    USERPROFILE: homeDir,
+    XDG_CONFIG_HOME: undefined,
+    GIT_CONFIG_GLOBAL: os.devNull,
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_DIR: undefined,
+    GIT_WORK_TREE: undefined,
+    GIT_INDEX_FILE: undefined
+  });
+  try {
+    const git = (...args) => execFileSync('git', args, { cwd: repoDir, stdio: 'pipe' });
+    git('init', '-q');
+    git('symbolic-ref', 'HEAD', `refs/heads/${branch}`);
+    if (remoteUrl) git('remote', 'add', 'origin', remoteUrl);
+    process.chdir(repoDir);
+    fn(repoDir);
+  } finally {
+    process.chdir(originalCwd);
+    restoreEnv();
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // GIT DETECTION TESTS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -101,57 +173,57 @@ describe('isGitRepo', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns true for directory with .git directory', () => {
+  it('returns true for directory with .git directory', () => {
     createMockGitRepo(tempDir);
-    expect(isGitRepo(tempDir)).toBe(true);
+    assert.strictEqual(isGitRepo(tempDir), true);
   });
 
-  test('returns true for directory with .git file (worktree)', () => {
+  it('returns true for directory with .git file (worktree)', () => {
     createMockGitRepo(tempDir, { worktree: true });
-    expect(isGitRepo(tempDir)).toBe(true);
+    assert.strictEqual(isGitRepo(tempDir), true);
   });
 
-  test('returns false for directory without .git', () => {
-    expect(isGitRepo(tempDir)).toBe(false);
+  it('returns false for directory without .git', () => {
+    assert.strictEqual(isGitRepo(tempDir), false);
   });
 
-  test('returns true for subdirectory of git repo', () => {
+  it('returns true for subdirectory of git repo', () => {
     createMockGitRepo(tempDir);
     const subDir = path.join(tempDir, 'src', 'components');
     fs.mkdirSync(subDir, { recursive: true });
-    expect(isGitRepo(subDir)).toBe(true);
+    assert.strictEqual(isGitRepo(subDir), true);
   });
 
-  test('returns false for /tmp (non-git directory)', () => {
-    expect(isGitRepo('/tmp')).toBe(false);
+  it('returns false for the system temp directory (non-git directory)', () => {
+    assert.strictEqual(isGitRepo(fs.realpathSync.native(os.tmpdir())), false);
   });
 
-  test('uses process.cwd() when no argument provided', () => {
+  it('uses process.cwd() when no argument provided', () => {
     const originalCwd = process.cwd();
     try {
       process.chdir(tempDir);
       createMockGitRepo(tempDir);
       // Re-check after creating .git in cwd
-      expect(isGitRepo()).toBe(true);
+      assert.strictEqual(isGitRepo(), true);
     } finally {
       process.chdir(originalCwd);
     }
   });
 
-  test('handles deeply nested directories', () => {
+  it('handles deeply nested directories', () => {
     createMockGitRepo(tempDir);
     const deepDir = path.join(tempDir, 'a', 'b', 'c', 'd', 'e', 'f');
     fs.mkdirSync(deepDir, { recursive: true });
-    expect(isGitRepo(deepDir)).toBe(true);
+    assert.strictEqual(isGitRepo(deepDir), true);
   });
 
-  test('returns false gracefully for non-existent directory', () => {
+  it('returns false gracefully for non-existent directory', () => {
     const nonExistent = path.join(tempDir, 'does-not-exist');
     // Should not throw, should return false
-    expect(isGitRepo(nonExistent)).toBe(false);
+    assert.strictEqual(isGitRepo(nonExistent), false);
   });
 
-  test('handles symlinked .git directory', () => {
+  it('handles symlinked .git directory', (t) => {
     // Create actual .git in a separate location
     const actualGitDir = path.join(tempDir, 'actual-git');
     fs.mkdirSync(path.join(actualGitDir, '.git'), { recursive: true });
@@ -162,11 +234,11 @@ describe('isGitRepo', () => {
 
     try {
       fs.symlinkSync(path.join(actualGitDir, '.git'), path.join(symlinkDir, '.git'));
-      expect(isGitRepo(symlinkDir)).toBe(true);
+      assert.strictEqual(isGitRepo(symlinkDir), true);
     } catch (e) {
       // Skip if symlinks not supported (Windows without admin)
       if (e.code === 'EPERM') {
-        console.log('Skipping symlink test - insufficient permissions');
+        t.skip('symlinks not permitted (insufficient privileges)');
         return;
       }
       throw e;
@@ -188,23 +260,22 @@ describe('getGitBranch', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns null for non-git directory', () => {
+  it('returns null for non-git directory', () => {
     process.chdir(tempDir);
-    expect(getGitBranch()).toBe(null);
+    assert.strictEqual(getGitBranch(), null);
   });
 
-  test('returns null for non-git directory (no git command executed)', () => {
-    process.chdir('/tmp');
+  it('returns null for non-git directory (no git command executed)', () => {
+    process.chdir(fs.realpathSync.native(os.tmpdir()));
     // This should NOT execute git command, just return null from isGitRepo check
     const result = getGitBranch();
-    expect(result).toBe(null);
+    assert.strictEqual(result, null);
   });
 
-  test('returns branch name for actual git repo', () => {
-    // Use current repo which is a real git repo
-    const branch = getGitBranch();
-    // Should return current branch or null (not throw)
-    expect(branch === null || typeof branch === 'string').toBe(true);
+  it('returns branch name for actual git repo', { skip: SKIP_NO_GIT }, () => {
+    withRealGitRepo(tempDir, { branch: 'feature/detector' }, () => {
+      assert.strictEqual(getGitBranch(), 'feature/detector');
+    });
   });
 });
 
@@ -222,19 +293,23 @@ describe('getGitRoot', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns null for non-git directory', () => {
+  it('returns null for non-git directory', () => {
     process.chdir(tempDir);
-    expect(getGitRoot()).toBe(null);
+    assert.strictEqual(getGitRoot(), null);
   });
 
-  test('returns path for actual git repo', () => {
-    // Use current working directory which should be in a git repo
-    const root = getGitRoot();
-    // Should return a path or null (not throw)
-    expect(root === null || typeof root === 'string').toBe(true);
-    if (root) {
-      expect(fs.existsSync(root)).toBe(true);
-    }
+  it('returns path for actual git repo', { skip: SKIP_NO_GIT }, () => {
+    withRealGitRepo(tempDir, {}, (repoDir) => {
+      // From a subdirectory, the root must still be the repo top level
+      const subDir = path.join(repoDir, 'src');
+      fs.mkdirSync(subDir);
+      process.chdir(subDir);
+
+      const root = getGitRoot();
+      assert.strictEqual(typeof root, 'string');
+      assert.strictEqual(fs.existsSync(root), true);
+      assert.strictEqual(path.resolve(root), repoDir);
+    });
   });
 });
 
@@ -252,9 +327,9 @@ describe('getGitRemoteUrl', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns null for non-git directory', () => {
+  it('returns null for non-git directory', () => {
     process.chdir(tempDir);
-    expect(getGitRemoteUrl()).toBe(null);
+    assert.strictEqual(getGitRemoteUrl(), null);
   });
 });
 
@@ -263,80 +338,73 @@ describe('getGitRemoteUrl', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('isValidPythonPath', () => {
-  test('returns false for null', () => {
-    expect(isValidPythonPath(null)).toBe(false);
+  it('returns false for null', () => {
+    assert.strictEqual(isValidPythonPath(null), false);
   });
 
-  test('returns false for undefined', () => {
-    expect(isValidPythonPath(undefined)).toBe(false);
+  it('returns false for undefined', () => {
+    assert.strictEqual(isValidPythonPath(undefined), false);
   });
 
-  test('returns false for empty string', () => {
-    expect(isValidPythonPath('')).toBe(false);
+  it('returns false for empty string', () => {
+    assert.strictEqual(isValidPythonPath(''), false);
   });
 
-  test('returns false for non-string', () => {
-    expect(isValidPythonPath(123)).toBe(false);
-    expect(isValidPythonPath({})).toBe(false);
-    expect(isValidPythonPath([])).toBe(false);
+  it('returns false for non-string', () => {
+    assert.strictEqual(isValidPythonPath(123), false);
+    assert.strictEqual(isValidPythonPath({}), false);
+    assert.strictEqual(isValidPythonPath([]), false);
   });
 
-  test('returns false for path with shell metacharacters', () => {
-    expect(isValidPythonPath('/usr/bin/python; rm -rf /')).toBe(false);
-    expect(isValidPythonPath('/usr/bin/python | cat')).toBe(false);
-    expect(isValidPythonPath('/usr/bin/python`whoami`')).toBe(false);
-    expect(isValidPythonPath('/usr/bin/python$(id)')).toBe(false);
-    expect(isValidPythonPath('/usr/bin/python&')).toBe(false);
+  it('returns false for path with shell metacharacters', () => {
+    assert.strictEqual(isValidPythonPath('/usr/bin/python; rm -rf /'), false);
+    assert.strictEqual(isValidPythonPath('/usr/bin/python | cat'), false);
+    assert.strictEqual(isValidPythonPath('/usr/bin/python`whoami`'), false);
+    assert.strictEqual(isValidPythonPath('/usr/bin/python$(id)'), false);
+    assert.strictEqual(isValidPythonPath('/usr/bin/python&'), false);
   });
 
-  test('returns false for non-existent path', () => {
-    expect(isValidPythonPath('/nonexistent/path/to/python')).toBe(false);
+  it('returns false for non-existent path', () => {
+    assert.strictEqual(isValidPythonPath('/nonexistent/path/to/python'), false);
   });
 
-  test('returns false for directory', () => {
-    expect(isValidPythonPath('/tmp')).toBe(false);
+  it('returns false for directory', () => {
+    assert.strictEqual(isValidPythonPath(fs.realpathSync.native(os.tmpdir())), false);
   });
 
-  test('returns true for valid Python binary', () => {
-    // Try common Python paths
-    const commonPaths = ['/usr/bin/python3', '/usr/bin/python', '/usr/local/bin/python3'];
-    const validPath = commonPaths.find(p => {
-      try {
-        return fs.existsSync(p) && fs.statSync(p).isFile();
-      } catch (e) {
-        return false;
-      }
-    });
-
-    if (validPath) {
-      expect(isValidPythonPath(validPath)).toBe(true);
-    } else {
-      // Skip if no Python found
-      console.log('Skipping - no Python binary found at common paths');
+  it('returns true for a regular file with a clean path', () => {
+    // A regular file with a clean path is what the validator accepts; no host Python needed
+    const tempDir = createTempDir();
+    try {
+      const fakePython = path.join(tempDir, 'python3');
+      fs.writeFileSync(fakePython, '#!/bin/sh\n');
+      assert.strictEqual(isValidPythonPath(fakePython), true);
+    } finally {
+      cleanupTempDir(tempDir);
     }
   });
 });
 
 describe('getPythonPaths', () => {
-  test('returns an array', () => {
+  it('returns an array', () => {
     const paths = getPythonPaths();
-    expect(Array.isArray(paths)).toBe(true);
+    assert.strictEqual(Array.isArray(paths), true);
   });
 
-  test('includes common Unix paths on non-Windows', () => {
+  it('includes common Unix paths on non-Windows', () => {
     if (process.platform !== 'win32') {
       const paths = getPythonPaths();
-      expect(paths).toContain('/usr/bin/python3');
-      expect(paths).toContain('/usr/local/bin/python3');
+      assert.ok(paths.includes('/usr/bin/python3'));
+      assert.ok(paths.includes('/usr/local/bin/python3'));
     }
   });
 
-  test('respects PYTHON_PATH environment variable', () => {
+  it('respects PYTHON_PATH environment variable', () => {
     const originalEnv = process.env.PYTHON_PATH;
     try {
       process.env.PYTHON_PATH = '/custom/python/path';
       const paths = getPythonPaths();
-      expect(paths[0]).toBe('/custom/python/path');
+      assert.strictEqual(paths[0], '/custom/python/path');
     } finally {
       if (originalEnv !== undefined) {
         process.env.PYTHON_PATH = originalEnv;
@@ -348,26 +416,26 @@ describe('getPythonPaths', () => {
 });
 
 describe('findPythonBinary', () => {
-  test('returns a string or null', () => {
+  it('returns a string or null', () => {
     const result = findPythonBinary();
-    expect(result === null || typeof result === 'string').toBe(true);
+    assert.strictEqual(result === null || typeof result === 'string', true);
   });
 
-  test('returns valid path if Python is installed', () => {
+  it('returns valid path if Python is installed', () => {
     const result = findPythonBinary();
     if (result) {
-      expect(isValidPythonPath(result)).toBe(true);
+      assert.strictEqual(isValidPythonPath(result), true);
     }
   });
 
-  test('uses which/where for fast detection (performance)', () => {
+  it('uses which/where for fast detection (performance)', () => {
     const start = Date.now();
     const result = findPythonBinary();
     const elapsed = Date.now() - start;
 
     // Should complete in under 1 second (fast path with which)
     // Previously could take 10+ seconds with timeout per path
-    expect(elapsed).toBeLessThan(1000);
+    assert.ok(elapsed < 1000, `${elapsed}ms >= 1000ms`);
 
     if (result) {
       console.log(`Python detected at ${result} in ${elapsed}ms`);
@@ -376,15 +444,15 @@ describe('findPythonBinary', () => {
 });
 
 describe('getPythonVersion', () => {
-  test('returns a string or null', () => {
+  it('returns a string or null', () => {
     const result = getPythonVersion();
-    expect(result === null || typeof result === 'string').toBe(true);
+    assert.strictEqual(result === null || typeof result === 'string', true);
   });
 
-  test('returns version string starting with "Python" if available', () => {
+  it('returns version string starting with "Python" if available', () => {
     const result = getPythonVersion();
     if (result) {
-      expect(result).toMatch(/^Python \d+\.\d+/);
+      assert.match(result, /^Python \d+\.\d+/);
     }
   });
 });
@@ -408,38 +476,39 @@ describe('detectProjectType', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns config override if not "auto"', () => {
-    expect(detectProjectType('monorepo')).toBe('monorepo');
-    expect(detectProjectType('library')).toBe('library');
+  it('returns config override if not "auto"', () => {
+    assert.strictEqual(detectProjectType('monorepo'), 'monorepo');
+    assert.strictEqual(detectProjectType('library'), 'library');
   });
 
-  test('returns "auto" detection when override is "auto"', () => {
+  it('returns "auto" detection when override is "auto"', () => {
+    // cwd is an empty temp dir, so no workspace/library markers exist
     const result = detectProjectType('auto');
-    expect(['monorepo', 'library', 'single-repo']).toContain(result);
+    assert.strictEqual(result, 'single-repo');
   });
 
-  test('detects monorepo from pnpm-workspace.yaml', () => {
+  it('detects monorepo from pnpm-workspace.yaml', () => {
     fs.writeFileSync('pnpm-workspace.yaml', 'packages:\n  - packages/*');
-    expect(detectProjectType()).toBe('monorepo');
+    assert.strictEqual(detectProjectType(), 'monorepo');
   });
 
-  test('detects monorepo from lerna.json', () => {
+  it('detects monorepo from lerna.json', () => {
     fs.writeFileSync('lerna.json', '{}');
-    expect(detectProjectType()).toBe('monorepo');
+    assert.strictEqual(detectProjectType(), 'monorepo');
   });
 
-  test('detects monorepo from package.json workspaces', () => {
+  it('detects monorepo from package.json workspaces', () => {
     fs.writeFileSync('package.json', JSON.stringify({ workspaces: ['packages/*'] }));
-    expect(detectProjectType()).toBe('monorepo');
+    assert.strictEqual(detectProjectType(), 'monorepo');
   });
 
-  test('detects library from package.json main/exports', () => {
+  it('detects library from package.json main/exports', () => {
     fs.writeFileSync('package.json', JSON.stringify({ main: 'index.js' }));
-    expect(detectProjectType()).toBe('library');
+    assert.strictEqual(detectProjectType(), 'library');
   });
 
-  test('returns single-repo as default', () => {
-    expect(detectProjectType()).toBe('single-repo');
+  it('returns single-repo as default', () => {
+    assert.strictEqual(detectProjectType(), 'single-repo');
   });
 });
 
@@ -458,39 +527,39 @@ describe('detectPackageManager', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns config override if not "auto"', () => {
-    expect(detectPackageManager('yarn')).toBe('yarn');
-    expect(detectPackageManager('pnpm')).toBe('pnpm');
+  it('returns config override if not "auto"', () => {
+    assert.strictEqual(detectPackageManager('yarn'), 'yarn');
+    assert.strictEqual(detectPackageManager('pnpm'), 'pnpm');
   });
 
-  test('detects bun from bun.lockb', () => {
+  it('detects bun from bun.lockb', () => {
     fs.writeFileSync('bun.lockb', '');
-    expect(detectPackageManager()).toBe('bun');
+    assert.strictEqual(detectPackageManager(), 'bun');
   });
 
-  test('detects pnpm from pnpm-lock.yaml', () => {
+  it('detects pnpm from pnpm-lock.yaml', () => {
     fs.writeFileSync('pnpm-lock.yaml', '');
-    expect(detectPackageManager()).toBe('pnpm');
+    assert.strictEqual(detectPackageManager(), 'pnpm');
   });
 
-  test('detects yarn from yarn.lock', () => {
+  it('detects yarn from yarn.lock', () => {
     fs.writeFileSync('yarn.lock', '');
-    expect(detectPackageManager()).toBe('yarn');
+    assert.strictEqual(detectPackageManager(), 'yarn');
   });
 
-  test('detects npm from package-lock.json', () => {
+  it('detects npm from package-lock.json', () => {
     fs.writeFileSync('package-lock.json', '{}');
-    expect(detectPackageManager()).toBe('npm');
+    assert.strictEqual(detectPackageManager(), 'npm');
   });
 
-  test('returns null when no lock file found', () => {
-    expect(detectPackageManager()).toBe(null);
+  it('returns null when no lock file found', () => {
+    assert.strictEqual(detectPackageManager(), null);
   });
 
-  test('bun takes precedence over others', () => {
+  it('bun takes precedence over others', () => {
     fs.writeFileSync('bun.lockb', '');
     fs.writeFileSync('package-lock.json', '{}');
-    expect(detectPackageManager()).toBe('bun');
+    assert.strictEqual(detectPackageManager(), 'bun');
   });
 });
 
@@ -509,44 +578,44 @@ describe('detectFramework', () => {
     cleanupTempDir(tempDir);
   });
 
-  test('returns config override if not "auto"', () => {
-    expect(detectFramework('next')).toBe('next');
+  it('returns config override if not "auto"', () => {
+    assert.strictEqual(detectFramework('next'), 'next');
   });
 
-  test('returns null when no package.json', () => {
-    expect(detectFramework()).toBe(null);
+  it('returns null when no package.json', () => {
+    assert.strictEqual(detectFramework(), null);
   });
 
-  test('detects Next.js', () => {
+  it('detects Next.js', () => {
     fs.writeFileSync('package.json', JSON.stringify({ dependencies: { next: '^14.0.0' } }));
-    expect(detectFramework()).toBe('next');
+    assert.strictEqual(detectFramework(), 'next');
   });
 
-  test('detects React', () => {
+  it('detects React', () => {
     fs.writeFileSync('package.json', JSON.stringify({ dependencies: { react: '^18.0.0' } }));
-    expect(detectFramework()).toBe('react');
+    assert.strictEqual(detectFramework(), 'react');
   });
 
-  test('detects Vue', () => {
+  it('detects Vue', () => {
     fs.writeFileSync('package.json', JSON.stringify({ dependencies: { vue: '^3.0.0' } }));
-    expect(detectFramework()).toBe('vue');
+    assert.strictEqual(detectFramework(), 'vue');
   });
 
-  test('detects Astro', () => {
+  it('detects Astro', () => {
     fs.writeFileSync('package.json', JSON.stringify({ dependencies: { astro: '^4.0.0' } }));
-    expect(detectFramework()).toBe('astro');
+    assert.strictEqual(detectFramework(), 'astro');
   });
 
-  test('detects Express', () => {
+  it('detects Express', () => {
     fs.writeFileSync('package.json', JSON.stringify({ dependencies: { express: '^4.0.0' } }));
-    expect(detectFramework()).toBe('express');
+    assert.strictEqual(detectFramework(), 'express');
   });
 
-  test('Next.js takes precedence over React', () => {
+  it('Next.js takes precedence over React', () => {
     fs.writeFileSync('package.json', JSON.stringify({
       dependencies: { next: '^14.0.0', react: '^18.0.0' }
     }));
-    expect(detectFramework()).toBe('next');
+    assert.strictEqual(detectFramework(), 'next');
   });
 });
 
@@ -555,52 +624,52 @@ describe('detectFramework', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('execSafe', () => {
-  test('returns output for successful command', () => {
+  it('returns output for successful command', () => {
     const result = execSafe('echo "hello"');
-    expect(result).toBe('hello');
+    assert.strictEqual(result, 'hello');
   });
 
-  test('returns null for failed command', () => {
+  it('returns null for failed command', () => {
     const result = execSafe('nonexistent-command-12345');
-    expect(result).toBe(null);
+    assert.strictEqual(result, null);
   });
 
-  test('returns null on timeout', () => {
+  it('returns null on timeout', () => {
     // Command that would take longer than timeout
     const result = execSafe('sleep 10', 100);
-    expect(result).toBe(null);
+    assert.strictEqual(result, null);
   });
 
-  test('trims output', () => {
+  it('trims output', () => {
     const result = execSafe('echo "  hello  "');
-    expect(result).toBe('hello');
+    assert.strictEqual(result, 'hello');
   });
 
-  test('handles newlines in output', () => {
+  it('handles newlines in output', () => {
     const result = execSafe('echo "line1\nline2"');
-    expect(result).toBe('line1\nline2');
+    assert.strictEqual(result, 'line1\nline2');
   });
 });
 
 describe('execFileSafe', () => {
-  test('returns output for successful command', () => {
+  it('returns output for successful command', () => {
     const result = execFileSafe('echo', ['hello']);
-    expect(result).toBe('hello');
+    assert.strictEqual(result, 'hello');
   });
 
-  test('returns null for non-existent binary', () => {
+  it('returns null for non-existent binary', () => {
     const result = execFileSafe('/nonexistent/binary', ['arg']);
-    expect(result).toBe(null);
+    assert.strictEqual(result, null);
   });
 
-  test('returns null on timeout', () => {
+  it('returns null on timeout', () => {
     const result = execFileSafe('sleep', ['10'], 100);
-    expect(result).toBe(null);
+    assert.strictEqual(result, null);
   });
 
-  test('handles multiple arguments', () => {
+  it('handles multiple arguments', () => {
     const result = execFileSafe('echo', ['hello', 'world']);
-    expect(result).toBe('hello world');
+    assert.strictEqual(result, 'hello world');
   });
 });
 
@@ -620,53 +689,66 @@ describe('Edge Cases (Issue #455)', () => {
       cleanupTempDir(tempDir);
     });
 
-    test('handles .git as file (worktree format)', () => {
+    it('handles .git as file (worktree format)', () => {
       const worktreeDir = path.join(tempDir, 'worktree');
       createMockGitRepo(worktreeDir, { worktree: true });
-      expect(isGitRepo(worktreeDir)).toBe(true);
+      assert.strictEqual(isGitRepo(worktreeDir), true);
     });
 
-    test('handles path traversal up to root without infinite loop', () => {
+    it('handles path traversal up to root without infinite loop', () => {
       // Deep directory should eventually reach root and terminate
-      const deepPath = '/tmp/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p';
+      const deepPath = path.join(tempDir, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p');
       const result = isGitRepo(deepPath);
-      expect(typeof result).toBe('boolean');
+      assert.strictEqual(result, false);
     });
 
-    test('handles special characters in path', () => {
+    it('handles special characters in path', () => {
       const specialDir = path.join(tempDir, 'dir with spaces');
       fs.mkdirSync(specialDir, { recursive: true });
-      expect(() => isGitRepo(specialDir)).not.toThrow();
+      assert.doesNotThrow(() => isGitRepo(specialDir));
     });
 
-    test('getGitBranch returns null instead of throwing for non-git', () => {
+    it('handles relative startDir without infinite loop', () => {
+      // Child process: a regression hangs it for at most the timeout, not the whole suite
+      const modulePath = require.resolve('../project-detector.cjs');
+      const result = spawnSync(
+        process.execPath,
+        ['-e', 'console.log(require(process.argv[1]).isGitRepo("."))', modulePath],
+        { cwd: tempDir, encoding: 'utf8', timeout: 5000 }
+      );
+      assert.strictEqual(result.error, undefined, `isGitRepo('.') did not terminate: ${result.error}`);
+      assert.strictEqual(result.status, 0, result.stderr);
+      assert.strictEqual(result.stdout.trim(), 'false');
+    });
+
+    it('getGitBranch returns null instead of throwing for non-git', () => {
       const originalCwd = process.cwd();
       try {
         process.chdir(tempDir);
-        expect(() => getGitBranch()).not.toThrow();
-        expect(getGitBranch()).toBe(null);
+        assert.doesNotThrow(() => getGitBranch());
+        assert.strictEqual(getGitBranch(), null);
       } finally {
         process.chdir(originalCwd);
       }
     });
 
-    test('getGitRoot returns null instead of throwing for non-git', () => {
+    it('getGitRoot returns null instead of throwing for non-git', () => {
       const originalCwd = process.cwd();
       try {
         process.chdir(tempDir);
-        expect(() => getGitRoot()).not.toThrow();
-        expect(getGitRoot()).toBe(null);
+        assert.doesNotThrow(() => getGitRoot());
+        assert.strictEqual(getGitRoot(), null);
       } finally {
         process.chdir(originalCwd);
       }
     });
 
-    test('getGitRemoteUrl returns null instead of throwing for non-git', () => {
+    it('getGitRemoteUrl returns null instead of throwing for non-git', () => {
       const originalCwd = process.cwd();
       try {
         process.chdir(tempDir);
-        expect(() => getGitRemoteUrl()).not.toThrow();
-        expect(getGitRemoteUrl()).toBe(null);
+        assert.doesNotThrow(() => getGitRemoteUrl());
+        assert.strictEqual(getGitRemoteUrl(), null);
       } finally {
         process.chdir(originalCwd);
       }
@@ -674,33 +756,33 @@ describe('Edge Cases (Issue #455)', () => {
   });
 
   describe('Python detection edge cases', () => {
-    test('handles missing which/where command gracefully', () => {
+    it('handles missing which/where command gracefully', () => {
       // Even if which fails, should fall back to path checking
-      expect(() => findPythonBinary()).not.toThrow();
+      assert.doesNotThrow(() => findPythonBinary());
     });
 
-    test('which output with trailing newline is handled', () => {
+    it('which output with trailing newline is handled', () => {
       // execSafe trims output, so this should work
       const result = execSafe('which python3 2>/dev/null || echo ""');
       if (result) {
-        expect(result).not.toMatch(/\n$/);
+        assert.doesNotMatch(result, /\n$/);
       }
     });
 
-    test('detection completes in reasonable time', () => {
+    it('detection completes in reasonable time', () => {
       const start = Date.now();
       findPythonBinary();
       const elapsed = Date.now() - start;
 
       // Should complete in under 2 seconds even with all fallbacks
-      expect(elapsed).toBeLessThan(2000);
+      assert.ok(elapsed < 2000, `${elapsed}ms >= 2000ms`);
     });
   });
 
   describe('Process.cwd() edge case', () => {
-    test('isGitRepo handles invalid startDir gracefully', () => {
+    it('isGitRepo handles invalid startDir gracefully', () => {
       // Pass a path that doesn't exist
-      expect(() => isGitRepo('/this/path/definitely/does/not/exist')).not.toThrow();
+      assert.doesNotThrow(() => isGitRepo('/this/path/definitely/does/not/exist'));
     });
   });
 });
@@ -710,45 +792,46 @@ describe('Edge Cases (Issue #455)', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('Integration Tests', () => {
-  test('all git functions work together in actual git repo', () => {
-    // We're in a git repo, so all these should work
-    const isRepo = isGitRepo();
-    const branch = getGitBranch();
-    const root = getGitRoot();
-    const url = getGitRemoteUrl();
-
-    if (isRepo) {
-      expect(typeof branch === 'string' || branch === null).toBe(true);
-      expect(typeof root === 'string' || root === null).toBe(true);
-      expect(typeof url === 'string' || url === null).toBe(true);
+  it('all git functions work together in actual git repo', { skip: SKIP_NO_GIT }, () => {
+    const tempDir = createTempDir();
+    try {
+      const remoteUrl = 'https://example.com/acme/widgets.git';
+      withRealGitRepo(tempDir, { branch: 'main', remoteUrl }, (repoDir) => {
+        assert.strictEqual(isGitRepo(), true);
+        assert.strictEqual(getGitBranch(), 'main');
+        assert.strictEqual(path.resolve(getGitRoot()), repoDir);
+        assert.strictEqual(getGitRemoteUrl(), remoteUrl);
+      });
+    } finally {
+      cleanupTempDir(tempDir);
     }
   });
 
-  test('all git functions return null in non-git directory', () => {
+  it('all git functions return null in non-git directory', () => {
     const tempDir = createTempDir();
     const originalCwd = process.cwd();
 
     try {
       process.chdir(tempDir);
 
-      expect(isGitRepo()).toBe(false);
-      expect(getGitBranch()).toBe(null);
-      expect(getGitRoot()).toBe(null);
-      expect(getGitRemoteUrl()).toBe(null);
+      assert.strictEqual(isGitRepo(), false);
+      assert.strictEqual(getGitBranch(), null);
+      assert.strictEqual(getGitRoot(), null);
+      assert.strictEqual(getGitRemoteUrl(), null);
     } finally {
       process.chdir(originalCwd);
       cleanupTempDir(tempDir);
     }
   });
 
-  test('Python detection chain works end-to-end', () => {
+  it('Python detection chain works end-to-end', () => {
     const binary = findPythonBinary();
     const version = getPythonVersion();
 
     // If binary found, version should also be found
     if (binary) {
-      expect(version).toBeTruthy();
-      expect(version).toMatch(/Python/i);
+      assert.ok(version);
+      assert.match(version, /Python/i);
     }
   });
 });

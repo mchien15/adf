@@ -182,7 +182,8 @@ function getPythonVersion() {
 function isGitRepo(startDir) {
   let dir;
   try {
-    dir = startDir || process.cwd();
+    // Resolve so relative paths reach the filesystem root (path.parse('.').root is '')
+    dir = path.resolve(startDir || process.cwd());
   } catch (e) {
     // CWD deleted or inaccessible
     return false;
