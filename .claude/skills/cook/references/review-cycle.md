@@ -14,7 +14,7 @@ See `risk-and-gates.md` for trigger conditions.
 
 Use this during implementation when policy marks the phase as risky.
 
-1. Run delegated review on the current phase or changed slice
+1. Run delegated review on the phase files, with `BASE_SHA` from `run-base.txt` (`subagent-patterns.md` → Code Review)
 2. Check for blocking issues, unsafe tradeoffs, or drift from approved scope
 3. Fix blocking findings before continuing
 4. If the same phase loops 3 times, escalate to the user instead of silently grinding
@@ -43,7 +43,7 @@ Ownership:
 cycle = 0
 LOOP:
   1. Confirm plan-conformance result is available
-  2. Run code-reviewer → score, critical_count, warnings, suggestions
+  2. Run code-reviewer (risk high: two in parallel, then Merging Two Reviews) → score, critical_count, warnings, suggestions
 
   3. DISPLAY FINDINGS:
      ┌─────────────────────────────────────────┐
@@ -51,6 +51,7 @@ LOOP:
      ├─────────────────────────────────────────┤
      │ Summary: [what implemented], tests      │
      │ [X/X passed]                            │
+     │ Architecture & reliability: [scope line]│
      ├─────────────────────────────────────────┤
      │ Critical Issues ([N]): MUST FIX         │
      │  - [issue] at [file:line]               │
@@ -82,7 +83,7 @@ LOOP:
 cycle = 0
 LOOP:
   1. Confirm plan-conformance result is available
-  2. Run code-reviewer → score, critical_count, warnings
+  2. Run code-reviewer (risk high: two in parallel, then Merging Two Reviews) → score, critical_count, warnings
 
   3. IF score >= 9.5 AND critical_count == 0:
      → Auto-approve, PROCEED
@@ -99,11 +100,19 @@ LOOP:
      → Approve with warnings logged, PROCEED
 ```
 
-## Critical Issues Definition
-- Security: XSS, SQL injection, OWASP vulnerabilities
-- Performance: bottlenecks, inefficient algorithms
-- Architecture: violations of patterns, coupling
-- Principles: YAGNI, KISS, DRY violations
+## Severity Levels
+
+Defined once in [`code-reviewer.md`](../../../agents/code-reviewer.md) → Prioritization. Do not restate them here.
+
+## Merging Two Reviews
+
+Risk high runs two reviewers on the same `BASE_SHA` (`workflow-steps.md` → Step 6). Before display or auto-handling:
+1. Wait for both reports. A reviewer that errors or returns no score is re-spawned once. If it fails again: interactive → show the one report and name the missing review; auto → escalate to the user. Never auto-approve on one report
+2. Union the findings. Same `file:line` **and** same problem → keep one, at the higher severity, citing both reviewers (and the check ID, if any). Different problems on the same line stay separate
+3. `critical_count` = Critical findings after step 2
+4. `score` = the lower of the two scores
+5. Scope line: take the architecture & reliability reviewer's
+6. A fix cycle re-runs both reviewers
 
 ## Output Formats
 - Waiting: `⏸ Step 6: Code reviewed - [score]/10 - WAITING for approval`

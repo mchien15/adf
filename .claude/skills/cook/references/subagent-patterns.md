@@ -50,8 +50,17 @@ Task(subagent_type="debugger", prompt="Analyze failures: [details]", description
 
 ## Code Review
 ```
-Task(subagent_type="code-reviewer", prompt="Review changes for [the diff of all phases in this run | phase with --per-phase]. Consume the provided Step 5 plan-conformance result, challenge it only if evidence conflicts, then review security, performance, YAGNI/KISS/DRY. Return score (X/10), critical, warnings, suggestions.", description="Review [scope]")
+Task(subagent_type="code-reviewer", prompt="Review changes for [all phases of this run | one phase]: BASE_SHA=[SHA]; git diff $BASE_SHA [-- <phase files>] plus untracked files [among <phase files>]. Risk: [low|medium|high]. Plan: [plan-dir]. Consume the provided Step 5 plan-conformance result, challenge it only if evidence conflicts, then review security, performance, YAGNI/KISS/DRY. [Step 6 with risk high only: Skip the architecture & reliability checklist — the architecture & reliability reviewer runs it; write its scope line as 'skipped (separate reviewer)'.] Return score (X/10), critical, warnings, suggestions and the scope line.", description="Review [scope]")
 ```
+- `BASE_SHA` = the content of `{plan-dir}/reports/run-base.txt`; the same value goes to every reviewer in the step
+- Phase-scoped review (Step 3 checkpoint, or Step 6 with `--per-phase`): put `-- <phase files>` in the diff command and name those files. **Phase files** = the files reported changed by the phase's implementer, by the Step 4 tester when it ran for that phase, and by any fix subagent for that phase, plus untracked ones among them. A file shared with an earlier phase may show that phase's lines too
+
+## Architecture & Reliability Review
+```
+Task(subagent_type="code-reviewer", prompt="Architecture & reliability review only. BASE_SHA=[SHA]; diff: git diff $BASE_SHA [-- <phase files>] plus untracked files [among <phase files>]. Plan: [plan-dir]. Run only the code-review skill's references/architecture-reliability-checklist.md: read its context (ADR Status lines, architecture doc, each phase's Failure modes table), apply A1–A4 to every changed file and R1–R9 to files that hit a trigger. Skip edge-case scouting, the other Systematic Review rows, New Vocabulary and Metrics — the main reviewer covers them in parallel. Do not update the plan file. Every Critical/High finding needs file:line and 'when X → Y', else report it as Medium; keep findings that depend on conditions. Return score (X/10), critical, warnings, suggestions and the scope line.", description="Architecture & reliability review")
+```
+- Step 6 with risk high only. Spawn in the same message as Code Review so both run in parallel, with the same `BASE_SHA`
+- Merge: `review-cycle.md` → Merging Two Reviews
 
 ## Project Management
 ```

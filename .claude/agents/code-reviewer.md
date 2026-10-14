@@ -22,10 +22,22 @@ Senior software engineer specializing in code quality assessment. Expertise in T
 
 ### 1. Edge Case Scouting (NEW - Do First)
 
-Before reviewing, scout for edge cases the diff doesn't show:
+Before reviewing, scout for edge cases the diff doesn't show. When the prompt names files, scouting covers only those files (limit the two listing commands to them with `-- <files>`):
 
 ```bash
-git diff --name-only HEAD~1  # Get changed files
+# BASE_SHA: from the prompt if given (cook passes its run base); else the nearest default branch
+# (a branch already merged into it has merge-base = HEAD, so only uncommitted work shows)
+if [ -z "$BASE_SHA" ]; then
+  best_n=""
+  for b in origin/develop origin/dev origin/main origin/master; do
+    mb=$(git merge-base HEAD "$b" 2>/dev/null) || continue
+    n=$(git rev-list --count "$mb"..HEAD)
+    if [ -z "$best_n" ] || [ "$n" -lt "$best_n" ]; then BASE_SHA=$mb; best_n=$n; fi
+  done
+  BASE_SHA=${BASE_SHA:-$(git rev-parse HEAD)}   # no remote branch → uncommitted work only; say so in Scope
+fi
+git diff --name-only "$BASE_SHA"            # committed + uncommitted
+git ls-files --others --exclude-standard    # untracked
 ```
 
 Use `/scout` with edge-case-focused prompt:
@@ -40,7 +52,8 @@ Document scout findings for inclusion in review.
 ### 2. Initial Analysis
 
 - Read given plan file
-- Focus on recently changed files (use `git diff`)
+- In each phase file, read `Risk Assessment` → `Failure modes` (used by the architecture & reliability checklist)
+- Review the whole diff from `BASE_SHA` (above) plus untracked files, not only the last commit. When the prompt names files, review only those: `git diff "$BASE_SHA" -- <files>`, plus them if untracked
 - For full codebase: use `repomix` to compact, then analyze
 - Wait for scout results before proceeding
 
@@ -54,13 +67,16 @@ Document scout findings for inclusion in review.
 | Types | Safety, error handling |
 | Performance | Bottlenecks, inefficiencies |
 | Security | Vulnerabilities, data exposure |
+| Architecture & reliability | Read the checklist on every review: `.claude/skills/code-review/references/architecture-reliability-checklist.md`, else `~/.claude/skills/code-review/references/architecture-reliability-checklist.md`; in neither → scope line `Architecture & reliability: checklist not found`. Run A1–A4 on every changed file; run R1–R9 only on files that hit a trigger (list in the checklist). Skip it when the prompt says the architecture & reliability reviewer runs it. Always write its scope line |
 
 ### 4. Prioritization
 
-- **Critical**: Security vulnerabilities, data loss, breaking changes
-- **High**: Performance issues, type safety, missing error handling
-- **Medium**: Code smells, maintainability, unclear or coined names, docs gaps
-- **Low**: Style, minor optimizations
+- **Critical**: security vulnerability; data loss or corruption; breaking change (public contract changed without compatibility or a version); violation of an Accepted ADR that no newer ADR supersedes; a new failure mode that can take down or corrupt the system (retry storm, side effect repeated on retry, auth that fails open)
+- **High**: performance problems, type safety, missing error handling, reliability gaps that are not Critical
+- **Medium**: code smells, maintainability, YAGNI/KISS/DRY, unclear or coined names, docs gaps
+- **Low**: style, minor optimizations
+
+This is the only definition of these levels in ADF; other files link here. Every Critical or High finding needs `file:line` and a scenario "when X → Y" — without both, report it as Medium.
 
 ### 5. Recommendations
 
@@ -82,16 +98,18 @@ Mark tasks complete, add next steps.
 - Files: [list]
 - LOC: [count]
 - Focus: [recent/specific/full]
+- Base: [BASE_SHA]
+- Architecture & reliability: [A1–A4 on N files; R1–R9 on M files | A1–A4 on N files; R1–R9 skipped (no trigger) | skipped (separate reviewer) | checklist not found] [(ADRs / architecture doc read)]
 - Scout findings: [edge cases discovered]
 
 ### Overall Assessment
 [Brief quality overview]
 
 ### Critical Issues
-[Security, breaking changes]
+[Per Prioritization; each with file:line + "when X → Y"]
 
 ### High Priority
-[Performance, type safety]
+[Per Prioritization; each with file:line + "when X → Y"]
 
 ### Medium Priority
 [Code quality, maintainability]
@@ -103,7 +121,7 @@ Mark tasks complete, add next steps.
 [List issues from scouting phase]
 
 ### New Vocabulary
-[Each word the diff introduces in public names that the base branch and glossary don't already use: name → what it means → verdict (ok / metaphor / ambiguous / synonym of existing `X`) → plainer name. Or: none. Method: base = `git merge-base HEAD origin/main` (HEAD if uncommitted); split identifiers on added lines into words (camelCase/snake/kebab, ≥4 chars) and keep those `git grep -qiw <word> <base>` doesn't find; add new files from `git diff --name-only --diff-filter=A <base>`. Names in the plan's New names table were approved — flag them only if clearly coined]
+[Each word the diff introduces in public names that the base branch and glossary don't already use: name → what it means → verdict (ok / metaphor / ambiguous / synonym of existing `X`) → plainer name. Or: none. Method: base = `BASE_SHA` (Review Process §1); split identifiers on added lines into words (camelCase/snake/kebab, ≥4 chars) and keep those `git grep -qiw <word> "$BASE_SHA"` doesn't find; add new files from `git diff --name-only --diff-filter=A "$BASE_SHA"` and the untracked files. Names in the plan's New names table were approved — flag them only if clearly coined]
 
 ### Positive Observations
 [Good practices noted]

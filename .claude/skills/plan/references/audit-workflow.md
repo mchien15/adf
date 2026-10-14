@@ -25,6 +25,8 @@ Read the plan directory:
 | 3-5 phases | 3 | + Failure Mode Analyst |
 | 6+ phases | 4 | + Scope & Complexity Critic (all lenses) |
 
+1–2 phase plans that touch DB (`## Impact` → DB schema row says `Yes`) or touch infra / add a dependency (any phase's `Failure modes` table has rows): use **Failure Mode Analyst** instead of Assumption Destroyer. Reviewer count stays 2.
+
 ### Step 3: Define Adversarial Lenses
 Load: `references/audit-personas.md`
 

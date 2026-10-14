@@ -24,8 +24,11 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 | Verification before completion | required | required | required |
 | TDD (test-first) evidence | required for behavior changes | required for behavior changes | required |
 | Checkpoint review | not required | with `--per-phase`: required when phase touches 3+ files or cross-cutting behavior (default scope: covered by the final review) | required |
+| Architecture & reliability review | main reviewer, every review (R1–R9 only on trigger) | main reviewer, every review (R1–R9 only on trigger) | the architecture & reliability reviewer (a `code-reviewer`) runs only the checklist, in parallel with the main reviewer (Step 6; Step 3 checkpoints keep one reviewer) |
 | Isolation check | note current workspace | recommend worktree or equivalent isolation | require worktree or explicit opt-out acknowledgement |
 | Plan-conformance check | required | required | required |
+
+Checklist and triggers: [`architecture-reliability-checklist.md`](../../code-review/references/architecture-reliability-checklist.md). `/code-review` run on its own picks reviewers from this same table.
 
 ## Mode Rules
 

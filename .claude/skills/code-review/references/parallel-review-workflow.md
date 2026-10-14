@@ -41,6 +41,7 @@ Group edge cases by similar scope for parallel verification:
 Launch N `code-reviewer` subagents simultaneously:
 - Pass: category name, list of edge cases, relevant files
 - Task: **VERIFY** if each edge case is properly handled in code
+- Tell the reviewer whose category is architecture or reliability (the first reviewer when no category is) to run the architecture & reliability checklist. Tell every other reviewer to skip it and write its scope line as `skipped (separate reviewer)`. This stops N reviewers from each loading it
 - Report: which edge cases are handled vs unhandled
 
 ### 4. Aggregate Results

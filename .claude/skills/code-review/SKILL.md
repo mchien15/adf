@@ -35,6 +35,7 @@ Verify before implementing. Ask before assuming. Evidence before claims.
 | Requesting review | After tasks, before merge, stuck on problem | `references/requesting-code-review.md` |
 | Verification gates | Before any completion claim, commit, PR | `references/verification-before-completion.md` |
 | Edge case scouting | After implementation, before review | `references/edge-case-scouting.md` |
+| Architecture & reliability | Every review (R1–R9 only on trigger); architecture & reliability reviewer when risk is high | `references/architecture-reliability-checklist.md` |
 | **Task-managed reviews** | Multi-file features (3+ files), parallel reviewers, fix cycles | `references/task-management-reviews.md` |
 
 ## Quick Decision Tree
@@ -70,9 +71,10 @@ SITUATION?
 
 **Process:**
 1. **Scout edge cases first** (see below)
-2. Get SHAs: `BASE_SHA=$(git rev-parse HEAD~1)` and `HEAD_SHA=$(git rev-parse HEAD)`
-3. Dispatch code-reviewer subagent with: WHAT, PLAN, BASE_SHA, HEAD_SHA, DESCRIPTION
-4. Fix Critical immediately, Important before proceeding
+2. Base: `BASE_SHA`, picked by the snippet in [`code-reviewer.md`](../../agents/code-reviewer.md) → Review Process §1 unless you already have one; the review covers committed, uncommitted and untracked changes since it
+3. Classify risk with `../cook/references/risk-and-gates.md` → Risk Levels, state it in the dispatch and report; the user may override
+4. Dispatch code-reviewer subagent with: WHAT, PLAN, BASE_SHA, HEAD_SHA, RISK, DESCRIPTION. Risk high → also dispatch the architecture & reliability reviewer in the same message; merge both reports (see `references/requesting-code-review.md`)
+5. Fix Critical immediately, High before proceeding
 
 **Full protocol:** `references/requesting-code-review.md`
 

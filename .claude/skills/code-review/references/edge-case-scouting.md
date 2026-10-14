@@ -23,9 +23,7 @@ Code reviews catch obvious issues but miss subtle side effects. Scout detects:
 ## Process
 
 ### 1. Identify Changed Files
-```bash
-git diff --name-only HEAD~1
-```
+Run the commands in [`code-reviewer.md`](../../../agents/code-reviewer.md) → Review Process §1: files changed since `BASE_SHA` (committed + uncommitted) plus untracked files.
 
 ### 2. Invoke Scout
 ```
