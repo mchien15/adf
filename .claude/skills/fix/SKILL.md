@@ -56,6 +56,7 @@ Classify before routing. See `references/complexity-assessment.md`.
 
 ### Step 4: Fix Implementation & Verification
 
+- Before dispatching the first fix, record `BASE_SHA=$(git rev-parse HEAD)`; every review in this run uses it (`references/review-cycle.md` → Review Base).
 - Delegate the fix to a `fullstack-developer` subagent per selected workflow: pass the root cause, affected files it owns, chosen approach and verification commands. It writes a failing test that reproduces the bug first (TDD), then the fix. Update Tasks as phases complete.
 - Main agent reviews the subagent's report and `git diff --stat`; findings go back to the subagent (`SendMessage`). Do not patch the code yourself.
 - Spawn multiple `Explore` subagents to verify no regressions.

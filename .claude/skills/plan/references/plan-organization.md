@@ -195,6 +195,14 @@ Fill "Why this word" only when a likelier word was rejected. Write "none" when t
 **Risk Assessment**
 - Potential issues
 - Mitigation strategies
+- **Failure modes** — required when the phase adds or changes anything in the checklist's [Triggers](../../code-review/references/architecture-reliability-checklist.md#triggers) (outside calls, background handlers, migrations, shared state, instance count). Otherwise write `Failure modes: none`.
+
+  | Dependency / state | When down / slow / duplicated | Behavior |
+  |---|---|---|
+  | model gateway | timeout / 429 | retry 2× with backoff → error event over SSE, run marked failed |
+
+  Also answer: is the new component the only instance of something the system needs (one DB, one consumer, one leader)? If it dies, what stops?
+  `code-reviewer` checks the code against the `Failure modes` table (architecture & reliability checklist, R7).
 
 **Security Considerations**
 - Auth/authorization

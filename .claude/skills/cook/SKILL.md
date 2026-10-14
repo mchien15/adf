@@ -113,7 +113,7 @@ Human review required at these checkpoints (skipped with `--auto`):
 | Implement | `fullstack-developer` | **MUST** spawn (one per phase) |
 | UI Work | `ui-ux-designer` | If frontend work (replaces `fullstack-developer` for UI) |
 | Testing | `tester`, `debugger` | **MUST** spawn |
-| Review | `code-reviewer` | **MUST** spawn |
+| Review | `code-reviewer` (+ architecture & reliability reviewer when risk is high) | **MUST** spawn |
 | Finalize | `project-manager`, `docs-manager`, `git-manager` | **MUST** spawn all 3 |
 
 **CRITICAL ENFORCEMENT:**

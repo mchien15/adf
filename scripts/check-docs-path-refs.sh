@@ -17,6 +17,7 @@ FILES="
 .claude/skills/docs/references/summarize-workflow.md
 .claude/agents/debugger.md
 .claude/agents/code-reviewer.md
+.claude/skills/code-review/references/architecture-reliability-checklist.md
 .claude/agents/fullstack-developer.md
 .claude/agents/business-analyst.md
 .claude/agents/testcase-writer.md

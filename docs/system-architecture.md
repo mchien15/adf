@@ -113,7 +113,7 @@ adf <tool> --git-profile cmc
 - `code-simplifier` - Code optimization and simplification
 
 **Quality Assurance Agents**:
-- `code-reviewer` - Code quality assessment and standards
+- `code-reviewer` - Code quality, architecture and reliability review
 - `tester` - Test creation and execution
 - `debugger` - Issue analysis, root-cause diagnosis
 - `testcase-writer` - Test case generation from BA docs (Sonnet)
@@ -275,7 +275,7 @@ Explore different approaches simultaneously
 8. Tester: Run the full suite, check TDD evidence and fill test gaps, or reject `--no-test` if the work is not low-risk
 9. (If tests fail): Debugger analyzes, loop to step 6
 10. Cook: Verify plan conformance before final code-quality review
-11. Code Reviewer: Review implementation
+11. Code Reviewer: Review the diff since the run base (`{plan-dir}/reports/run-base.txt`, written when Step 3 starts) and run the architecture & reliability checklist. At high risk, a second `code-reviewer` runs only that checklist in parallel; the two reports are merged
 12. Docs Manager: Update documentation if warranted
 13. Git Manager: Prepare closeout; commit only when git actions are approved
 

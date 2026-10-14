@@ -158,7 +158,8 @@ IMMEDIATELY execute in order:
 
 3. **CALL** `TaskCreate` x N — one per focus:
    - Subject: `Review: <focus-title>`
-   - Description: `Review <scope> for <focus>. Output severity-rated findings only. Format: [CRITICAL|IMPORTANT|MODERATE] <finding> — <evidence> — <recommendation>. No "seems" or "probably" — concrete evidence only. Save to: {CK_REPORTS_PATH}/reviewer-{N}-{CK_NAME_PATTERN}-{scope-slug}.md. Mark task completed when done.`
+   - Description: `Review <scope> for <focus>. Output severity-rated findings only. Format: [Critical|High|Medium|Low] <finding> — <evidence> — <recommendation>; levels are defined in code-reviewer.md → Prioritization. <checklist-line> No "seems" or "probably" — concrete evidence only. Save to: {CK_REPORTS_PATH}/reviewer-{N}-{CK_NAME_PATTERN}-{scope-slug}.md. Mark task completed when done.`
+   - `<checklist-line>` for the reviewer whose focus is architecture or reliability (reviewer 1 when no focus is): `Run the architecture & reliability checklist.` For every other reviewer: `Skip the architecture & reliability checklist and write its scope line as "skipped (separate reviewer)".`
 
 4. **CALL** `Task` x N to spawn reviewers:
    - `subagent_type: "code-reviewer"`, `model: "haiku"`, `name: "reviewer-{N}"`
@@ -170,7 +171,7 @@ IMMEDIATELY execute in order:
 
 6. **SYNTHESIZE** into: `{CK_REPORTS_PATH}/review-{scope-slug}.md`
    - Deduplicate findings across reviewers
-   - Prioritize by severity: CRITICAL > IMPORTANT > MODERATE
+   - Prioritize by severity: Critical > High > Medium > Low (`.claude/agents/code-reviewer.md` → Prioritization)
    - Create action items list with owners
 
 7. **SHUTDOWN** all teammates via `SendMessage(type: "shutdown_request")`

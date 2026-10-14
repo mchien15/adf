@@ -2,12 +2,16 @@
 
 Mode-aware review handling for code-reviewer results.
 
+## Review Base
+
+Before the first fix is dispatched, record `BASE_SHA=$(git rev-parse HEAD)`. Pass it to every `code-reviewer` in this cycle, re-reviews included, so the review covers the changes since the fix started plus any uncommitted work that already existed before it.
+
 ## Autonomous Mode
 
 ```
 cycle = 0
 LOOP:
-  1. Run code-reviewer → score, critical_count, warnings, suggestions
+  1. Run code-reviewer with BASE_SHA → score, critical_count, warnings, suggestions
 
   2. IF score >= 9.5 AND critical_count == 0:
      → Output: "✓ Review [score]/10 - Auto-approved"
@@ -33,7 +37,7 @@ LOOP:
 
 ```
 ALWAYS:
-  1. Run code-reviewer → score, critical_count, warnings, suggestions
+  1. Run code-reviewer with BASE_SHA → score, critical_count, warnings, suggestions
 
   2. Display findings:
      ┌─────────────────────────────────────┐
@@ -68,10 +72,6 @@ Uses same logic as Autonomous but:
 - Only 1 auto-fix cycle before escalate
 - Focus on: correctness, security, no regressions
 
-## Critical Issues (Always Block)
+## Severity Levels
 
-- Security vulnerabilities (XSS, SQL injection, OWASP)
-- Performance bottlenecks (O(n²) when O(n) possible)
-- Architectural violations
-- Data loss risks
-- Breaking changes without migration
+Defined once in [`code-reviewer.md`](../../../agents/code-reviewer.md) → Prioritization. Do not restate them here.

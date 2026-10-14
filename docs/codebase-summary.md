@@ -1,6 +1,6 @@
 # Codebase Summary
 
-**Last Updated**: 2026-05-18
+**Last Updated**: 2026-10-14
 **Version**: 0.0.1
 **Repository**: [sotatek-dev/adf](https://github.com/sotatek-dev/adf)
 
@@ -75,7 +75,7 @@ agentic-development-framework/
 - `planner.md` - Technical planning and architecture (Opus model)
 - `researcher.md` - Research and analysis
 - `fullstack-developer.md` - Full-stack implementation
-- `code-reviewer.md` - Code quality assessment
+- `code-reviewer.md` - Code quality, architecture and reliability review
 - `tester.md` - Testing and validation
 - `debugger.md` - Issue analysis and debugging
 - `docs-manager.md` - Documentation management (Gemini model)

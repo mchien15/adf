@@ -87,6 +87,8 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 3. If no tasks → read plan phases, `TaskCreate` for each unchecked `[ ]` item with priority order and metadata (`phase`, `planDir`, `phaseFile`)
 4. Tasks can be blocked by other tasks via `addBlockedBy`
 
+**Run base — all modes, before dispatching Phase 1:** write `git rev-parse HEAD` to `{plan-dir}/reports/run-base.txt` only if the file is absent. The file present means an earlier run of this plan stopped before its Step 6 approval: reuse it (resume). Its content is `BASE_SHA` for Step 6 and for any phase-scoped review; Step 7 deletes it once Step 6 approved.
+
 **All modes — the main agent orchestrates and never edits code itself:**
 - Spawn one fresh `fullstack-developer` subagent per phase, in phase order (`ui-ux-designer` for frontend UI). Prompt: see `subagent-patterns.md` → Implementation
 - Use `TaskUpdate` to assign the phase's tasks to the subagent and mark them `in_progress` when dispatching
@@ -110,6 +112,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 ### Checkpoint Review (policy-driven)
 - Triggered by `risk-and-gates.md`, not by mode alone
 - Use delegated review for risky intermediate state and fix blocking findings before continuing
+- Scope: `BASE_SHA` from `run-base.txt`, limited to the phase files (`subagent-patterns.md` → Code Review)
 
 **Output:** `✓ Step 3: Checkpoint review complete - [phase] - [approved|fixes applied]`
 
@@ -151,7 +154,10 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 ## Step 6: Code Review
 
 **All modes - MANDATORY subagent:**
-- **MUST** spawn `code-reviewer` subagent: `Task(subagent_type="code-reviewer", prompt="Review changes. Return score, critical issues, warnings.", description="Code review")`
+- Base: `BASE_SHA` = the content of `{plan-dir}/reports/run-base.txt` (written at the start of Step 3). Pass the same `BASE_SHA` to every reviewer in this step. With `--per-phase`, also pass that phase's files (`subagent-patterns.md` → Code Review)
+- **MUST** spawn `code-reviewer` subagent — prompt: `subagent-patterns.md` → Code Review
+- Risk high (Step 0): in the same message also spawn the architecture & reliability reviewer — prompt: `subagent-patterns.md` → Architecture & Reliability Review. Merge both reports: `review-cycle.md` → Merging Two Reviews
+- Risk low/medium: one reviewer; it loads the architecture & reliability checklist itself on every review (A1–A4 always, R1–R9 only on files that hit a trigger)
 - **DO NOT** review code yourself - delegate to subagent
 - Reviewer should consume Step 5 conformance output and only challenge it when evidence conflicts
 
@@ -168,7 +174,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 - Simplified review, no fix loop
 - User approves or aborts
 
-**Output:** `✓ Step 6: Review [score]/10 - [Approved|Auto-approved] - code-reviewer subagent invoked`
+**Output:** `✓ Step 6: Review [score]/10 - [Approved|Auto-approved] - code-reviewer subagent invoked [+ architecture & reliability reviewer]`
 
 ## Step 7: Finalize
 
@@ -194,9 +200,10 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
    - Update `plan.md` status/progress (`pending`/`in-progress`/`completed`) from actual checkbox state.
    - Return unresolved mappings if any completed task cannot be matched to a phase file.
 3. Use `TaskUpdate` to mark Claude Tasks complete after sync-back confirmation.
-4. If `plan.md` is now `completed` (all phases done), archive it: `node .claude/scripts/tidy-plans.cjs archive <plan-dir> --apply` → `plans/archive/{YYMM}/`. Mention the new path in the summary
-5. Onboarding check (API keys, env vars)
-6. Summarize verification proof before claiming completion
+4. Once this run's Step 6 approved (with `--per-phase`: the last phase's), delete `{plan-dir}/reports/run-base.txt`. A run that stopped before approval keeps it, so the next `/cook` resumes with the same base
+5. If `plan.md` is now `completed` (all phases done), archive it: `node .claude/scripts/tidy-plans.cjs archive <plan-dir> --apply` → `plans/archive/{YYMM}/`. Mention the new path in the summary
+6. Onboarding check (API keys, env vars)
+7. Summarize verification proof before claiming completion
 
 **Why the sweep at step 0 and not only at Gate 2.** Step 2b fires right after planning, when the least is known, and it reads a four-row Impact table that has no architecture row. Decisions worth a record mostly appear *during* implementation. Measured on the plan that built this feature: 18 Decision Log rows, **zero** of them written at `Post-Plan`, and its Impact table never ticked `Breaking change` — so Gate 2 would have stayed silent for all 18.
 
@@ -206,7 +213,7 @@ The sweep is also the only ADR checkpoint that survives `code` mode. Entering wi
 
 **Default scope:** Step 7 runs once, after the final review — there is no next phase to start.
 **`--per-phase`:** auto mode continues to the next phase from **Step 3**; other modes ask the user before the next phase.
-**Run stops early** (abort, blocked phase, escalation): still run Step 7 for the phases completed so far — sync-back and verification summary — and skip the archive, since the plan is not completed.
+**Run stops early** (abort, blocked phase, escalation): still run Step 7 for the phases completed so far — sync-back and verification summary — and skip the archive, since the plan is not completed. Keep `run-base.txt` unless Step 6 approved.
 
 **Output:** `✓ Step 7: Verified before completion - [proof summary] - Finalized`
 
@@ -236,7 +243,7 @@ code:        0 → skip → skip → 3(1…N) → 4 → [R] → 5 → 6(user) �
    - Checkpoint review still runs for **high-risk** phases (hard gate). Medium-risk checkpoints are covered by the final review.
    - A phase that fails verification is fixed (same subagent) before the next phase starts — never carry a red suite forward.
    - Keep each phase's report, with its TDD Evidence, in the plan's `reports/` so Step 4 can hand all of it to `tester` — also after compaction or a resume.
-2. **After the last phase — once:** Step 4 `tester` (full suite, every phase's RED/GREEN evidence) → Step 5 plan-conformance across the phases of this run → Step 6 one `code-reviewer` pass over their diff; fixes go to `fullstack-developer`, cycle limits per mode → Step 7 finalize once (sync-back all phases, docs, git, archive).
+2. **After the last phase — once:** Step 4 `tester` (full suite, every phase's RED/GREEN evidence) → Step 5 plan-conformance across the phases of this run → Step 6 one review pass over their diff (two reviewers in parallel when risk is high); fixes go to `fullstack-developer`, cycle limits per mode → Step 7 finalize once (sync-back all phases, docs, git, archive).
 3. **Approval gates** still follow the mode: interactive asks once at Gate 3 (after all phases), Gate 4, and review; `auto` asks no approval questions (hard gates such as the high-risk in-place acknowledgement still apply).
 
 **`--per-phase`** (or "review each phase", "review từng phase"): Steps 3→7 repeat for every phase, and medium-risk phases with 3+ files or cross-cutting behavior get a checkpoint review too. `--final-review` is still accepted and means the default.
@@ -251,7 +258,7 @@ Trade-off: the default runs one tester, one reviewer and one finalize instead of
 - **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly. By default Steps 4, 6, 7 run once for all phases of the run; with `--per-phase`, once per phase
   - Step 3: `fullstack-developer` per phase (`ui-ux-designer` for UI) — also for every fix requested by tester, debugger or code-reviewer
   - Step 4: `tester` (and `debugger` if failures)
-  - Step 6: `code-reviewer`
+  - Step 6: `code-reviewer` (two in parallel when risk is high)
   - Step 7: `project-manager`, `docs-manager`, `git-manager`
 - Use `TaskCreate` to create Claude Tasks for each unchecked item with priority order and dependencies.
 - Use `TaskUpdate` to mark Claude Tasks `in_progress` when picking up a task.

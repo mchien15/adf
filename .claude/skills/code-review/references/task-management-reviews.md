@@ -45,7 +45,7 @@ TaskCreate(
 TaskCreate(
   subject: "Review {feature} implementation",
   activeForm: "Reviewing {feature}",
-  description: "Code-reviewer subagent reviews {BASE_SHA}..{HEAD_SHA}. Plan: {plan_ref}",
+  description: "Code-reviewer subagent reviews git diff {BASE_SHA} plus untracked files. Plan: {plan_ref}",
   metadata: { reviewStage: "review", feature: "{feature}",
               baseSha: "{BASE_SHA}", headSha: "{HEAD_SHA}",
               priority: "P1", effort: "10m" },
@@ -103,7 +103,7 @@ TaskCreate(subject: "Fix all review issues",
 ```
 Scout:    pending → in_progress → completed (scout report returned)
 Review:   pending → in_progress → completed (reviewer findings returned)
-Fix:      pending → in_progress → completed (all Critical/Important fixed)
+Fix:      pending → in_progress → completed (all Critical/High fixed)
 Verify:   pending → in_progress → completed (tests pass, build clean)
 ```
 
