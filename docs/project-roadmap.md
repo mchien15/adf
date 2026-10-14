@@ -1,6 +1,6 @@
 # Agentic Development Framework - Project Roadmap
 
-**Last Updated:** 2026-05-19
+**Last Updated:** 2026-10-14
 **Current Version:** 0.0.1
 **Repository:** https://github.com/sotatek-dev/adf
 
@@ -13,6 +13,13 @@ Agentic Development Framework (ADF) is an AI-powered development orchestration f
 ## Version History
 
 ### Unreleased
+
+**Review: architecture and reliability checks:**
+- `code-reviewer` checks every review against a 13-check checklist: A1–A4 architecture (incl. Accepted ADR conformance) and R1–R9 reliability, with R1–R9 applied only to files that hit a trigger. At `cook` high risk, a second reviewer runs only the checklist, in parallel, and the reports are merged.
+- One severity definition, in `code-reviewer.md` → Prioritization. Critical and High findings need `file:line` and a "when X → Y" scenario, otherwise they are Medium. Every review states its architecture & reliability scope.
+- `cook` reviews the diff from a recorded run base (`run-base.txt`) instead of `HEAD~1`, so multi-phase and uncommitted work is covered.
+- Plans: phase `Risk Assessment` gains a `Failure modes` table. The plan audit uses a Failure Mode Analyst for 1–2 phase plans that touch DB, infra or a new dependency.
+- Behavior change: performance and YAGNI findings are no longer Critical, so `cook --auto` no longer runs fix loops for them.
 
 **CMC docs-path convention:**
 - `cmc` git-profile now relocates ADF generated docs to `./.adf/docs/` (code-level only), leaving the company's curated `docs/` knowledge base untouched. Toggled via the existing `--git-profile cmc` (no new flag); ships a partial `adf-config.json` overlay (`paths.docs=.adf/docs`, `docs.codeLevelOnly=true`) deep-merged at install.
