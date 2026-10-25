@@ -388,8 +388,8 @@ Why this matters:
 4. Researcher agents explore auth solutions
 5. Developer reviews and approves plan
 6. AI implements code and runs checkpoint review when policy requires it
-7. AI writes comprehensive tests unless a low-risk `--no-test` exception is allowed
-8. Cook verifies plan conformance before final code review
+7. AI writes one test per acceptance criterion, test-first, unless a low-risk `--no-test` exception is allowed
+8. Cook collects evidence per acceptance criterion; the reviewer judges it
 9. AI performs code review and mandatory completion verification
 10. AI updates documentation
 11. Git manager prepares closeout and commits only when git actions are approved
@@ -557,7 +557,7 @@ Why this matters:
 ### Testing Standards
 - Test-first (TDD) for behavior changes; coverage is a diagnostic, not a target
 - Integration tests for workflows
-- Error scenario coverage for changed code
+- Tests limited to acceptance criteria and their listed edge cases
 - Performance validation when a requirement is set
 - Security testing
 
@@ -572,6 +572,10 @@ Why this matters:
 - **Parallel Execution**: Running multiple agents simultaneously
 - **Query Fan-Out**: Spawning multiple researchers to explore different approaches
 - **Conventional Commits**: Structured commit message format (type(scope): description)
+- **Acceptance criteria (AC)**: Numbered checks per plan phase (`AC1…`), each with one test or command; the user approves them, and they set how many tests get written
+- **Characterization test**: Test that pins existing behavior before a refactor; passes on old code by design
+- **Harness Follow-up**: Reviewer report section proposing one automated check (test, hook, lint rule, CI step) for a recurring finding
+- **Verdict**: Reviewer's Accept / Revise / Block, derived from findings and acceptance criteria (rule: `code-reviewer.md` → Output Format → Verdict)
 
 ## Appendix
 

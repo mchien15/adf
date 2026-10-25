@@ -140,8 +140,8 @@ Step 3.4 (addBlockedBy: [P2-id])   ← critical steps share phase dependency
 5. Spawn `fullstack-developer` subagent cho từng phase — main agent không tự sửa code
 
 **Step 5 Plan-Conformance:**
-1. `cook` verifies delivered scope against the approved plan/task
-2. Result is passed into final code review, not skipped in `--auto`
+1. `cook` collects evidence per acceptance criterion (tester report, TDD evidence, unplanned files)
+2. The final reviewer judges each criterion (✓/✕); any ✕ blocks approval, also in `--auto`
 
 **Step 6 Finalize (Delegation Gate):**
 
