@@ -106,7 +106,7 @@ Ask once — *"Does this decision outlive the task? Open an ADR?"* — only when
 ## Output Requirements
 
 - DO NOT implement code - only create plans
-- Respond with plan file path and summary, including one **New names** table merged across phases (skip phases with none) so the user approves the names before any code exists
+- Respond with plan file path and summary, including each phase's acceptance criteria and Out of scope (they set how many tests get written) and one **New names** table merged across phases (skip phases with none), so the user approves both before any code exists
 - Ensure self-contained plans with necessary context
 - Include code snippets/pseudocode when clarifying
 - Fully respect [`.claude/rules/development-rules.md`](../../rules/development-rules.md)

@@ -37,7 +37,7 @@ Plan dir contents:
 └── phase-06-implement-profile.md              # Profile page
 ```
 
-No separate test phase: each phase writes its own tests test-first (TDD) and names the behaviors they prove in its Success Criteria.
+No separate test phase: each phase writes its own tests test-first (TDD), one per acceptance criterion.
 
 ### Task Hydration
 
@@ -187,10 +187,19 @@ Fill "Why this word" only when a likelier word was rejected. Write "none" when t
 **Todo List**
 - Checkbox list for tracking
 
-**Success Criteria**
-- Definition of done
-- Validation methods
-- Behaviors this phase proves with tests (written test-first here, not in a later phase)
+**Acceptance criteria** — what the user checks to accept the phase. Each gets one test (or one parametrized test), so this list sets how many tests the phase writes; the user approves it with the plan.
+```markdown
+- AC1 — `POST /users` with a valid body returns 201 and stores the user. Check: test `creates user from valid body`
+- AC2 — an invalid email is rejected with 400. Edge cases: empty, missing `@`, 255 chars. Check: test `rejects invalid email` (parametrized)
+- AC3 — the migration applies to a copy of the current schema. Check: command `npm run migrate:check`
+```
+- Observable behavior through the public interface, numbered `AC1…`, one `Check:` each (test name, or a command for config/markdown/migration work)
+- Edge cases the phase must handle go on their criterion (`Edge cases:`); an edge case not listed is not tested in this phase — the reviewer may raise it as a finding
+- At most 5 per phase, each something the user would check by hand. More than 5 → one line under the list saying why, or split the phase
+
+**Out of scope** — what this phase does not build or test (features, edge cases, refactors). Implementer builds none of it, tester tests none of it, reviewer marks it ✕ (`Out of scope: <item> built`).
+
+Plans written before this change have **Success Criteria** instead: read each behavior bullet as one acceptance criterion, with no Out of scope list.
 
 **Risk Assessment**
 - Potential issues
@@ -202,7 +211,7 @@ Fill "Why this word" only when a likelier word was rejected. Write "none" when t
   | model gateway | timeout / 429 | retry 2× with backoff → error event over SSE, run marked failed |
 
   Also answer: is the new component the only instance of something the system needs (one DB, one consumer, one leader)? If it dies, what stops?
-  `code-reviewer` checks the code against the `Failure modes` table (architecture & reliability checklist, R7).
+  `code-reviewer` checks the code against the `Failure modes` table (architecture & reliability checklist, R7). Rows are review input, not test cases: a row gets a test only when an acceptance criterion names it.
 
 **Security Considerations**
 - Auth/authorization
