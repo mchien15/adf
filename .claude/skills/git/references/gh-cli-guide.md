@@ -20,9 +20,10 @@ gh pr create --base main --title "feat(auth): add OAuth" --body "$(cat <<'EOF'
 - Added OAuth2 provider support
 - Implemented token refresh
 
-## Test plan
-- [ ] Unit tests pass
-- [ ] Manual login test
+## Evidence
+- `npm test` → 48 passed, 0 failed
+
+Not verified: none
 EOF
 )"
 

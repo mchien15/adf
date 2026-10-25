@@ -36,7 +36,7 @@ git diff origin/$BASE...origin/$HEAD --stat
 
 ## Tool 2: Generate Content
 **Title:** Conventional commit format, <72 chars, no version numbers
-**Body:** Summary bullets + test plan checklist
+**Body:** Summary bullets + Evidence: commands run with their result lines, the acceptance criteria table from the plan's latest review report (`{plan-dir}/reports/`, when a plan exists), and what was not verified. Never tick a box for a check nobody ran.
 
 ## Tool 3: Create PR
 ```bash
@@ -44,8 +44,14 @@ gh pr create --base $BASE --head $HEAD --title "..." --body "$(cat <<'EOF'
 ## Summary
 - Bullet points
 
-## Test plan
-- [ ] Test item
+## Evidence
+- `<command>` → <result line, e.g. 48 passed, 0 failed>
+
+| AC | Criterion | Evidence | Met |
+|---|---|---|---|
+| phase-01 AC1 | <criterion> | test `<name>` passed | ✓ |
+
+Not verified: <what nobody ran, or "none">
 EOF
 )"
 ```
