@@ -49,6 +49,7 @@ Use Task tool with `code-reviewer` type; put these in the prompt:
 **Placeholders:**
 - `{WHAT_WAS_IMPLEMENTED}` - What you just built
 - `{PLAN_OR_REQUIREMENTS}` - What it should do
+- `{EVIDENCE}` - Test commands run and their result lines (tester report: path, or the text, if any), the implementer's TDD Evidence. The reviewer reads it before the diff and fills its acceptance criteria table from it
 - `{BASE_SHA}` - Base commit; the review is `git diff {BASE_SHA}` plus untracked files
 - `{HEAD_SHA}` - HEAD at request time (record only, not part of the diff range)
 - `{RISK}` - low | medium | high, from `../../cook/references/risk-and-gates.md`
@@ -59,7 +60,7 @@ Use Task tool with `code-reviewer` type; put these in the prompt:
 **3. Act on feedback:**
 - Fix Critical issues immediately
 - Fix High issues before proceeding
-- Note Medium and Low issues for later
+- Note Medium issues; they get no new test
 - Push back if reviewer is wrong (with reasoning)
 
 ## Example
@@ -78,15 +79,16 @@ HEAD_SHA=$(git rev-parse HEAD)
   BASE_SHA: a7981ec
   HEAD_SHA: 3df7661
   RISK: medium
+  EVIDENCE: npm test → 48 passed, 0 failed (plans/.../reports/tester-....md)
   DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
 
 [Subagent returns]:
   Strengths: Clean architecture, real tests
+  Acceptance criteria: 2/2 ✓
   Architecture & reliability: A1–A4 on 3 files; R1–R9 skipped (no trigger)
   Issues:
     High: src/index/repair.ts:42 — when the index has ~1M rows → repair runs for minutes with no output and the user kills it mid-write
-    Low: Magic number (100) for reporting interval
-  Assessment: Ready to proceed
+  Verdict: Revise — one High (repair.ts:42)
 
 You: [Fix progress indicators]
 [Continue to Task 3]

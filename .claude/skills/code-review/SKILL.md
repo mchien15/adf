@@ -73,7 +73,7 @@ SITUATION?
 1. **Scout edge cases first** (see below)
 2. Base: `BASE_SHA`, picked by the snippet in [`code-reviewer.md`](../../agents/code-reviewer.md) → Review Process §1 unless you already have one; the review covers committed, uncommitted and untracked changes since it
 3. Classify risk with `../cook/references/risk-and-gates.md` → Risk Levels, state it in the dispatch and report; the user may override
-4. Dispatch code-reviewer subagent with: WHAT, PLAN, BASE_SHA, HEAD_SHA, RISK, DESCRIPTION. Risk high → also dispatch the architecture & reliability reviewer in the same message; merge both reports (see `references/requesting-code-review.md`)
+4. Dispatch code-reviewer subagent with: WHAT, PLAN, BASE_SHA, HEAD_SHA, RISK, EVIDENCE, DESCRIPTION. Risk high → also dispatch the architecture & reliability reviewer in the same message; merge both reports (see `references/requesting-code-review.md`)
 5. Fix Critical immediately, High before proceeding
 
 **Full protocol:** `references/requesting-code-review.md`
@@ -86,7 +86,7 @@ SITUATION?
 1. Invoke `/scout` with edge-case-focused prompt
 2. Scout analyzes: affected files, data flows, error paths, boundary conditions
 3. Review scout findings for potential issues
-4. Address critical gaps before code review
+4. Hand the findings (each with its scenario) to the reviewer; scouting adds no tests
 
 **Full protocol:** `references/edge-case-scouting.md`
 

@@ -7,7 +7,7 @@ Shared policy for `cook`. Keep this file as the single source of truth for risk 
 - `review gate`: human approval checkpoint in non-`auto` modes
 - `verification gate`: proof gate that cannot be skipped by mode flags
 - `checkpoint review`: mid-implementation review for risky work
-- `plan-conformance`: check that implementation matches approved scope before style/perf review
+- `plan-conformance`: evidence per acceptance criterion, collected by cook, judged by the reviewer
 
 ## Risk Levels
 
@@ -82,14 +82,14 @@ Examples:
 
 - implementation: changed files inspected and type/build command passed
 - testing: exact test command, pass/fail counts, failing test follow-up if any
-- review: reviewer score, critical count, disposition
+- review: reviewer verdict, critical count, acceptance criteria met/total, disposition
 - finalize: plan sync-back confirmed, docs update disposition, commit disposition
 
 Verification is satisfied only when the proof summary is specific enough that another agent could repeat it.
 
 ## Plan-Conformance Owner
 
-`cook` owns the Step 5 plan-conformance check. The final reviewer consumes that result and may challenge it, but does not replace the gate by default.
+`cook` collects the Step 5 evidence; the final `code-reviewer` judges each acceptance criterion (✓/✕). cook never marks a criterion met itself: the one who built it does not accept it.
 
 ## Git Closeout Rule
 
@@ -108,5 +108,5 @@ Verification is satisfied only when the proof summary is specific enough that an
 - `✓ Gate 2: ADR [created|declined|deferred-to-log|n/a]`
 - `✓ Step 7: Decision Log swept - ADR [created|declined|deferred-to-log|n/a]`
 - `✓ Step 3: Checkpoint review complete - [phase] - [approved|fixes applied]`
-- `✓ Step 5: Plan conformance verified - [N criteria met]`
+- `✓ Step 5: Plan-conformance evidence collected - [N] criteria, [M] unplanned files`
 - `✓ Step 7: Verified before completion - [command/check] - [proof supported]`

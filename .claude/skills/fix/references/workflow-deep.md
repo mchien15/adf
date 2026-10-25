@@ -60,7 +60,7 @@ Use `planner` subagent to create implementation plan.
 
 - Break down into phases
 - Identify dependencies
-- Define success criteria
+- Define acceptance criteria (the reproducing test first) and Out of scope
 
 `TaskUpdate(T4, status="completed")`
 **Output:** `✓ Step 4: Plan created - [N] phases`
@@ -80,7 +80,7 @@ See `references/parallel-exploration.md`
 Use `tester` subagent.
 
 - Full suite + the implementer's RED/GREEN evidence; add a test only for a gap the tester names
-- Check edge cases and security paths the fix touches; performance only if the bug is a performance bug
+- Edge cases and security paths the fix touches: report them as findings with a scenario, don't test them unless an acceptance criterion names them; performance only if the bug is a performance bug
 - If fail → debug, fix, repeat
 
 `TaskUpdate(T6, status="completed")`
@@ -93,7 +93,7 @@ Use `code-reviewer` subagent.
 See `references/review-cycle.md` for mode-specific handling.
 
 `TaskUpdate(T7, status="completed")`
-**Output:** `✓ Step 7: Review [score]/10 - [status]`
+**Output:** `✓ Step 7: Review [verdict] - [status]`
 
 ### Step 8: Finalize
 `TaskUpdate(T8, status="in_progress")`

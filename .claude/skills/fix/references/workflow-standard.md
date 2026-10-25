@@ -84,7 +84,7 @@ Use `code-reviewer` subagent.
 See `references/review-cycle.md` for mode-specific handling.
 
 `TaskUpdate(T5, status="completed")`
-**Output:** `✓ Step 5: Review [score]/10 - [status]`
+**Output:** `✓ Step 5: Review [verdict] - [status]`
 
 ### Step 6: Finalize
 `TaskUpdate(T6, status="in_progress")`

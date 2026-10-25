@@ -80,7 +80,7 @@ Detect multiple features from natural language:
 | Mode | Skip Research | Skip Test | Review Gates | Auto-Approve | Parallel Exec |
 |------|---------------|-----------|--------------|--------------|---------------|
 | interactive | ✗ | ✗ | **Yes (stops)** | ✗ | ✗ |
-| auto | ✗ | ✗ | **No (approval only)** | ✓ (score≥9.5) | ✓ (all phases) |
+| auto | ✗ | ✗ | **No (approval only)** | ✓ (verdict Accept, 0 Critical, 0 ✕) | ✓ (all phases) |
 | fast | ✓ | ✗ | Yes (stops) | ✗ | ✗ |
 | parallel | Optional | ✗ | Yes (stops) | ✗ | ✓ |
 | no-test | ✗ | Policy-limited | Yes (stops) | ✗ | ✗ |

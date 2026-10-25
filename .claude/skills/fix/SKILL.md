@@ -24,7 +24,7 @@ Unified skill for fixing issues of any complexity with intelligent routing.
 
 | Option | Recommend When | Behavior |
 |--------|----------------|----------|
-| **Autonomous** (default) | Simple/moderate issues | Auto-approve if score >= 9.5 & 0 critical |
+| **Autonomous** (default) | Simple/moderate issues | Auto-approve if verdict Accept, 0 Critical, 0 ✕ |
 | **Human-in-the-loop Review** | Critical/production code | Pause for approval at each step |
 | **Quick** | Type errors, lint, trivial bugs | Fast debug → fix → review cycle |
 
@@ -88,7 +88,7 @@ Unified step markers:
 ✓ Step 1: Root cause identified - [summary]
 ✓ Step 2: Fix implemented - [N] files changed
 ✓ Step 3: Tests [X/X passed]
-✓ Step 4: Review [score]/10 - [status]
+✓ Step 4: Review [verdict] - [status]
 ✓ Step 5: Complete - [action taken]
 ```
 

@@ -151,18 +151,18 @@ IMMEDIATELY execute in order:
 1. **DERIVE** N review focuses from `<scope>` (default N=3):
    - Focus 1: Security — vulnerabilities, auth, input validation, OWASP
    - Focus 2: Performance — bottlenecks, memory, complexity, scaling
-   - Focus 3: Test coverage — gaps, edge cases, error paths
+   - Focus 3: Tests — the `Tests` row of `code-reviewer.md` → Systematic Review (weakened test config, tests that prove nothing, mocks hiding integration, duplicates) and acceptance criteria without evidence
    - (If N>3, derive from scope: architecture, DX, accessibility, etc.)
 
 2. **CALL** `TeamCreate(team_name: "review-<scope-slug>")`
 
 3. **CALL** `TaskCreate` x N — one per focus:
    - Subject: `Review: <focus-title>`
-   - Description: `Review <scope> for <focus>. Output severity-rated findings only. Format: [Critical|High|Medium|Low] <finding> — <evidence> — <recommendation>; levels are defined in code-reviewer.md → Prioritization. <checklist-line> No "seems" or "probably" — concrete evidence only. Save to: {CK_REPORTS_PATH}/reviewer-{N}-{CK_NAME_PATTERN}-{scope-slug}.md. Mark task completed when done.`
+   - Description: `Review <scope> for <focus>. Output severity-rated findings only. Format: [Critical|High|Medium] <finding> — <evidence> — <recommendation>; levels are defined in code-reviewer.md → Prioritization. <checklist-line> No "seems" or "probably" — concrete evidence only. No findings is a valid result. Save to: {CK_REPORTS_PATH}/reviewer-{N}-{CK_NAME_PATTERN}-{scope-slug}.md. Mark task completed when done.`
    - `<checklist-line>` for the reviewer whose focus is architecture or reliability (reviewer 1 when no focus is): `Run the architecture & reliability checklist.` For every other reviewer: `Skip the architecture & reliability checklist and write its scope line as "skipped (separate reviewer)".`
 
 4. **CALL** `Task` x N to spawn reviewers:
-   - `subagent_type: "code-reviewer"`, `model: "haiku"`, `name: "reviewer-{N}"`
+   - `subagent_type: "code-reviewer"`, `name: "reviewer-{N}"` — no `model` override: reviewers use the session model, like cook's reviewer
    - Prompt: task description + CK Context Block
 
 5. **MONITOR** via TaskCompleted hook events + TaskList fallback:
@@ -171,7 +171,7 @@ IMMEDIATELY execute in order:
 
 6. **SYNTHESIZE** into: `{CK_REPORTS_PATH}/review-{scope-slug}.md`
    - Deduplicate findings across reviewers
-   - Prioritize by severity: Critical > High > Medium > Low (`.claude/agents/code-reviewer.md` → Prioritization)
+   - Prioritize by severity: Critical > High > Medium (`.claude/agents/code-reviewer.md` → Prioritization)
    - Create action items list with owners
 
 7. **SHUTDOWN** all teammates via `SendMessage(type: "shutdown_request")`
@@ -255,7 +255,7 @@ Agents with `memory: project` retain learnings across team sessions. Memory pers
 |----------|-----------------|----------------|
 | Research (3) | ~150K-300K | haiku for all |
 | Cook (4) | ~400K-800K | sonnet for devs, haiku for tester |
-| Review (3) | ~100K-200K | haiku for all |
+| Review (3) | ~200K-400K | session model for reviewers |
 | Debug (3) | ~200K-400K | sonnet for all |
 
 ## Error Recovery

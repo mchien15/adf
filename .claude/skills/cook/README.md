@@ -81,7 +81,7 @@ Test, plan-conformance, review and finalize run once after the last phase; `--pe
 - Behavior changes need TDD evidence at every risk level
 - High-risk phases trigger checkpoint review (with `--per-phase`, some medium-risk multi-file phases too)
 - `--no-test` is not a universal bypass
-- Plan-conformance is checked before final code-quality review
+- Plan-conformance: cook collects evidence per acceptance criterion; the final reviewer judges it
 
 ## Files
 

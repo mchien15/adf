@@ -10,7 +10,7 @@
 Create an agent team to review PR #142. Spawn three reviewers:
 - One focused on security implications
 - One checking performance impact
-- One validating test coverage
+- One checking the tests: weakened test config, tests that prove nothing, mocks hiding integration, duplicates, and acceptance criteria without evidence
 Have them each review and report findings.
 ```
 
@@ -137,7 +137,7 @@ Recommended: Most agents get `Task(Explore)` only. Planner gets `Task(Explore), 
 |----------|-----------------|----------------|
 | Research (3 teammates) | ~150K-300K | haiku for all researchers |
 | Cook (4 teammates) | ~400K-800K | sonnet for devs, haiku for tester |
-| Review (3 teammates) | ~100K-200K | haiku for all reviewers |
+| Review (3 teammates) | ~200K-400K | session model for reviewers |
 | Debug (3 teammates) | ~200K-400K | sonnet for debuggers |
 
 Agent Teams use significantly more tokens than subagents. Use only when parallel exploration + discussion adds clear value. For routine tasks, single session is more cost-effective.

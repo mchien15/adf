@@ -19,7 +19,6 @@ Main agent deeply analyzes the scope to LIST all potential edge cases FIRST:
   - Input validation holes
   - Security vulnerabilities
   - Resource leaks
-  - Untested code paths
 
 **Output format:**
 ```markdown
