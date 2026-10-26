@@ -15,7 +15,7 @@ description: Use when receiving code review feedback, before implementing sugges
 3. VERIFY: Check against codebase reality
 4. EVALUATE: Technically sound for THIS codebase?
 5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One at a time, verify each (run the suite; regression test only for behavior-changing items)
+6. IMPLEMENT: One at a time, verify each (run the suite; a new test only as `fullstack-developer.md` → Review/debug fixes says)
 ```
 
 ## Forbidden Responses
@@ -69,7 +69,7 @@ IF reviewer suggests "implementing properly":
 ```
 1. Clarify unclear items FIRST
 2. Implement: blocking → simple → complex
-3. Verify each individually (regression test only for behavior-changing items)
+3. Verify each individually (new test only as `fullstack-developer.md` → Review/debug fixes says)
 4. Verify no regressions
 ```
 

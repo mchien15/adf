@@ -280,11 +280,11 @@ Automatically orchestrated. Lead executes the full sequence on activation.
 ```
 /team review src/auth/
 ```
-- N reviewers (haiku) with specific focus areas. Default N=3.
-- Security + Performance + Test Coverage
+- N reviewers (session model) with specific focus areas. Default N=3.
+- Security + Performance + Tests
 - Evidence-based only — no "seems" or "probably"
 - Lead deduplicates and prioritizes findings
-- Est. tokens: 100K-200K
+- Est. tokens: 200K-400K
 
 ### Debug Team
 ```

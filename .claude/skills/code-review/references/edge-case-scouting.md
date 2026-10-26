@@ -34,7 +34,7 @@ Changed: {files from git diff}
 Find:
 1. Files importing/depending on changed modules
 2. Data flow paths through modified functions
-3. Error handling paths not tested
+3. Error paths: what happens when a call fails (unhandled rejection, swallowed error)
 4. Boundary conditions (null, empty, max)
 5. Race conditions in async code
 6. State management side effects
@@ -45,16 +45,16 @@ Find:
 | Finding | Action |
 |---------|--------|
 | Affected file not in scope | Add to review |
-| Data flow risk | Verify or add test |
-| Edge case | Add test or verify |
-| Missing test | Add before review |
+| Data flow risk | Report as finding with scenario "when X → Y", or verify and note |
+| Edge case | Report as finding with scenario, or verify it is handled and note |
+
+Scouting adds no tests and fixes nothing. Code that merely lacks a test is not a finding; the phase's acceptance criteria decide what gets tested.
 
 ### 4. Document for Review
 ```
 Scout findings:
-- {issues found}
+- {findings, each with "when X → Y"}
 - Verified: {what checked}
-- Addressed: {what fixed}
 - Needs review: {remaining}
 ```
 
@@ -64,7 +64,7 @@ Scout findings:
 ```
 Scout edge cases for {feature}.
 Changed: {files}
-Find: consumers, error states, untested inputs, performance, compatibility
+Find: consumers, error states, boundary inputs, performance, compatibility
 ```
 
 **Bug fix:**
@@ -93,7 +93,7 @@ Find: importers, behavior diffs, removed functionality
 
 ## Red Flags
 
-- Shared utility changed but only one caller tested
+- Shared utility changed but its other callers not checked
 - Error path leads to unhandled rejection
 - State modified in place without notification
 - Breaking change without migration
@@ -108,7 +108,7 @@ Find: importers, behavior diffs, removed functionality
    - ProfileComponent expects fresh data on edit
    - AdminPanel loops getUser() (memory risk)
    - No cache clear on updateUser()
-5. Fix: Add invalidation, maxSize
+5. Findings to reviewer: "when a user edits their profile → ProfileComponent shows stale data (no cache clear on updateUser())"
 6. Document for code-reviewer
 ```
 

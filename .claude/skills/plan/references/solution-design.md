@@ -36,6 +36,7 @@ Follow these fundamental principles:
 - Consider asynchronous processing where appropriate
 
 ### Edge Cases & Failure Modes
+- Edge cases the design must handle → the phase's acceptance criteria (`Edge cases:`); the rest → Out of scope
 - Think through error scenarios
 - Plan for network failures
 - Consider partial failure handling

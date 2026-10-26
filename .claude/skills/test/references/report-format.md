@@ -13,8 +13,12 @@ Structured QA report template. Sacrifice grammar for concision.
 - **Duration**: Xs
 
 ## Tests Added
-- `test/path/file.test.ts` — TestName — gap: [changed behavior / error path / integration point no test exercised]
+- `test/path/file.test.ts` — TestName — closes: [acceptance criterion / listed edge case no test checked; no plan: changed public behavior no test checked]
 - (or: none)
+
+## Acceptance Criteria Evidence
+- [criterion id, e.g. `phase-02 AC3`] → [test name or command] → [pass/fail]
+- (older plans: Success Criteria bullets; `/fix`: the reproducing test)
 
 ## Coverage Metrics (when the test runner produces coverage)
 | Metric   | Value | Project threshold      | Status |

@@ -3,9 +3,9 @@
 ## Step 1: Identify Scope
 
 Determine what to test based on recent changes:
-- New feature → full test suite; new tests only for gaps the implementer's test-first tests leave (name each gap)
+- New feature → full test suite; new tests only for acceptance criteria (or their edge cases) the implementer's tests leave unchecked (name each)
 - Bug fix → regression tests + targeted fix validation
-- Refactor → existing test suite (no new tests unless gaps found)
+- Refactor → existing test suite (no new tests; a characterization test only if nothing exercises the code)
 - Coverage check → full suite with coverage flags
 
 ## Step 2: Pre-flight Checks
@@ -90,7 +90,7 @@ Check for:
 - [ ] Coverage meets the project's configured threshold (if any)
 - [ ] No flaky tests detected
 - [ ] Build completes without errors
-- [ ] Error paths of the changed code exercised
+- [ ] Every acceptance criterion and listed edge case has a passing test
 - [ ] Test isolation verified (no shared state)
 - [ ] Test data cleaned up after execution
 - [ ] Mocks/stubs properly configured

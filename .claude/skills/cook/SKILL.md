@@ -93,10 +93,10 @@ Human review required at these checkpoints (skipped with `--auto`):
 - **Verification:** proof before completion is mandatory in every mode
 - **TDD:** every behavior change is written test-first by `fullstack-developer` (RED → GREEN → REFACTOR) with RED/GREEN evidence, at every risk level; skips only for the exceptions in its agent definition, with a reason
 - **Checkpoint Review:** required for high-risk phases; with `--per-phase`, also for medium-risk phases that touch 3+ files or cross-cutting behavior
-- **Plan-Conformance:** `cook` verifies approved scope before code-quality review
+- **Plan-Conformance:** `cook` collects evidence per acceptance criterion (Step 5); the final reviewer judges it — any ✕ blocks approval
 - **Testing:** 100% pass required (unless no-test mode)
 - **`no-test` limits:** cannot bypass verification and should not be used for bugfix/high-risk logic work
-- **Code Review:** User approval OR auto-approve (score≥9.5, 0 critical). Once over the diff of all phases in the run by default; per phase with `--per-phase`
+- **Code Review:** User approval OR auto-approve (verdict Accept, 0 Critical, 0 ✕). Once over the diff of all phases in the run by default; per phase with `--per-phase`
 - **Finalize (MANDATORY - never skip):**
   1. `project-manager` subagent → run full plan sync-back (all completed tasks/steps across all `phase-XX-*.md`, not only current phase), then update `plan.md` status/progress
   2. `docs-manager` subagent → update `./docs` if changes warrant

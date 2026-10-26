@@ -14,6 +14,14 @@ Agentic Development Framework (ADF) is an AI-powered development orchestration f
 
 ### Unreleased
 
+**Acceptance criteria limit tests:**
+- Phase files: numbered acceptance criteria (`AC1…`, one `Check:` each, `Edge cases:` on the criterion) and `Out of scope` replace open-ended Success Criteria; old plans' Success Criteria are read as criteria. The user approves them at cook Gate 2.
+- One test (or parametrized test) per criterion; the tester adds a test only for a criterion or listed edge case with none; a review fix gets a test only when its Critical/High finding has "when X → Y".
+- Scouting reports findings with scenarios, never "add test". Reviewer: `Tests` row (weakened test config → High; tautological, duplicate or passes-on-base tests → Medium), no Low level, "No findings" is valid, `Harness Follow-up`; `Test Coverage: [%]` removed.
+- Cook collects evidence; the reviewer judges each criterion (✓/✕) and any ✕ blocks approval, also in `--auto`; an Out of scope item that was built is a ✕ row. PR/MR bodies: `## Evidence` replaces `## Test plan`. `/team review` reviewers use the session model, not Haiku.
+- Breaking: review `score X/10` and the 9.5 / 9.0 / 8.5 auto-approve thresholds replaced by a verdict derived from findings (Block = Critical or unmet criterion, Revise = High, Accept = neither). `cook --auto` and `/fix` auto-approve on Accept with 0 Critical and 0 ✕ (`review-cycle.md` → Auto-Handling Cycle); anything outside this repo that reads `[score]/10` must read the verdict.
+- Decision record: [ADR-0001](./adr/0001-261025-review-verdict.md) (Proposed) — the verdict-from-findings rule above.
+
 **Review: architecture and reliability checks:**
 - `code-reviewer` checks every review against a 13-check checklist: A1–A4 architecture (incl. Accepted ADR conformance) and R1–R9 reliability, with R1–R9 applied only to files that hit a trigger. At `cook` high risk, a second reviewer runs only the checklist, in parallel, and the reports are merged.
 - One severity definition, in `code-reviewer.md` → Prioritization. Critical and High findings need `file:line` and a "when X → Y" scenario, otherwise they are Medium. Every review states its architecture & reliability scope.

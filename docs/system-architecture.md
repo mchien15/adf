@@ -270,12 +270,12 @@ Explore different approaches simultaneously
 3. Planner: Create implementation plan
 4. Researchers: Explore auth solutions (parallel)
 5. Planner: Synthesize research, create detailed plan
-6. Fullstack Developer: Implement code test-first — failing test, then code (one fresh subagent per phase, phases back to back; the main agent orchestrates and never edits code). Steps 6–7 repeat per phase; 8–13 run once for the whole run, or after every phase with `--per-phase`
+6. Fullstack Developer: Implement code test-first — one failing test per acceptance criterion, then code (one fresh subagent per phase, phases back to back; the main agent orchestrates and never edits code). Steps 6–7 repeat per phase; 8–13 run once for the whole run, or after every phase with `--per-phase`
 7. Main Agent: Check the diff, run type checking/compilation and checkpoint review when policy requires it
-8. Tester: Run the full suite, check TDD evidence and fill test gaps, or reject `--no-test` if the work is not low-risk
+8. Tester: Run the full suite, check TDD evidence, add a test only for an acceptance criterion with none, or reject `--no-test` if the work is not low-risk
 9. (If tests fail): Debugger analyzes, loop to step 6
-10. Cook: Verify plan conformance before final code-quality review
-11. Code Reviewer: Review the diff since the run base (`{plan-dir}/reports/run-base.txt`, written when Step 3 starts) and run the architecture & reliability checklist. At high risk, a second `code-reviewer` runs only that checklist in parallel; the two reports are merged
+10. Cook: Collect evidence per acceptance criterion (tester report, TDD evidence) for the reviewer
+11. Code Reviewer: Judge each acceptance criterion from evidence (any ✕ blocks approval); review the diff since the run base (`{plan-dir}/reports/run-base.txt`, written when Step 3 starts), incl. the Tests row and the architecture & reliability checklist. At high risk, a second `code-reviewer` runs only that checklist in parallel; the two reports are merged
 12. Docs Manager: Update documentation if warranted
 13. Git Manager: Prepare closeout; commit only when git actions are approved
 

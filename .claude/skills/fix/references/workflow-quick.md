@@ -32,16 +32,16 @@ See `references/parallel-exploration.md` for patterns.
 ### Step 3: Verify
 Use `code-reviewer` subagent for quick review.
 
-Prompt: "Quick review of fix for [issue]. Check: correctness, security, no regressions. Score X/10."
+Prompt: "Quick review of fix for [issue]. BASE_SHA=[SHA]; git diff $BASE_SHA plus untracked files. Evidence from the implementer report (path, or the text): reproducing test [name], its RED and GREEN lines. Check: correctness, security, no regressions. Return the verdict (Accept/Revise/Block), critical, and the acceptance criteria table."
 
 **Review handling:** See `references/review-cycle.md`
 
-**Output:** `✓ Step 3: Review [score]/10 - [status]`
+**Output:** `✓ Step 3: Review [verdict] - [status]`
 
 ### Step 4: Complete
 Report summary to user.
 
-**If autonomous mode:** Ask to commit via `git-manager` subagent if score >= 9.0
+**If autonomous mode:** Ask to commit via `git-manager` subagent if verdict Accept
 **If HITL mode:** Ask user next action
 
 **Output:** `✓ Step 4: Complete - [action]`

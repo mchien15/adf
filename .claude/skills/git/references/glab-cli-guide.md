@@ -25,8 +25,10 @@ glab mr create -b main -t "feat(auth): add OAuth" --description "$(cat <<'EOF'
 ## Summary
 - Added OAuth2 provider support
 
-## Test plan
-- [ ] Unit tests pass
+## Evidence
+- `npm test` → 48 passed, 0 failed
+
+Not verified: none
 EOF
 )" --yes </dev/null
 

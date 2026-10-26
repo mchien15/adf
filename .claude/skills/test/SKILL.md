@@ -88,7 +88,7 @@ Reports        → report-format.md
 
 ## Quality Standards
 
-- Critical paths and error paths in the changed code are exercised by at least one test
+- Every acceptance criterion and listed edge case has a passing test or check command
 - Ensure test isolation — no interdependencies
 - Tests must be deterministic and reproducible
 - Clean up test data after execution

@@ -475,7 +475,7 @@ describe('UserService', () => {
 - **Unit tests**: behavior of the changed code, through its public interface
 - **Integration tests**: Critical user flows
 - **E2E tests**: Critical happy paths
-- **Error scenarios**: Error paths of the changed code tested
+- **Error scenarios**: the ones a phase's acceptance criteria list (`Edge cases:`)
 
 ### Test Best Practices
 
@@ -875,8 +875,8 @@ const expensiveCalculation = memoize((n) => {
 **Testing**:
 - ✅ Unit tests included
 - ✅ Integration tests for flows
-- ✅ Edge cases tested
-- ✅ Error paths covered
+- ✅ Each acceptance criterion has a passing test or check
+- ✅ No weakened test config (skip, `.only`, lowered threshold)
 
 **Documentation**:
 - ✅ Code comments where needed

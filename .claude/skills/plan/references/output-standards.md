@@ -59,7 +59,7 @@ See `task-management.md` for full TaskCreate patterns and metadata.
 - Prioritize by dependencies, risk, business value
 - Eliminate ambiguity in instructions
 - Include specific file paths for all modifications
-- Provide clear acceptance criteria per task
+- Give each phase numbered acceptance criteria, each with its check, and an Out of scope list (`plan-organization.md` → Phase Files)
 
 ### File Management
 
@@ -109,7 +109,7 @@ Revise the plan and phases based on the answers.
 
 ### Thoroughness
 - Thorough and specific in research/planning
-- Consider edge cases, failure modes
+- Decide which edge cases each phase handles (on its acceptance criteria) and which are out of scope; consider failure modes
 - Think through entire user journey
 - Document all assumptions
 

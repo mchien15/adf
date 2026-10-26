@@ -66,7 +66,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **Output:** `✓ Step 2b: Impact reviewed - ADR [suggested|n/a]`
 
 ### [Review Gate 2] Post-Plan (skip if auto mode)
-- Present plan overview with phases, and one **New names** table merged across phases (skip phases with none) — names are cheapest to change before any code exists. In auto mode nobody sees it; the reviewer's New Vocabulary section is then the only naming check
+- Present plan overview with phases, each phase's **acceptance criteria** and **Out of scope** (they set how many tests get written — the user approves them here), and one **New names** table merged across phases (skip phases with none) — names are cheapest to change before any code exists. In auto mode nobody sees them; the reviewer's acceptance criteria table and New Vocabulary section are then the only checks
 - Use `AskUserQuestion` to ask: "Validate the plan or approve plan to start implementation?" - "Validate" / "Approve" / "Abort" / "Other" ("Request revisions")
   - "Validate": run `/plan validate` slash command
   - "Approve": continue to implementation
@@ -92,7 +92,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **All modes — the main agent orchestrates and never edits code itself:**
 - Spawn one fresh `fullstack-developer` subagent per phase, in phase order (`ui-ux-designer` for frontend UI). Prompt: see `subagent-patterns.md` → Implementation
 - Use `TaskUpdate` to assign the phase's tasks to the subagent and mark them `in_progress` when dispatching
-- The subagent works test-first (TDD): failing test → minimal code → full suite green, and reports RED/GREEN evidence per behavior. A behavior change without evidence and without an allowed skip reason goes back to the subagent
+- The subagent works test-first (TDD): failing test → minimal code → full suite green, and reports RED/GREEN evidence per acceptance criterion. A criterion without evidence and without an allowed skip reason goes back to the subagent
 - On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
 - Wrong or incomplete → `SendMessage` the findings to the same subagent (it keeps its context); spawn a fresh one if it is stuck. Do not patch the code yourself
 - Once the phase is verified, `TaskUpdate` its tasks to `completed` — this unblocks the next phase's `addBlockedBy`; Step 7 sync-back only reconciles
@@ -125,7 +125,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 ## Step 4: Testing (skip if no-test mode)
 
 **All modes (except no-test):**
-- Tests already exist from Step 3 (TDD). `tester` runs the full suite, checks the RED/GREEN evidence, and adds a test only for a gap it names (changed behavior, error path or integration point no test exercises)
+- Tests already exist from Step 3 (TDD). `tester` runs the full suite, checks the RED/GREEN evidence, and adds a test only for an acceptance criterion or listed edge case no test checks, and reports each criterion → test or command → result
 - **MUST** spawn `tester` subagent: `Task(subagent_type="tester", prompt="Run test suite", description="Run tests")`
 - If failures: **MUST** spawn `debugger` subagent → `fullstack-developer` applies the fix → repeat
 - **Forbidden:** fake mocks, commented tests, changed assertions, skipping subagent delegation
@@ -144,12 +144,13 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 
 ## Step 5: Plan-Conformance Check
 
-**All modes - required before code-quality review:**
-- Confirm delivered behavior matches the approved plan or task scope
-- Reject unplanned scope creep, missing acceptance items, or silent tradeoffs
-- `cook` owns this gate and passes the result into the final reviewer prompt
+**All modes - required before code-quality review. `cook` collects, the reviewer judges:**
+- For every phase of this run: its acceptance criteria (older plans: Success Criteria bullets) and Out of scope
+- Evidence: the Step 4 tester report (path, or the text), each implementer's TDD Evidence, and the output of any `Check:` command no test covers
+- Unplanned files: changed since `BASE_SHA` but in no phase's Related Code Files, with the reason an implementer report gives, if any
+- Do not mark criteria met yourself; pass all of it to the Step 6 reviewer, whose acceptance criteria table decides
 
-**Output:** `✓ Step 5: Plan conformance verified - [criteria met count]`
+**Output:** `✓ Step 5: Plan-conformance evidence collected - [N] criteria, [M] unplanned files`
 
 ## Step 6: Code Review
 
@@ -159,22 +160,22 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 - Risk high (Step 0): in the same message also spawn the architecture & reliability reviewer — prompt: `subagent-patterns.md` → Architecture & Reliability Review. Merge both reports: `review-cycle.md` → Merging Two Reviews
 - Risk low/medium: one reviewer; it loads the architecture & reliability checklist itself on every review (A1–A4 always, R1–R9 only on files that hit a trigger)
 - **DO NOT** review code yourself - delegate to subagent
-- Reviewer should consume Step 5 conformance output and only challenge it when evidence conflicts
+- The reviewer judges each acceptance criterion from the Step 5 evidence; any ✕ blocks approval like a Critical finding (`review-cycle.md`)
 
 **Interactive/Parallel/Code/No-test:**
 - Interactive cycle (max 3): see `review-cycle.md`
 - Requires user approval
 
 **Auto:**
-- Auto-approve if score≥9.5 AND 0 critical
-- Auto-fix critical via `fullstack-developer` (max 3 cycles)
+- Auto-approve if verdict Accept, 0 Critical, 0 ✕ (`review-cycle.md` → Auto-Handling Cycle)
+- Auto-fix critical findings and unmet criteria via `fullstack-developer` (max 3 cycles)
 - Escalate to user after 3 failed cycles
 
 **Fast:**
 - Simplified review, no fix loop
 - User approves or aborts
 
-**Output:** `✓ Step 6: Review [score]/10 - [Approved|Auto-approved] - code-reviewer subagent invoked [+ architecture & reliability reviewer]`
+**Output:** `✓ Step 6: Review [verdict] - [Approved|Auto-approved] - code-reviewer subagent invoked [+ architecture & reliability reviewer]`
 
 ## Step 7: Finalize
 

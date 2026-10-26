@@ -315,7 +315,7 @@ Types:
 
 - Test-first (TDD) for every behavior change, through the public interface
 - Coverage is a diagnostic: follow the project's configured threshold
-- Error paths of changed code tested; performance only when required
+- One test (or parametrized test) per acceptance criterion; tester adds tests only for criteria with none; performance only when required
 - Tests must pass before push
 - No ignoring failed tests
 
