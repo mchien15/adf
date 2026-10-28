@@ -92,7 +92,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **All modes — the main agent orchestrates and never edits code itself:**
 - Spawn one fresh `fullstack-developer` subagent per phase, in phase order (`ui-ux-designer` for frontend UI). Prompt: see `subagent-patterns.md` → Implementation
 - Use `TaskUpdate` to assign the phase's tasks to the subagent and mark them `in_progress` when dispatching
-- The subagent works test-first (TDD): failing test → minimal code → full suite green, and reports RED/GREEN evidence per acceptance criterion. A criterion without evidence and without an allowed skip reason goes back to the subagent
+- The subagent works test-first (TDD): failing test → minimal code → tests of the changed code green, then the full suite once at the end of the phase, and reports RED/GREEN evidence per acceptance criterion. A criterion without evidence and without an allowed skip reason goes back to the subagent
 - On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
 - Wrong or incomplete → `SendMessage` the findings to the same subagent (it keeps its context); spawn a fresh one if it is stuck. Do not patch the code yourself
 - Once the phase is verified, `TaskUpdate` its tasks to `completed` — this unblocks the next phase's `addBlockedBy`; Step 7 sync-back only reconciles
@@ -240,7 +240,7 @@ code:        0 → skip → skip → 3(1…N) → 4 → [R] → 5 → 6(user) �
 
 **Default — final.** Phases run back to back and Steps 4–7 run once for every phase implemented in this run (the whole plan, or only the phases still open when resuming or cooking a single `phase-*.md`):
 
-1. **Per phase — Step 3 only.** Dispatch the phase to `fullstack-developer` (TDD; its Verify GREEN runs the full suite), check `git diff --stat` + typecheck, mark the phase's tasks complete, go straight to the next phase. No `tester`, no `code-reviewer`, no finalize between phases.
+1. **Per phase — Step 3 only.** Dispatch the phase to `fullstack-developer` (TDD; it runs the full suite once, at the end of the phase), check `git diff --stat` + typecheck, mark the phase's tasks complete, go straight to the next phase. No `tester`, no `code-reviewer`, no finalize between phases.
    - Checkpoint review still runs for **high-risk** phases (hard gate). Medium-risk checkpoints are covered by the final review.
    - A phase that fails verification is fixed (same subagent) before the next phase starts — never carry a red suite forward.
    - Keep each phase's report, with its TDD Evidence, in the plan's `reports/` so Step 4 can hand all of it to `tester` — also after compaction or a resume.

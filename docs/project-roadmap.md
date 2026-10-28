@@ -14,6 +14,10 @@ Agentic Development Framework (ADF) is an AI-powered development orchestration f
 
 ### Unreleased
 
+**Full test suite once per phase:**
+- `fullstack-developer` Verify GREEN and each review fix run only the new test and the test files of the changed code; the full suite runs once, in Quality Assurance, at the end of the phase or of a batch of fixes. Before: every acceptance criterion and every review fix ran the full suite.
+- `tester` still runs the full suite after the last phase (cook Step 4).
+
 **Acceptance criteria limit tests:**
 - Phase files: numbered acceptance criteria (`AC1…`, one `Check:` each, `Edge cases:` on the criterion) and `Out of scope` replace open-ended Success Criteria; old plans' Success Criteria are read as criteria. The user approves them at cook Gate 2.
 - One test (or parametrized test) per criterion; the tester adds a test only for a criterion or listed edge case with none; a review fix gets a test only when its Critical/High finding has "when X → Y".
