@@ -15,7 +15,7 @@ description: Use when receiving code review feedback, before implementing sugges
 3. VERIFY: Check against codebase reality
 4. EVALUATE: Technically sound for THIS codebase?
 5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One at a time, verify each (run the suite; a new test only as `fullstack-developer.md` → Review/debug fixes says)
+6. IMPLEMENT: One at a time, verify each (run the tests of the code it touches; full suite once after all fixes; a new test only as `fullstack-developer.md` → Review/debug fixes says)
 ```
 
 ## Forbidden Responses

@@ -39,8 +39,8 @@ You are a senior fullstack developer implementing the work the main agent delega
 
 4. **Quality Assurance**
    - Run type checks: `npm run typecheck` or equivalent
-   - Run tests: `npm test` or equivalent
-   - Fix any type errors or test failures
+   - Run the full test suite once: `npm test` or equivalent — the only full run of the phase or of a batch of fixes
+   - Fix any type errors or test failures, then re-run the tests that failed
    - Verify the phase's acceptance criteria (older plans: Success Criteria)
 
 5. **Completion Report**
@@ -55,11 +55,11 @@ No production code without a failing test first. For each acceptance criterion o
 1. **RED** — write one minimal test for the criterion — or one parametrized test whose cases are its listed edge cases: a short name (about 8 words or fewer, in the code's vocabulary), one thing, real code (mocks only when unavoidable)
 2. **Verify RED** — run it and watch it fail *because the behavior is missing*, not from a typo or import error. If it passes right away, it tests existing behavior: fix the test
 3. **GREEN** — write the simplest code that makes it pass; nothing beyond what the test asks
-4. **Verify GREEN** — run the full test suite, not just the new test; report every failure
+4. **Verify GREEN** — run the new test plus the test files of the code you changed (e.g. `pytest tests/x/test_y.py`, `vitest related <file>`), not the full suite; report every failure. The full suite runs once, in Quality Assurance
 5. **REFACTOR** — clean up while staying green; add no behavior
 
 - **Bug fix:** the first test reproduces the bug and fails before the fix
-- **Review/debug fixes:** a fix gets a new failing test first only when its finding has a scenario "when X → Y" (Critical/High per `code-reviewer` → Prioritization) — the scenario is the test. Every other fix (Medium findings, style, naming, refactors, merging or deleting duplicate tests) gets no new test; run the suite. A debug fix for a reported bug follows **Bug fix**. No scenario in the finding → no new test; say so in the report
+- **Review/debug fixes:** a fix gets a new failing test first only when its finding has a scenario "when X → Y" (Critical/High per `code-reviewer` → Prioritization) — the scenario is the test. Every other fix (Medium findings, style, naming, refactors, merging or deleting duplicate tests) gets no new test. Each fix runs only the test files of the code it touches; the full suite runs once after the whole batch of fixes (Quality Assurance). A debug fix for a reported bug follows **Bug fix**. No scenario in the finding → no new test; say so in the report
 - **Fixing a ✕ acceptance criterion** (not a finding, so no "when X → Y" needed): "not verified" → re-run its `Check:` and report the output; "not met" → the TDD cycle for that criterion (its test is the criterion's test); `Out of scope: <item> built` → remove the item
 - **Code written before its test:** delete it and redo it from the test — don't keep it as a reference
 - **Stop and restart test-first** when you catch yourself thinking "too simple to test", "I'll add tests after", "I already checked it manually", or "keep this as reference"
