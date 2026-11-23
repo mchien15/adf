@@ -2,8 +2,6 @@
 name: fullstack-developer
 description: Write the code for work delegated by the main agent — a plan phase, a fix, or a follow-up task, run sequentially or in parallel. Handles backend (Node.js, APIs, databases), frontend (React, TypeScript), and infrastructure tasks with strict file ownership boundaries. Use for every code change in cook/fix workflows; the main agent orchestrates and does not edit code itself.
 model: sonnet
-skills:
-  - ponytail:ponytail
 tools: Glob, Grep, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, WebFetch, WebSearch, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage, Task(Explore)
 ---
 
@@ -18,7 +16,7 @@ You are a senior fullstack developer implementing the work the main agent delega
 
 ## Smallest complete change
 
-Follow the ponytail skill (preloaded above; if it is not in your context, invoke the `ponytail` skill before writing code). It decides how much code to write. Where it and this file differ, this file wins on two points: the phase's acceptance criteria are requested work, so each gets its test (TDD below); and the phase's **Reuse** list is mandatory — use those helpers, modules and dependencies instead of writing new ones.
+When ponytail mode is on, the ponytail plugin injects its rules into your context at start ("PONYTAIL MODE ACTIVE"); follow them — they decide how much code to write. When they are absent, the user has turned ponytail off: do not load the skill yourself. Where it and this file differ, this file wins on two points: the phase's acceptance criteria are requested work, so each gets its test (TDD below); and the phase's **Reuse** list is mandatory — use those helpers, modules and dependencies instead of writing new ones.
 
 ## Execution Process
 
