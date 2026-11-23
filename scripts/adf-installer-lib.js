@@ -5,7 +5,6 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
 
 const MANIFEST_VERSION = '2.0.0';
 const DEFAULT_PROFILE = 'adf';
@@ -18,12 +17,6 @@ const NC = '\x1b[0m';
 const TOOL_ALIASES = new Map([
   ['', 'claude'],
   ['claude', 'claude'],
-  ['ag', 'ag'],
-  ['antigravity', 'ag'],
-  ['opencode', 'opencode'],
-  ['oc', 'opencode'],
-  ['codex', 'codex'],
-  ['all', 'all'],
   ['repair', 'repair'],
   ['rollback', 'rollback'],
   ['help', 'help'],
@@ -36,13 +29,12 @@ const TOOL_ALIASES = new Map([
 
 const BLOCKS = {
   'CLAUDE.md': 'adf-claude-instructions',
-  'AGENTS.md': 'adf-agents-instructions',
+  'AGENTS.md': 'adf-agents-instructions', // legacy: never installed now, kept so old installs can be cleaned up
 };
 
 const OWNERSHIP = {
   TREE: 'managed-children',
   BLOCK: 'managed-block',
-  GENERATED: 'generated-exclusive',
 };
 
 function createInstallerContext(env = {}) {
@@ -61,17 +53,13 @@ function warn(message) { log(YELLOW, message); }
 function fail(message, code = 1) { log(RED, message); process.exit(code); }
 
 function usage(adfHome) {
-  console.log(`ADF - Install ADF payload into .adf with tool-specific support surfaces
+  console.log(`ADF - Install the ADF Claude Code payload into .adf
 
-Usage: adf [tool] [flags]
+Usage: adf [command] [flags]
 
-Tools:
-  adf                Install Claude support surfaces (default)
-  adf claude         Install Claude support surfaces
-  adf ag             Install Antigravity support surfaces
-  adf opencode       Install OpenCode support surfaces
-  adf codex          Install Codex support surfaces
-  adf all            Install all support surfaces
+Commands:
+  adf                Install Claude Code support (default)
+  adf claude         Install Claude Code support
   adf repair         Recreate missing/broken managed outputs from manifest
   adf rollback [id]  Restore last successful managed state (default: latest)
   adf --update       Update ~/bin/adf from ADF_HOME
@@ -82,8 +70,8 @@ Flags:
   --adopt-legacy      Adopt pristine legacy root-copy installs
 
 Examples:
-  adf opencode --git-profile cmc
-  adf all --dry-run
+  adf claude --git-profile cmc
+  adf claude --dry-run
   adf claude --adopt-legacy
   adf repair
   adf rollback latest
@@ -292,19 +280,9 @@ function payloadStatePaths(context, baseRoot = repoPath(context, '.adf')) {
     manifest: path.join(baseRoot, 'manifest.json'),
     backups: path.join(baseRoot, 'backups'),
     payload: path.join(baseRoot, 'payload'),
-    payloadGenerated: path.join(baseRoot, 'payload', '.generated'),
     nextRoot: path.join(baseRoot, 'state', 'next'),
     nextPayload: path.join(baseRoot, 'state', 'next', 'payload'),
-    nextPayloadGenerated: path.join(baseRoot, 'state', 'next', 'payload', '.generated'),
   };
-}
-
-function filterFrameworkTree(relative) {
-  const normalized = relative.split(path.sep).join('/');
-  if (normalized.startsWith('.opencode/node_modules')) return false;
-  if (normalized.startsWith('.opencode/agents')) return false;
-  if (normalized.startsWith('.codex/agents')) return false;
-  return true;
 }
 
 function stagePayload(context, gitProfile, dryRun) {
@@ -313,18 +291,13 @@ function stagePayload(context, gitProfile, dryRun) {
   fs.rmSync(paths.nextRoot, { recursive: true, force: true });
   fs.mkdirSync(paths.nextPayload, { recursive: true });
 
-  const copies = ['.claude', '.agent', '.codex', '.opencode', 'CLAUDE.md', 'AGENTS.md', 'opencode.json'];
+  const copies = ['.claude', 'CLAUDE.md'];
   for (const item of copies) {
     const source = path.join(context.adfHome, item);
     if (!fs.existsSync(source)) continue;
     const target = path.join(paths.nextPayload, item);
     if (statType(source) === 'directory') {
-      fs.cpSync(source, target, {
-        recursive: true,
-        dereference: item === '.agent',
-        force: true,
-        filter: (src) => filterFrameworkTree(path.relative(context.adfHome, src) || item),
-      });
+      fs.cpSync(source, target, { recursive: true, force: true });
     } else {
       fs.mkdirSync(path.dirname(target), { recursive: true });
       fs.copyFileSync(source, target);
@@ -332,34 +305,22 @@ function stagePayload(context, gitProfile, dryRun) {
   }
 
   const overlayRoot = resolveOverlayRoot(context, gitProfile);
-  if (overlayRoot) {
+  const overlaySource = overlayRoot && path.join(overlayRoot, '.claude');
+  if (overlaySource && fs.existsSync(overlaySource)) {
     const configRel = path.join('config', 'adf-config.json');
-    for (const area of ['.claude', '.agent']) {
-      const source = path.join(overlayRoot, area);
-      const target = path.join(paths.nextPayload, area);
-      if (!fs.existsSync(source)) continue;
-      // Copy everything EXCEPT config/adf-config.json verbatim; that file is deep-merged
-      // below so a partial overlay config does not clobber base config keys.
-      fs.cpSync(source, target, {
-        recursive: true,
-        dereference: false,
-        force: true,
-        filter: (src) => path.relative(source, src) !== configRel,
-      });
-      const overlayConfig = path.join(source, configRel);
-      if (fs.existsSync(overlayConfig)) mergeOverlayConfig(path.join(target, configRel), overlayConfig);
-    }
+    const target = path.join(paths.nextPayload, '.claude');
+    // Copy everything EXCEPT config/adf-config.json verbatim; that file is deep-merged
+    // below so a partial overlay config does not clobber base config keys.
+    fs.cpSync(overlaySource, target, {
+      recursive: true,
+      dereference: false,
+      force: true,
+      filter: (src) => path.relative(overlaySource, src) !== configRel,
+    });
+    const overlayConfig = path.join(overlaySource, configRel);
+    if (fs.existsSync(overlayConfig)) mergeOverlayConfig(path.join(target, configRel), overlayConfig);
   }
 
-  fs.mkdirSync(paths.nextPayloadGenerated, { recursive: true });
-  const generateArgs = [
-    path.join(context.adfHome, 'scripts', 'generate-tool-configs.js'),
-    '--source-root', path.join(paths.nextPayload, '.claude', 'agents'),
-    '--codex-out', path.join(paths.nextPayloadGenerated, '.codex', 'agents'),
-    '--opencode-out', path.join(paths.nextPayloadGenerated, '.opencode', 'agents'),
-  ];
-  if (dryRun) generateArgs.push('--dry-run');
-  execFileSync(process.execPath, generateArgs, { stdio: 'inherit' });
   return paths;
 }
 
@@ -383,33 +344,10 @@ function treeEntries(rootDir, rootName) {
   return entries;
 }
 
-function desiredEntries(command, paths) {
+function desiredEntries(paths) {
   const payload = paths.nextPayload && fs.existsSync(paths.nextPayload) ? paths.nextPayload : paths.payload;
-  const generated = paths.nextPayloadGenerated && fs.existsSync(paths.nextPayloadGenerated) ? paths.nextPayloadGenerated : paths.payloadGenerated;
-  const entries = [];
-  const includeClaude = ['claude', 'opencode', 'codex', 'all'].includes(command);
-  const includeAg = ['ag', 'all'].includes(command);
-  const includeOpencode = ['opencode', 'all'].includes(command);
-  const includeCodex = ['codex', 'all'].includes(command);
-
-  if (includeClaude) entries.push(...treeEntries(path.join(payload, '.claude'), '.claude'));
-  if (includeAg) entries.push(...treeEntries(path.join(payload, '.agent'), '.agent'));
-  if (includeOpencode) {
-    entries.push(...treeEntries(path.join(payload, '.opencode'), '.opencode'));
-    entries.push({ path: '.opencode/agents', kind: 'path', ownership: OWNERSHIP.GENERATED, source: path.join(generated, '.opencode', 'agents') });
-    entries.push({ path: 'opencode.json', kind: 'path', ownership: OWNERSHIP.TREE, source: path.join(payload, 'opencode.json') });
-  }
-  if (includeCodex) {
-    entries.push(...treeEntries(path.join(payload, '.codex'), '.codex'));
-    entries.push({ path: '.codex/agents', kind: 'path', ownership: OWNERSHIP.GENERATED, source: path.join(generated, '.codex', 'agents') });
-    entries.push({ path: '.agents', kind: 'symlink', ownership: OWNERSHIP.GENERATED, target: '.claude', fallbackSource: path.join(payload, '.claude') });
-  }
-  if (['claude', 'opencode', 'all'].includes(command)) {
-    entries.push({ path: 'CLAUDE.md', kind: 'block', ownership: OWNERSHIP.BLOCK, source: path.join(payload, 'CLAUDE.md') });
-  }
-  if (['ag', 'codex', 'all'].includes(command)) {
-    entries.push({ path: 'AGENTS.md', kind: 'block', ownership: OWNERSHIP.BLOCK, source: path.join(payload, 'AGENTS.md') });
-  }
+  const entries = treeEntries(path.join(payload, '.claude'), '.claude');
+  entries.push({ path: 'CLAUDE.md', kind: 'block', ownership: OWNERSHIP.BLOCK, source: path.join(payload, 'CLAUDE.md') });
   return entries.filter((entry) => !entry.source || fs.existsSync(entry.source));
 }
 
@@ -445,7 +383,7 @@ function classifyEntry(context, entry, manifest) {
 
 function removalEntries(manifest, command, paths) {
   if (!manifest || !manifest.managedPaths || command === 'repair') return [];
-  const desired = new Set(desiredEntries(command, paths).map((entry) => entry.path));
+  const desired = new Set(desiredEntries(paths).map((entry) => entry.path));
   return Object.keys(manifest.managedPaths)
     .filter((managedPath) => !desired.has(managedPath))
     .sort()
@@ -616,7 +554,6 @@ function buildManifest(context, command, gitProfile, backupId, entries, legacyAd
     installMode: command,
     gitProfile,
     payloadRoot: '.adf/payload',
-    generatedRoot: '.adf/payload/.generated',
     backupRoot: '.adf/backups',
     latestBackupId: backupId,
     backups,
@@ -707,28 +644,17 @@ function runInstall(context, command, options) {
       staged = {
         root: repairRoot,
         payload: repoPath(context, '.adf/payload'),
-        payloadGenerated: options.dryRun
-          ? path.join(repairRoot, 'payload', '.generated')
-          : repoPath(context, '.adf/payload/.generated'),
       };
     } else {
       staged = stagePayload(context, effectiveGitProfile, options.dryRun);
     }
 
-    const installMode = requestedCommand === 'repair' ? manifest && manifest.installMode : requestedCommand;
+    const installMode = 'claude'; // legacy manifests may record codex/opencode/ag/all; repair and install both target claude
     if (requestedCommand === 'repair') {
       if (!manifest) fail('Repair requires an existing .adf/manifest.json');
-      const repairGenerated = staged.payloadGenerated;
-      fs.rmSync(repairGenerated, { recursive: true, force: true });
-      execFileSync(process.execPath, [
-        path.join(context.adfHome, 'scripts', 'generate-tool-configs.js'),
-        '--source-root', path.join(staged.payload, '.claude', 'agents'),
-        '--codex-out', path.join(repairGenerated, '.codex', 'agents'),
-        '--opencode-out', path.join(repairGenerated, '.opencode', 'agents'),
-      ], { stdio: 'inherit' });
     }
 
-    const plan = desiredEntries(installMode, staged).map((entry) => ({ ...entry, ...classifyEntry(context, entry, manifest) }));
+    const plan = desiredEntries(staged).map((entry) => ({ ...entry, ...classifyEntry(context, entry, manifest) }));
     const removals = removalEntries(manifest, requestedCommand, staged);
     printPlan(installMode, [...plan, ...removals]);
 
@@ -751,9 +677,9 @@ function runInstall(context, command, options) {
     ensureAdfGitignore(context);
     warnCmcDocsSetup(context, effectiveGitProfile);
 
-    const manifestValue = buildManifest(context, installMode, effectiveGitProfile, backupId, desiredEntries(installMode, payloadStatePaths(context)), legacy.length > 0);
+    const manifestValue = buildManifest(context, installMode, effectiveGitProfile, backupId, desiredEntries(payloadStatePaths(context)), legacy.length > 0);
     writeJson(repoPath(context, '.adf/manifest.json'), manifestValue);
-    success(`Done! Installed ${installMode} compatibility via .adf payload`);
+    success(`Done! Installed Claude Code support via .adf payload`);
   } finally {
     cleanupStaging(context, staged);
   }
@@ -769,10 +695,6 @@ function main(argv = process.argv.slice(2), env = process.env) {
       case 'rollback': runRollback(context, options.rollbackId); return;
       case 'repair': runInstall(context, 'repair', options); return;
       case 'claude':
-      case 'ag':
-      case 'opencode':
-      case 'codex':
-      case 'all':
         runInstall(context, options.command, options);
         return;
       default:

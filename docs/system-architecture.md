@@ -30,7 +30,7 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 ### 1. Core Layer
 
 #### 1.1 CLI Interface
-**Location**: Claude Code CLI OR Antigravity IDE
+**Location**: Claude Code CLI
 **Responsibility**: User interaction and command routing
 **Key Functions**:
 - Parse slash commands
@@ -40,7 +40,6 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 
 **Technologies**:
 - Anthropic Claude Code CLI (via `claude` command)
-- Antigravity IDE (cross-platform AI code editor)
 
 #### 1.2 Command Parser
 **Location**: Built into CLI
@@ -52,7 +51,7 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 - `$1, $2, $3...` - Individual positional arguments
 
 #### 1.3 Configuration Manager
-**Location**: `.claude/` (canonical source) and `.agent/` (Antigravity)
+**Location**: `.claude/` (canonical source)
 **Responsibility**: Load agent and command definitions
 **File Types**:
 - Agent definitions (`.md` with YAML frontmatter)
@@ -63,7 +62,7 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 **Cross-Platform Design**:
 - Source repo canonical tree: `.claude/`
 - Installed repo canonical tree: `.adf/payload/`
-- Root `.claude/`, `.agent/`, `.agents/`, `.codex/agents/`, `.opencode/agents/`, `CLAUDE.md`, and `AGENTS.md` are generated compatibility outputs
+- Root `.claude/` and the managed block in `CLAUDE.md` are generated outputs
 - Ownership and recovery are tracked in `.adf/manifest.json`
 
 #### 1.4 Installer Profile Resolution
@@ -78,19 +77,18 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 3. Validate requested profile against `profiles/git-profiles.json`
 4. Stage canonical payload under `.adf/payload`
 5. Apply narrow overlay files from `profiles/<profile>/` onto staged payload
-6. Generate root compatibility outputs and write manifest
+6. Generate Claude Code outputs and write manifest
 
 **Overlay targets**:
-- `.claude/` for Claude Code, OpenCode, and Codex
-- `.agent/` for Antigravity
+- `.claude/` for Claude Code
 
 ```text
-adf <tool> --git-profile cmc
+adf claude --git-profile cmc
     -> parse args
     -> validate manifest entry
     -> stage payload in .adf/payload
     -> overlay profile-specific git refs
-    -> generate compatibility outputs
+    -> write Claude Code outputs
     -> write manifest + backup metadata
     -> target repo reads updated git guidance
 ```
@@ -142,16 +140,8 @@ temperature: 0.1
 ## Quality Standards
 ```
 
-**Agent Modes**:
-- `subagent`: Spawned by other agents, runs independently
-- `all`: Can be invoked as main or sub agent
-
 **Model Selection**:
-- Source `.claude/agents/*.md` keeps abstract model tiers such as `opus`, `sonnet`, `haiku`, and `inherit`
-- OpenCode generated subagents map those tiers to explicit GitHub Copilot model IDs
-- Codex generated agents map those tiers to explicit OpenAI model IDs in `.codex/agents/*.toml`
-- Codex omits `model` when source tier is `inherit`, so runtime inheritance still works
-- Default OpenCode fallback for `inherit` or missing model is `github-copilot/claude-sonnet-4.6`
+- Source `.claude/agents/*.md` keeps abstract model tiers such as `opus`, `sonnet`, `haiku`, and `inherit`, which Claude Code resolves at runtime
 
 #### 2.3 Agent Communication Protocol
 
@@ -190,7 +180,7 @@ Issues, blockers, or questions
 
 ### 3. Command Layer
 
-#### 3.1 Command Categories (Unified: Claude Code + Antigravity)
+#### 3.1 Command Categories (Claude Code)
 
 **Core Development**:
 - `/plan` - Research and planning
@@ -209,13 +199,12 @@ Issues, blockers, or questions
 - `/specs` - Requirements analysis, FSD and use case management (init, analyze, update)
 - `/test-cases` - Test case generation, update, and export (generate, update, export csv/json)
 
-**Skill-Backed Commands** (`.claude/skills/` + `.agent/workflows/`):
+**Skill-Backed Commands** (`.claude/skills/`):
 - `bootstrap/` - Project initialization workflows
 - `docs/` - Documentation workflows
 - `plan/` - Planning workflow variants
 - `code-review/` - Code review workflows
 - `test/` - Testing workflows
-- Plus 11 additional workflow proxy files in `.agent/workflows/`
 
 #### 3.2 Command Workflow Pattern
 
@@ -1055,52 +1044,6 @@ User Project
 - Custom integration framework
 - Enterprise service connectors
 
-## Tool Compatibility Layer
-
-ADF supports four AI coding tools. `.claude/` is the canonical authored source; Codex and OpenCode consume generated artifacts while Claude Code and Antigravity consume native or linked surfaces.
-
-### Symlink Strategy
-
-```
-.agents        → .claude              # Codex skill discovery + authored references
-.agent/agents  → .claude/agents       # Antigravity agents
-.agent/skills  → .claude/skills       # Antigravity skills
-.agent/rules   → .claude/rules        # Antigravity rules
-```
-
-### Generator Flow
-
-```
-.claude/agents/*.md  (source of truth)
-        │
-        ▼  node scripts/generate-tool-configs.js
-        ├── .codex/agents/*.toml     (name + description + optional mapped model + developer_instructions)
-        └── .opencode/agents/*.md    (full: frontmatter + mapped tools/model + body)
-```
-
-Run the generator after any change to `.claude/agents/*.md`.
-
-### Hook Porting Matrix
-
-| Claude Hook | Event | Codex | OpenCode |
-|---|---|---|---|
-| `session-init.cjs` | SessionStart | `session-init-codex.cjs` | `session.created` in `adf-hooks.js` |
-| `dev-rules-reminder.cjs` | UserPromptSubmit | `dev-rules-reminder-codex.cjs` | _(via session message)_ |
-| `privacy-block.cjs` | PreToolUse | `privacy-block-codex.cjs` (Bash only) | `tool.execute.before` in `adf-hooks.js` |
-
-**Known limitation:** Codex `PreToolUse` intercepts Bash only, so Codex privacy enforcement is degraded relative to Claude for Read/Edit/Write operations.
-
-Support status and runtime guarantees live in `docs/tool-support-matrix.md`.
-
-### Tool Feature Matrix
-
-| Tool | Skills | Agents | Hooks | Config |
-|------|--------|--------|-------|--------|
-| Claude Code | `.claude/skills/` | `.claude/agents/` | `.claude/hooks/` | `CLAUDE.md` |
-| Antigravity | `.agent/skills/` (symlink) | `.agent/agents/` (symlink) | built-in | `AGENTS.md` |
-| OpenCode | `.claude/skills/` (native) | `.opencode/agents/` | `.opencode/plugins/adf-hooks.js` | `opencode.json` |
-| OpenAI Codex | `.agents/skills/` (symlink) | `.codex/agents/` | `.codex/hooks/` | `.codex/config.toml` |
-
 ## References
 
 ### Internal Documentation
@@ -1110,9 +1053,6 @@ Support status and runtime guarantees live in `docs/tool-support-matrix.md`.
 
 ### Tool & Platform Documentation
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code/overview)
-- [Antigravity IDE](https://antigravity.dev)
-- [OpenCode](https://opencode.ai)
-- [OpenAI Codex](https://openai.com/codex)
 - [MCP Documentation](https://modelcontextprotocol.io/)
 - [Semantic Versioning](https://semver.org/)
 

@@ -7,7 +7,7 @@ Legacy install means ADF files already exist at repo root without `./.adf/manife
 ADF treats a legacy path as adoptable when:
 
 - the current root path matches the desired generated content exactly, or
-- `CLAUDE.md` / `AGENTS.md` already match the ADF source text or managed-block output
+- `CLAUDE.md` already matches the ADF source text or managed-block output
 
 Run:
 
@@ -23,7 +23,6 @@ Examples:
 
 - repo-owned custom `CLAUDE.md`
 - modified `.claude/rules/*.md`
-- custom `.agents` target
 
 Use `adf --dry-run` first to inspect conflicts.
 

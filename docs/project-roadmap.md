@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Agentic Development Framework (ADF) is an AI-powered development orchestration framework for building professional software. v0.0.1 is the initial public release with **cross-platform support** for Claude Code, Antigravity IDE, OpenCode, and OpenAI Codex — a complete, production-ready foundation with unified tool support contract.
+Agentic Development Framework (ADF) is an AI-powered development orchestration framework for building professional software. v0.0.1 is the initial public release for **Claude Code** — a complete, production-ready foundation.
 
 ---
 
@@ -48,7 +48,6 @@ First public release. Includes full agent orchestration, skills library, hook sy
 - Skill system with 44 skills (plan, cook, fix, test, debug, brainstorm, etc.)
 - Hook system (session-init, dev-rules, subagent-init, scout-block, privacy-block)
 - File-based agent communication via plans/reports
-- Tool support contract for Claude Code, Antigravity, OpenCode, and Codex
 
 **Workflows:**
 - `/plan` — research + phased implementation plans (--fast, --hard, --two, --parallel)
@@ -61,13 +60,11 @@ First public release. Includes full agent orchestration, skills library, hook sy
 - `/docs` — documentation generation and sync
 
 **Infrastructure:**
-- **Cross-Platform**: Claude Code (macOS/Linux/Windows) + Antigravity IDE + OpenCode + OpenAI Codex with unified tool support contract
+- **Cross-Platform**: Claude Code (macOS/Linux/Windows)
 - Plans dashboard (`/plans-kanban`)
 - Preview system (`/preview --explain|--diagram|--slides|--ascii`)
 - Agent Teams for parallel multi-session collaboration (`/team`)
 - MCP integrations (context7, sequential-thinking, chrome-devtools)
-- `.claude/` canonical source with generated artifacts for `.codex/` and `.opencode/`
-- Tool support matrix defining native, degraded, and unsupported surfaces
 
 **Documentation:**
 - Auto-generated project docs (overview, architecture, code standards, codebase summary)

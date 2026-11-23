@@ -4,7 +4,7 @@
  * Run: node --test .claude/hooks/__tests__/integration/worktree-plans-paths.test.cjs
  *
  * plans/ and reports resolve against the main worktree; docs/ stays with cwd.
- * Covers session-init, subagent-init, dev-rules-reminder and the Codex hooks.
+ * Covers session-init, subagent-init, dev-rules-reminder.
  */
 
 const { describe, it, before, after } = require('node:test');
@@ -17,7 +17,6 @@ const path = require('path');
 const { createRepoWithWorktree } = require('../helpers/temp-git-worktree.cjs');
 
 const CLAUDE_HOOKS = path.join(__dirname, '..', '..');
-const CODEX_HOOKS = path.join(CLAUDE_HOOKS, '..', '..', '.codex', 'hooks');
 
 /** Current month bucket, plus the previous/next candidate around a month rollover */
 function monthBuckets() {
@@ -44,7 +43,7 @@ function runHook(hookPath, input, { cwd, env = {} }) {
     const proc = spawn('node', [hookPath], {
       cwd,
       // CK_SESSION_ID cleared so an outer Claude session's state never leaks in
-      env: { ...process.env, CLAUDE_ENV_FILE: '', CK_SESSION_ID: '', CODEX_THREAD_ID: '', ...env }
+      env: { ...process.env, CLAUDE_ENV_FILE: '', CK_SESSION_ID: '', ...env }
     });
     let stdout = '';
     let stderr = '';
@@ -129,66 +128,5 @@ describe('hooks inside a linked git worktree', () => {
     } finally {
       fs.rmSync(planDir, { recursive: true, force: true });
     }
-  });
-
-  it('codex session-init: plans + reports under main worktree, fixed report types', async () => {
-    const res = await runHook(path.join(CODEX_HOOKS, 'session-init-codex.cjs'), { cwd: repo.worktree }, {
-      cwd: repo.worktree
-    });
-    assert.strictEqual(res.exitCode, 0, res.stderr);
-    const ctx = res.output.hookSpecificOutput.additionalContext;
-    assertIncludesMonthBucket(ctx, `- Reports: ${plans}/reports/`, '/');
-    assert.ok(ctx.includes(`- Plan dir: \`${plans}/`), ctx);
-    assert.ok(ctx.includes('with one of: researcher, brainstormer'), ctx);
-  });
-
-  it('codex session-init: branch-matched plan reads as (matched from branch), no plan reads as none', async () => {
-    const planDir = path.join(plans, '260929-1200-wt-test');
-    const run = () => runHook(path.join(CODEX_HOOKS, 'session-init-codex.cjs'), { cwd: repo.worktree }, { cwd: repo.worktree });
-
-    const none = (await run()).output.hookSpecificOutput.additionalContext;
-    assert.ok(none.includes('- Active Plan: none'), none);
-    // Dev Rules point at the resolved main-worktree plans dir, not a cwd-relative ./plans/
-    assert.ok(none.includes(`- Plans: \`${plans}/\` directory`), none);
-    assert.ok(!none.includes('`./plans/`'), none);
-
-    makePlan(planDir);
-    try {
-      const ctx = (await run()).output.hookSpecificOutput.additionalContext;
-      assert.ok(ctx.includes(`- Plan: ${planDir} (matched from branch)`), ctx);
-      assert.ok(!ctx.includes('Suggested'), ctx);
-    } finally {
-      fs.rmSync(planDir, { recursive: true, force: true });
-    }
-  });
-
-  it('codex dev-rules-reminder: branch-matched plan reports resolve in main worktree', async () => {
-    const planDir = path.join(plans, '260929-1200-wt-test');
-    makePlan(planDir);
-    try {
-      const res = await runHook(path.join(CODEX_HOOKS, 'dev-rules-reminder-codex.cjs'), { cwd: repo.worktree }, {
-        cwd: repo.worktree
-      });
-      assert.strictEqual(res.exitCode, 0, res.stderr);
-      const ctx = res.output.hookSpecificOutput.additionalContext;
-      assert.ok(ctx.includes(`- Plan: ${planDir} (matched from branch)`), ctx);
-      assert.ok(!ctx.includes('Suggested'), ctx);
-      assert.ok(ctx.includes(`- Reports: ${planDir}/reports/`), ctx);
-      assert.ok(ctx.includes(`- Plan dir: \`${plans}/`), ctx);
-      assert.ok(ctx.includes('with one of: researcher, brainstormer'), ctx);
-    } finally {
-      fs.rmSync(planDir, { recursive: true, force: true });
-    }
-  });
-
-  it('codex dev-rules-reminder: static reminder names the resolved plans path, not ./plans/', async () => {
-    const res = await runHook(path.join(CODEX_HOOKS, 'dev-rules-reminder-codex.cjs'), { cwd: repo.worktree }, {
-      cwd: repo.worktree
-    });
-    assert.strictEqual(res.exitCode, 0, res.stderr);
-    const ctx = res.output.hookSpecificOutput.additionalContext;
-    assert.ok(ctx.includes(`Plans → \`${plans}/\``), ctx);
-    assert.ok(!ctx.includes('Plans → `./plans/`'), ctx);
-    assert.ok(ctx.includes(`else \`${plans}/reports/{YYMM}/\``), ctx);
   });
 });

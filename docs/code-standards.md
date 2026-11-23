@@ -49,20 +49,12 @@ project-root/
 │   ├── config/                # ADF configuration
 │   ├── metadata.json          # Framework version
 │   └── settings.json          # Hook configuration
-├── .agent/                     # Antigravity IDE compatibility output
-│   ├── agents/                # → symlink to .claude/agents/
-│   ├── skills/                # → symlink to .claude/skills/
-│   ├── rules/                 # → symlink to .claude/rules/
-│   ├── workflows/             # 13 slash command proxies
-│   ├── ARCHITECTURE.md        # Agent/skill/workflow reference
-│   └── AGENTS.md              # Antigravity instructions
 ├── .github/                    # GitHub-specific files
 │   └── workflows/             # CI/CD workflows
 ├── profiles/                   # Installer profile overlays
 │   ├── git-profiles.json      # Git profile manifest
 │   └── [profile-name]/        # Per-profile overlay files
-│       ├── .claude/           # Claude/OpenCode/Codex git overrides
-│       └── .agent/            # Antigravity git overrides
+│       └── .claude/           # Claude Code git overrides
 ├── docs/                       # Project documentation
 ├── plans/                      # Implementation plans (one tree shared by all git worktrees)
 │   ├── {date}-{slug}/          # Live plan: plan.md, phase files, reports/, scratch/
@@ -73,7 +65,6 @@ project-root/
 ├── tests/                      # Test suites (if applicable)
 ├── .gitignore                 # Git ignore patterns
 ├── CLAUDE.md                  # Claude Code instructions
-├── AGENTS.md                  # Antigravity instructions
 ├── README.md                  # Project overview
 └── LICENSE                    # License file
 ```
@@ -92,7 +83,7 @@ project-root/
 - Do not add new runtime features here
 - Add new capabilities as skills in `.claude/skills/`
 
-**Skills** (`.claude/skills/` — also available in `.agent/skills/` via symlink):
+**Skills** (`.claude/skills/`):
 - Format: `[skill-name]/SKILL.md`
 - Use kebab-case for directory names
 - Main file always named `SKILL.md`
@@ -122,8 +113,7 @@ project-root/
 **Overlay Rules**:
 - Base install still comes from canonical framework files
 - Installer applies profile overlay to staged `.adf/payload/`
-- `.claude/` overlay affects Claude Code, OpenCode, and Codex payload outputs
-- `.agent/` overlay affects Antigravity payload outputs
+- `.claude/` overlay affects Claude Code payload outputs
 - Keep overlays narrow: git guidance, branch workflow refs, related command docs
 
 **When adding a new profile**:
@@ -629,13 +619,10 @@ function example() {
 ---
 name: agent-name
 description: Brief description of agent purpose and when to use it
-mode: subagent | all
-model: github-copilot/claude-sonnet-4.6
-temperature: 0.1
+model: opus | sonnet | haiku | inherit
+tools: Glob, Grep, Read, Edit, Write, Bash
 ---
 ```
-
-For OpenCode-generated agents, prefer explicit `provider/model` IDs when the project needs deterministic provider routing across subagents.
 
 **Required Sections**:
 1. Agent role and responsibilities
@@ -945,7 +932,6 @@ const expensiveCalculation = memoize((n) => {
 
 ### Tool Documentation
 - [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code/overview)
-- [Antigravity IDE](https://antigravity.dev)
 
 ## Unresolved Questions
 

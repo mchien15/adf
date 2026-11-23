@@ -294,7 +294,7 @@ function execSafe(cmd, options = {}) {
 
 /**
  * Report types accepted in report filenames: {type}-{name-pattern}.md
- * Single source of truth for the Naming section injected by session/prompt/codex hooks.
+ * Single source of truth for the Naming section injected by session/prompt hooks.
  */
 const REPORT_TYPES = Object.freeze([
   'researcher',

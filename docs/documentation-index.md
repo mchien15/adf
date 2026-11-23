@@ -8,53 +8,30 @@ This file provides a navigation guide to all ADF documentation with description 
 **Audience:** Everyone — new users first stop
 **Contents:**
 - Project overview and key benefits
-- Tool compatibility matrix (Claude Code, Antigravity, OpenCode, Codex)
-- Quick start with 5 setup options
-- Step-by-step installation instructions per tool
-- Workflow invocation guide (slash commands vs native prompts)
+- Quick start with Claude Code
+- Installation instructions
+- Workflow invocation guide (slash commands)
 
-### 2. [Tool Support Matrix](./tool-support-matrix.md) — Support Contract
-**Audience:** Integration engineers, maintainers, tool-specific power users
-**Contents:**
-- Per-tool support status (native/degraded/unsupported)
-- Canonical vs generated paths for agents, skills, hooks, configs
-- Tool-specific notes and limitations
-- Release gate validation commands
-- Codex privacy enforcement limitations
-
-### 3. [Release and Validation Procedures](./release-and-validation.md) — Pre-Release QA
-**Audience:** Maintainers, CI/CD engineers, release managers
-**Contents:**
-- Three validation scripts (Claude, Codex, support matrix)
-- Configuration regeneration procedure
-- Full release gate checklist
-- CI/CD integration examples
-- Troubleshooting validation failures
-
-## Architecture & Design
-
-### 4. [System Architecture](./system-architecture.md) — Technical Deep Dive
+### 2. [System Architecture](./system-architecture.md) — Technical Deep Dive
 **Audience:** Architects, advanced developers, extension builders
 **Contents:**
 - Component interactions and data flow
 - Hook system and boot sequence
-- Tool integration architecture (Claude/Codex/OpenCode)
 - Workflow execution model
 - Command routing and argument handling
 - Cross-platform differences and limitations
 - 1100+ lines of technical reference
 
-### 5. [Project Overview & PDR](./project-overview-pdr.md) — Product Definition
+### 3. [Project Overview & PDR](./project-overview-pdr.md) — Product Definition
 **Audience:** Product managers, stakeholders, new team members
 **Contents:**
 - Vision, mission, and value proposition
 - Target users and personas
-- Key features (16 agents, 45 skills, multi-tool orchestration)
-- Tool support contract overview
+- Key features (16 agents, 45 skills, slash-command workflows)
 - Functional and non-functional requirements
 - Success metrics and technical architecture
 
-### 6. [Code Standards](./code-standards.md) — Development Conventions
+### 4. [Code Standards](./code-standards.md) — Development Conventions
 **Audience:** Contributors, code reviewers, developers
 **Contents:**
 - Naming conventions across agents, skills, files
@@ -67,7 +44,7 @@ This file provides a navigation guide to all ADF documentation with description 
 
 ## Project Organization
 
-### 7. [Project Roadmap](./project-roadmap.md) — Release Timeline
+### 5. [Project Roadmap](./project-roadmap.md) — Release Timeline
 **Audience:** Everyone — what's completed, what's coming
 **Contents:**
 - v0.0.1 initial release features (16 agents, 44 skills, hooks, CLI)
@@ -75,17 +52,17 @@ This file provides a navigation guide to all ADF documentation with description 
 - Near-term priorities and future roadmap
 - Success metrics and technical stack
 
-### 8. [Codebase Summary](./codebase-summary.md) — High-Level Structure
+### 6. [Codebase Summary](./codebase-summary.md) — High-Level Structure
 **Audience:** Developers exploring the codebase
 **Contents:**
 - Directory structure with descriptions
-- `.claude/`, `.codex/`, `.opencode/` directories explained
+- `.claude/` directory explained
 - File organization patterns
 - Key entry points and workflow pathways
 
 ## Specialized Topics
 
-### 9. [Agent Teams Guide](./agent-teams-guide.md) — Parallel Collaboration
+### 7. [Agent Teams Guide](./agent-teams-guide.md) — Parallel Collaboration
 **Audience:** Advanced workflow users, team leads
 **Contents:**
 - Agent team spawning and coordination
@@ -94,7 +71,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Report generation and aggregation
 - Team scaling strategies
 
-### 10. [Skill-Native Task](./skill-native-task.md) — Custom Skill Development
+### 8. [Skill-Native Task](./skill-native-task.md) — Custom Skill Development
 **Audience:** Skill developers, extension authors
 **Contents:**
 - Anatomy of a skill
@@ -103,7 +80,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Skill testing and validation
 - Skill publishing guidelines
 
-### 11. [Skills Dependency Graph](./skills-dependency-graph.md) — Skill Relationships
+### 9. [Skills Dependency Graph](./skills-dependency-graph.md) — Skill Relationships
 **Audience:** Architects, skill maintainers
 **Contents:**
 - Dependency tree visualization
@@ -111,7 +88,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Breaking change impact analysis
 - Circular dependency detection
 
-### 12. [Skills Interconnection Map](./skills-interconnection-map.md) — Skill Workflow Integration
+### 10. [Skills Interconnection Map](./skills-interconnection-map.md) — Skill Workflow Integration
 **Audience:** Advanced workflow users, orchestration planners
 **Contents:**
 - Which skills call which other skills
@@ -121,7 +98,7 @@ This file provides a navigation guide to all ADF documentation with description 
 
 ## Installation & Operations
 
-### 13. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer Architecture
+### 11. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer Architecture
 **Audience:** Operations teams, deployment engineers
 **Contents:**
 - Canonical vs installed payload structure
@@ -129,7 +106,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Local configuration overrides
 - Repair and rollback capabilities
 
-### 14. [ADF Install Migration Guide](./adf-install-migration-guide.md) — Upgrading
+### 12. [ADF Install Migration Guide](./adf-install-migration-guide.md) — Upgrading
 **Audience:** Users updating existing ADF installations
 **Contents:**
 - Safe upgrade procedures
@@ -137,7 +114,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Breaking change handling
 - Data preservation during upgrade
 
-### 15. [ADF Rollback and Repair](./adf-rollback-and-repair.md) — Recovery
+### 13. [ADF Rollback and Repair](./adf-rollback-and-repair.md) — Recovery
 **Audience:** Operations, support teams
 **Contents:**
 - Rollback to previous versions
@@ -145,7 +122,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Snapshot management
 - Safety procedures
 
-### 16. [ADF Legacy Adoption Rules](./adf-legacy-adoption-rules.md) — Integration
+### 14. [ADF Legacy Adoption Rules](./adf-legacy-adoption-rules.md) — Integration
 **Audience:** Teams migrating from non-ADF projects
 **Contents:**
 - Adopting existing projects
@@ -153,7 +130,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Breaking changes
 - Safe adoption checklist
 
-### 17. [ADF Manifest Schema](./adf-manifest-schema.md) — Specification
+### 15. [ADF Manifest Schema](./adf-manifest-schema.md) — Specification
 **Audience:** Tool builders, integration engineers
 **Contents:**
 - `.adf/manifest.json` schema
@@ -167,26 +144,21 @@ This file provides a navigation guide to all ADF documentation with description 
 
 **New Users:**
 1. [README.md](../README.md) — Understand what ADF is
-2. [Tool Support Matrix](./tool-support-matrix.md) — See which tool you're using
-3. [README.md](../README.md) setup section — Install for your tool
+2. [README.md](../README.md) setup section — Install for Claude Code
 
 **Developers:**
 1. [Code Standards](./code-standards.md) — Learn coding conventions
 2. [System Architecture](./system-architecture.md) — Understand how things work
-3. [AGENTS.md](../AGENTS.md) — AI coding instructions
+3. [CLAUDE.md](../CLAUDE.md) — AI coding instructions
 4. [Skill-Native Task](./skill-native-task.md) — Extend with custom skills
 
 **Maintainers:**
-1. [Release and Validation Procedures](./release-and-validation.md) — Pre-release QA
-2. [Tool Support Matrix](./tool-support-matrix.md) — Support contract
-3. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer ops
-4. [Skills Dependency Graph](./skills-dependency-graph.md) — Impact analysis
+1. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer ops
+2. [Skills Dependency Graph](./skills-dependency-graph.md) — Impact analysis
 
 **Operations / DevOps:**
 1. [ADF Install Ownership Model](./adf-install-ownership-model.md)
 2. [ADF Rollback and Repair](./adf-rollback-and-repair.md)
-3. [Release and Validation Procedures](./release-and-validation.md) — CI/CD setup
-4. [Tool Support Matrix](./tool-support-matrix.md) — Platform limitations
 
 **Architects:**
 1. [System Architecture](./system-architecture.md)
@@ -196,11 +168,6 @@ This file provides a navigation guide to all ADF documentation with description 
 
 ### By Topic
 
-**Tool Support & Compatibility:**
-- [Tool Support Matrix](./tool-support-matrix.md) — What works per tool
-- [System Architecture](./system-architecture.md) — Tool integration details
-- [Release and Validation Procedures](./release-and-validation.md) — Validation scripts
-
 **Installation & Upgrade:**
 - [README.md](../README.md) — Initial setup
 - [ADF Install Ownership Model](./adf-install-ownership-model.md) — How installer works
@@ -209,7 +176,7 @@ This file provides a navigation guide to all ADF documentation with description 
 
 **Development Practices:**
 - [Code Standards](./code-standards.md) — Conventions
-- [AGENTS.md](../AGENTS.md) — Workflow rules
+- [CLAUDE.md](../CLAUDE.md) — Workflow rules
 - [System Architecture](./system-architecture.md) — Technical patterns
 
 **Extending ADF:**
@@ -225,8 +192,6 @@ This file provides a navigation guide to all ADF documentation with description 
 ## Related Files
 
 - **CLAUDE.md** — Claude Code project instructions (generated)
-- **AGENTS.md** — Codex/Antigravity project instructions + AI guidance
-- **opencode.json** — OpenCode configuration (generated)
 - **README.md** — Project overview and quick start
 
 ## Document Maintenance

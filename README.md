@@ -1,6 +1,6 @@
 # Agentic Development Framework
 
-A comprehensive framework for building professional software projects with **AI Coding Agents**. Works with **Claude Code**, **Antigravity**, **OpenAI Codex**, and **OpenCode** using one shared workflow model with tool-native invocation.
+A framework for building software with **Claude Code**: agents, skills, hooks and rules in `.claude/`, installed into any project with the `adf` CLI.
 
 ADF draws ideas and inspiration from several open-source projects and communities like Superpowers, ClaudeKit, AntigravityKit, GSD, etc..
 
@@ -11,7 +11,6 @@ ADF draws ideas and inspiration from several open-source projects and communitie
 - **Automated Testing** — comprehensive test generation and execution
 - **Smart Documentation** — docs that evolve with your code
 - **Clean Git Workflow** — professional conventional commits and branch management
-- **Cross-Platform** — one workflow model across Claude Code, Antigravity, OpenCode, and Codex
 
 ## Documentation
 
@@ -20,38 +19,16 @@ ADF draws ideas and inspiration from several open-source projects and communitie
 - **[System Architecture](./docs/system-architecture.md)** — Component interactions and data flow
 - **[Code Standards](./docs/code-standards.md)** — Naming conventions and best practices
 - **[Codebase Summary](./docs/codebase-summary.md)** — High-level project structure overview
-- **[Tool Support Matrix](./docs/tool-support-matrix.md)** — Per-tool support contract, degraded surfaces, and release gate
-- **[Release and Validation Procedures](./docs/release-and-validation.md)** — Pre-release QA checklist and validation scripts
 
 ---
 
 ## Quick Start
 
-## Supported AI Coding Tools
-
-| Tool | Skills | Agents | Hooks | Setup |
-|------|--------|--------|-------|-------|
-| Claude Code | ✅ 45 native | ✅ 16 native | ✅ Native | Built-in (`CLAUDE.md`) |
-| Antigravity | ✅ 45 via generated links | ✅ 16 via generated links | ✅ Native to tool | Built-in (`AGENTS.md`) |
-| OpenCode | ✅ 45 native | ✅ 16 generated | ✅ Native plugin coverage | `opencode.json` included |
-| OpenAI Codex | ✅ 45 via `.agents/skills/` | ✅ 16 generated native agents | ⚠️ Degraded privacy hook coverage* | `adf codex` |
-
-\* Codex hook coverage is first-class for session/bootstrap and bash privacy interception, but Codex cannot hook Read/Edit/Write the same way Claude can. See [the tool support matrix](./docs/tool-support-matrix.md).
-
-After modifying `.claude/agents/*.md`, regenerate tool configs:
-```bash
-node scripts/generate-tool-configs.js
-```
-
-Installed repos generate those outputs from `./.adf/payload/.claude/agents`.
-
----
-
 ### Prerequisites
 - Git for version control
 - macOS 10.15+, Ubuntu 20.04+/Debian 10+, or Windows 10+ (WSL/Git Bash)
 - 4GB+ RAM
-- **One of:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview), [Antigravity IDE](https://antigravity.dev), [OpenCode](https://opencode.ai), or [OpenAI Codex](https://openai.com/codex)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)
 
 ### Step 1: Clone ADF
 
@@ -84,9 +61,7 @@ source ~/.zshrc
 
 > `ADF_HOME` defaults to `~/adf`. Only set it if you cloned elsewhere.
 
-### Step 3: Setup for Your Tool
-
-#### Option A: Claude Code
+### Step 3: Install into a project
 
 ```bash
 cd /path/to/your-project
@@ -100,68 +75,16 @@ Then launch:
 claude
 ```
 
-Claude Code reads `CLAUDE.md` and loads the full agent/skill ecosystem automatically.
+Claude Code reads `CLAUDE.md` and loads the agents and skills automatically.
 
-#### Option B: Antigravity
+> **Note:** In this source repo, `.claude/` is canonical. In installed repos, ADF lives under `./.adf/payload/`, and the root `.claude/` and the managed block in `CLAUDE.md` are tracked by `./.adf/manifest.json`.
 
-```bash
-cd /path/to/your-project
-adf ag
-# or
-adf ag --git-profile cmc
-```
-
-Then open your project in Antigravity IDE. The workflows (slash commands) are available immediately.
-
-#### Option C: OpenCode
-
-```bash
-cd /path/to/your-project
-adf opencode
-# or
-adf opencode --git-profile cmc
-```
-
-Then launch:
-```bash
-opencode
-```
-
-OpenCode reads `.claude/skills/` natively and `.opencode/agents/` for agent configs.
-
-#### Option D: OpenAI Codex
-
-```bash
-cd /path/to/your-project
-adf codex
-# or
-adf codex --git-profile cmc
-```
-
-Then launch:
-```bash
-codex
-```
-
-Codex reads `AGENTS.md`, `.codex/config.toml`, generated custom agents in `.codex/agents/`, and skill content via `.agents/skills/`.
-
-#### Option E: All tools (recommended for teams)
-
-```bash
-cd /path/to/your-project
-adf all
-# or
-adf all --git-profile cmc
-```
-
-> **Note:** In this source repo, `.claude/` is canonical. In installed repos, ADF lives under `./.adf/payload/`, and root paths such as `.claude/`, `.agent/`, `.agents`, `.codex/agents/`, `.opencode/agents/`, `CLAUDE.md`, and `AGENTS.md` are generated compatibility outputs tracked by `./.adf/manifest.json`.
-
-> **Upgrading?** Run `adf --update` to pull the latest CLI, then re-run `adf <tool>` in your project.
+> **Upgrading?** Run `adf --update` to pull the latest CLI, then re-run `adf claude` in your project. A repo installed earlier with `adf all`, `adf codex`, `adf opencode` or `adf ag` gets its `.codex/`, `.opencode/`, `.agent/`, `.agents` and `AGENTS.md` block removed on that run (backed up in `.adf/backups/`).
 
 > **Git profiles:** If `--git-profile` is omitted, ADF keeps the profile recorded by a prior install (`.adf/manifest.json`), or uses `adf` for a fresh install. Pass `--git-profile <id>` to set or switch it explicitly. Available profiles: `adf`, `cmc`.
-> **Shorthand:** A trailing known profile name is treated as `--git-profile`, so `adf opencode cmc` works like `adf opencode --git-profile cmc`.
+> **Shorthand:** A known profile name is treated as `--git-profile`, so `adf cmc` and `adf claude cmc` work like `adf claude --git-profile cmc`.
 > **CMC profile & docs:** Under `cmc`, ADF writes its generated docs to `./.adf/docs/` (code-level only: `codebase-summary.md`, `code-standards.md`, `documentation-index.md`) instead of `docs/`, leaving the company's curated `docs/` knowledge base untouched. The installer ships `./.adf/.gitignore` so `.adf/docs/` is committed while `payload/`, `backups/`, and `state/` stay untracked. **Do not add `.adf/` to your repo-root `.gitignore`** — git will not descend into an excluded directory to re-include `docs/`, so `.adf/docs/` would silently never be committed.
-> **Safety:** Use `adf <tool> --dry-run` to preview changes. Legacy root-copy installs require `--adopt-legacy` before ADF will take ownership.
+> **Safety:** Use `adf claude --dry-run` to preview changes. Legacy root-copy installs require `--adopt-legacy` before ADF will take ownership.
 
 ### Installer Behavior
 
@@ -192,28 +115,12 @@ One-way publish via `rsync`. Never touches `settings.json`, `settings.local.json
 
 ### Using ADF
 
-ADF keeps the same workflow intent across tools, but each tool uses its native invocation model.
-
-### Workflow Invocation By Tool
-
-- Claude Code, Antigravity, OpenCode: use ADF slash commands directly such as `/plan`, `/cook`, `/fix`, `/test`
-- Codex: use Codex-native prompts and generated custom agents, for example `Use the plan skill to design auth` or `Use the cook skill on plans/.../plan.md`
-- All tools share the same authored sources in `.claude/`, but Codex and OpenCode consume generated artifacts
-
 #### Initialize Documentation
 
 On first run, generate baseline docs for your codebase.
 
-Claude Code, Antigravity, OpenCode:
-
 ```
 /docs init
-```
-
-Codex:
-
-```text
-Use the docs skill to initialize the project documentation.
 ```
 
 Creates `docs/` files: project overview, code standards, system architecture, codebase summary. These living docs keep agents context-aware about your project.
@@ -222,16 +129,8 @@ Creates `docs/` files: project overview, code standards, system architecture, co
 
 Before writing code, create an implementation plan.
 
-Claude Code, Antigravity, OpenCode:
-
 ```
 /plan "add user authentication with OAuth2"
-```
-
-Codex:
-
-```text
-Use the plan skill to create an implementation plan for OAuth2 authentication.
 ```
 
 **What happens behind the scenes:**
@@ -244,14 +143,11 @@ Plan files are saved to `plans/{date}-{slug}/` with `plan.md` (overview) and `ph
 
 | Invocation | Use Case |
 |---------|----------|
-| `/plan "task"` | Claude/OpenCode/Antigravity standard research + plan |
-| `Use the plan skill for "task"` | Codex-native equivalent |
-| `/plan --fast "task"` | Fast path on slash-command tools |
-| `/plan --hard "task"` | Deep research path on slash-command tools |
+| `/plan "task"` | Standard research + plan |
+| `/plan --fast "task"` | Fast path |
+| `/plan --hard "task"` | Deep research path |
 
 #### Implement
-
-Claude Code, Antigravity, OpenCode:
 
 **Step-by-step** (recommended for complex features):
 ```
@@ -268,24 +164,10 @@ Claude Code, Antigravity, OpenCode:
 /cook plans/260315-auth-implementation/plan.md
 ```
 
-Codex:
-
-```text
-Use the cook skill on plans/260315-auth-implementation/plan.md.
-```
-
 #### Fix Bugs
-
-Claude Code, Antigravity, OpenCode:
 
 ```
 /fix "login form not validating email"
-```
-
-Codex:
-
-```text
-Use the fix skill to debug why the login form is not validating email.
 ```
 
 | Command | Use Case |
@@ -301,32 +183,16 @@ Use the fix skill to debug why the login form is not validating email.
 
 #### Test
 
-Claude Code, Antigravity, OpenCode:
-
 ```
 /test
-```
-
-Codex:
-
-```text
-Use the tester agent or the test skill to run and analyze the test suite.
 ```
 
 Runs your test suite, analyzes results, and reports coverage.
 
 #### Code Review
 
-Claude Code, Antigravity, OpenCode:
-
 ```
 /code-review
-```
-
-Codex:
-
-```text
-Use the code-reviewer agent to review the current changes.
 ```
 
 Multi-pass review: code quality, security, performance, edge cases.
@@ -419,29 +285,11 @@ Syncs `docs/` with current codebase state.
 │   ├── rules/              # Development rules and workflows
 │   ├── skills/             # 45 skill modules
 │   └── config/             # ADF configuration
-├── .agent/                  # Antigravity (symlinks to .claude/)
-│   ├── agents/             # → .claude/agents/
-│   ├── rules/              # → .claude/rules/
-│   ├── skills/             # → .claude/skills/
-│   └── workflows/          # 13 slash command proxies
-├── .agents                  # → symlink to .claude (Codex skill discovery)
-├── .codex/                  # OpenAI Codex configuration
-│   ├── config.toml         # Project-scoped Codex config
-│   ├── hooks.json          # Hook registry (3 hooks)
-│   ├── hooks/              # Hook scripts (session-init, dev-rules, privacy-block)
-│   └── agents/             # Generated Codex custom agents (16 × .toml)
-├── .opencode/               # OpenCode configuration
-│   ├── agents/             # Generated from .claude/agents/ (16 × .md)
-│   └── plugins/
-│       └── adf-hooks.js    # OpenCode plugin (session, privacy, simplify)
-├── scripts/
-│   └── generate-tool-configs.js  # Regenerates .codex/agents/ + .opencode/agents/
+├── scripts/                # adf installer, sync-claude-global.sh
 ├── docs/                   # Project documentation (auto-generated)
 ├── plans/                  # Implementation plans and reports
 │   └── reports/            # Agent-to-agent communication
-├── opencode.json           # OpenCode project config (model, permissions)
 ├── CLAUDE.md               # Claude Code instruction file
-├── AGENTS.md               # Tool-agnostic instruction file
 └── README.md               # This file
 ```
 
@@ -504,7 +352,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Issue Tracker](https://github.com/sotatek-dev/adf/issues)
 - [Feature Requests](https://github.com/sotatek-dev/adf/discussions)
 - [Claude Code Docs](https://docs.anthropic.com/en/docs/claude-code/overview)
-
----
-
-**Works with Claude Code, Antigravity, OpenCode, and OpenAI Codex.** Same framework, same workflow model, tool-native execution.
