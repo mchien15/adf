@@ -111,6 +111,8 @@ To publish changes to `.claude/` (managed dirs: skills, agents, rules, hooks, sc
 
 One-way publish via `rsync`. Never touches `settings.json`, `settings.local.json`, `agent-memory/`, or runtime state (sessions, projects, history.jsonl, tasks, caches). Run `--dry-run` first to preview. `ADF_HOME` defaults to `~/adf`.
 
+Managed dirs are synced with `--delete`, so anything you installed there yourself would be removed. List such paths in `~/.claude/adf-sync-exclude.txt`, one per line relative to `~/.claude` (e.g. `skills/my-own-skill`), and the sync leaves them alone.
+
 ---
 
 ### Using ADF

@@ -7,6 +7,10 @@
 # settings*.json, agent-memory/, or runtime state (sessions, projects, history.jsonl,
 # tasks, caches…). settings.json is never written — only checked for drift. macOS openrsync OK.
 #
+# User-owned extras: list paths (relative to ~/.claude, one per line, '#' comments) in
+# ~/.claude/adf-sync-exclude.txt to keep them from --delete, e.g. skills/my-own-skill.
+# The script only reads that file, never writes it.
+#
 # Usage:  ./scripts/sync-claude-global.sh [--dry-run]
 # Env:    ADF_HOME   source repo root (default: $HOME/adf)
 #
@@ -50,6 +54,10 @@ Usage: ./scripts/sync-claude-global.sh [--dry-run]
 Env:
   ADF_HOME    Source repo root (default: \$HOME/adf). Source = \$ADF_HOME/.claude
 
+Keep your own files: list paths relative to ~/.claude (one per line, '#' comments) in
+  ~/.claude/adf-sync-exclude.txt, e.g. skills/my-own-skill — they are not deleted.
+  First segment must be a synced dir below; the file is never written.
+
 Syncs (allowlist): ${MANAGED_DIRS[*]} + managed root files.
 Skips in-dir cruft: .gitignore'd files, .claude/, .logs/, .coverage, .DS_Store.
 Never touches:     settings.json, settings.local.json, agent-memory/, and all runtime
@@ -81,6 +89,26 @@ if [[ $DRY_RUN -eq 1 ]]; then
   echo "— DRY RUN: no writes —"
 fi
 
+# User-owned exclude list: validated lines (managed-dir-relative) in KEEP_PATHS.
+KEEP_PATHS=()
+EXCLUDE_FILE="$DEST/adf-sync-exclude.txt"
+if [[ -f "$EXCLUDE_FILE" ]]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    line="${line#"${line%%[![:space:]]*}"}"; line="${line%"${line##*[![:space:]]}"}"  # trim
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    while [[ "$line" == */ ]]; do line="${line%/}"; done
+    first="${line%%/*}"; ok=0
+    for m in "${MANAGED_DIRS[@]}"; do [[ "$first" == "$m" ]] && ok=1; done
+    if [[ $ok -eq 0 || "$line" == "$first" || "$line" == *..* ]]; then
+      warn "adf-sync-exclude.txt: ignoring '$line' (must be <managed dir>/<path>, no '..')"
+      continue
+    fi
+    KEEP_PATHS+=("$line")
+    echo "kept (adf-sync-exclude.txt): $line"
+  done <"$EXCLUDE_FILE"
+fi
+
 CHANGES="$(mktemp)"; trap 'rm -f "$CHANGES"' EXIT
 
 # ── sync funcs ──────────────────────────────────────────────────────────────────
@@ -97,7 +125,11 @@ sync_dir() {
   [[ -d "$s" ]] || { warn "skip missing source dir: $s"; return; }
   # || die: pipefail makes a failed rsync abort the pipeline; surface it loudly instead of
   # dying silently mid-loop (partial-and-silent is the worst failure for a live-config sync).
-  rsync "${DIR_OPTS[@]}" "$s" "$d" | sed "s#^#[$name] #" >>"$CHANGES" || die "rsync failed for [$name]"
+  local keep=() p
+  for p in "${KEEP_PATHS[@]+"${KEEP_PATHS[@]}"}"; do
+    [[ "$p" == "$name/"* ]] && keep+=("--exclude=/${p#"$name"/}")
+  done
+  rsync "${DIR_OPTS[@]}" "${keep[@]+"${keep[@]}"}" "$s" "$d" | sed "s#^#[$name] #" >>"$CHANGES" || die "rsync failed for [$name]"
 }
 
 # Sync one managed file (no --delete).
