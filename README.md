@@ -404,7 +404,7 @@ Syncs `docs/` with current codebase state.
 1. **Start with `/plan`** for anything non-trivial. Plans prevent wasted effort.
 2. **Use `/cook --auto`** for small, well-understood tasks. Use `/cook` for anything complex.
 3. **Don't skip tests.** The framework enforces real tests — no mocks or fake data to pass builds.
-4. **Let agents chain.** The workflow is plan → implement → simplify → test → review. Trust the pipeline.
+4. **Let agents chain.** The workflow is plan → implement → test → review. Trust the pipeline.
 5. **Check `plans/reports/`** for detailed agent findings when debugging or reviewing.
 6. **Use `/brainstorm`** when unsure about approach — it's cheaper than re-implementing.
 

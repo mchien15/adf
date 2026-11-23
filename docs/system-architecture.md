@@ -110,7 +110,6 @@ adf <tool> --git-profile cmc
 **Implementation Agents**:
 - `fullstack-developer` - Full-stack implementation
 - `ui-ux-designer` - Design creation and UX analysis
-- `code-simplifier` - Code optimization and simplification
 
 **Quality Assurance Agents**:
 - `code-reviewer` - Code quality, architecture and reliability review
@@ -358,7 +357,6 @@ All hooks located in `.claude/hooks/` with consistent patterns - fail-safe exit 
 **Additional Hooks**:
 - `privacy-block.cjs` - Sensitive file access control
 - `descriptive-name.cjs` - Naming conventions enforcement
-- `post-edit-simplify-reminder.cjs` - Post-edit optimization hints
 - `usage-context-awareness.cjs` - Context-aware usage patterns
 - `cook-after-plan-reminder.cjs` - Cook workflow guidance
 - `skill-dedup.cjs` - Skill deduplication
@@ -1089,7 +1087,6 @@ Run the generator after any change to `.claude/agents/*.md`.
 | `session-init.cjs` | SessionStart | `session-init-codex.cjs` | `session.created` in `adf-hooks.js` |
 | `dev-rules-reminder.cjs` | UserPromptSubmit | `dev-rules-reminder-codex.cjs` | _(via session message)_ |
 | `privacy-block.cjs` | PreToolUse | `privacy-block-codex.cjs` (Bash only) | `tool.execute.before` in `adf-hooks.js` |
-| `post-edit-simplify-reminder.cjs` | PostToolUse | ❌ not available in Codex | `tool.execute.after` in `adf-hooks.js` |
 
 **Known limitation:** Codex `PreToolUse` intercepts Bash only, so Codex privacy enforcement is degraded relative to Claude for Read/Edit/Write operations.
 

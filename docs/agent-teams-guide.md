@@ -366,7 +366,7 @@ Agents persist knowledge across sessions via `memory` frontmatter in agent defin
 |-------|--------|---------|----------|
 | `project` | code-reviewer, debugger, tester, planner | `.claude/agent-memory/` (gitignored) | Project-specific patterns, test frameworks, architecture |
 | `user` | researcher | `~/.claude/agent-memory/` | Domain knowledge reusable across projects |
-| None | code-simplifier, fullstack-dev, docs-manager, journal-writer, mcp-manager, ui-ux-designer | No persistence | Session-scoped, stateless |
+| None | fullstack-dev, docs-manager, journal-writer, mcp-manager, ui-ux-designer | No persistence | Session-scoped, stateless |
 
 Memory auto-injects into agent context at session start (first 200 lines of `MEMORY.md`). Agents maintain their own memory files with insights, patterns, and lessons learned.
 
@@ -418,7 +418,7 @@ tester                                  tester
 |-------|-------------------|-----------|
 | planner | `Task(Explore)`, `Task(researcher)` | Research-then-plan workflow |
 | tester, debugger | `Task(Explore)` | Read-only codebase search |
-| code-simplifier, fullstack-dev, docs-manager | `Task(Explore)` | Read-only codebase search |
+| fullstack-dev, docs-manager | `Task(Explore)` | Read-only codebase search |
 | ui-ux-designer | `Task(Explore)`, `Task(researcher)` | Design research needs |
 | journal-writer, mcp-manager | No `Task` access | No sub-agent spawning needed |
 

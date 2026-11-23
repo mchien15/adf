@@ -88,7 +88,7 @@ Use workflow slash commands directly:
 
 - Press **Tab** to cycle agents
 - `@agent-name` to mention a specific agent inline
-- Available agents: `planner`, `researcher`, `tester`, `code-reviewer`, `debugger`, `docs-manager`, `git-manager`, `ui-ux-designer`, `fullstack-developer`, `code-simplifier`
+- Available agents: `planner`, `researcher`, `tester`, `code-reviewer`, `debugger`, `docs-manager`, `git-manager`, `ui-ux-designer`, `fullstack-developer`
 
 ## Agent Invocation (Codex)
 

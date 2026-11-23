@@ -365,11 +365,6 @@
           "type": "boolean",
           "default": true,
           "description": "PreToolUse hook - blocks sensitive files"
-        },
-        "post-edit-simplify-reminder": {
-          "type": "boolean",
-          "default": true,
-          "description": "PostToolUse hook - simplify reminder after edits"
         }
       },
       "additionalProperties": false

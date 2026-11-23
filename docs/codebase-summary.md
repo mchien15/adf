@@ -85,7 +85,6 @@ agentic-development-framework/
 - `project-manager.md` - Project tracking
 - `ui-ux-designer.md` - UI/UX design
 - `mcp-manager.md` - MCP server management
-- `code-simplifier.md` - Code optimization and simplification
 - `business-analyst.md` - Requirements analysis, FSD and use cases (Opus model)
 - `testcase-writer.md` - Test case generation from BA docs (Sonnet model)
 
@@ -189,13 +188,12 @@ Support guarantees per tool live in `docs/tool-support-matrix.md`.
 
 5. **privacy-block.cjs** - Sensitive File Access Control
 6. **descriptive-name.cjs** - Naming conventions enforcement
-7. **post-edit-simplify-reminder.cjs** - Post-edit optimization hints
-8. **usage-context-awareness.cjs** - Context-aware usage patterns
-9. **cook-after-plan-reminder.cjs** - Cook workflow guidance
-10. **skill-dedup.cjs** - Skill deduplication
-11. **team-context-inject.cjs** - Team coordination context
-12. **task-completed-handler.cjs** - Task completion monitoring
-13. **teammate-idle-handler.cjs** - Teammate idle state detection
+7. **usage-context-awareness.cjs** - Context-aware usage patterns
+8. **cook-after-plan-reminder.cjs** - Cook workflow guidance
+9. **skill-dedup.cjs** - Skill deduplication
+10. **team-context-inject.cjs** - Team coordination context
+11. **task-completed-handler.cjs** - Task completion monitoring
+12. **teammate-idle-handler.cjs** - Teammate idle state detection
 
 ### 6. Installer Profile System
 

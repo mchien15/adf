@@ -84,15 +84,6 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-simplify-reminder.cjs\""
-          }
-        ]
-      },
-      {
         "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           {
