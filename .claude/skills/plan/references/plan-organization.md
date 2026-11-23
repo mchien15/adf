@@ -172,6 +172,13 @@ Each phase file should contain:
 - List of files to create
 - List of files to delete
 
+**Reuse** — existing helpers, modules, components and installed dependencies this phase must use instead of writing new code, each with its path. Find them while reading the codebase: grep for code that already does part of the job. Write "none found" only after looking. The implementer may not re-implement an item on this list.
+
+```markdown
+- `src/lib/http.ts` → `fetchJson()` for the API call (do not add axios)
+- `src/users/validate.ts` → `isValidEmail()`
+```
+
 **New names** — every new file, module, class, public function, DB column, API field and config key this phase introduces. Names picked here are copied into code, so this is the cheapest place to get them right (rules: `development-rules.md` → Naming). Private helpers are left to review.
 
 | Name | Kind | Meaning | Why this word (optional) |

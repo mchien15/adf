@@ -20,7 +20,8 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
   - When it returns: read its report, check `git diff --stat` against the files it owns, and run the compile/typecheck command.
   - Wrong or incomplete → send the findings back to that subagent (`SendMessage`), or spawn a fresh one if it is stuck. **Do not patch the code yourself.** Fixes coming out of test/review cycles are delegated the same way.
   - The main agent edits directly only plans, docs and other markdown, or when the user explicitly asks it to.
-- **[IMPORTANT] Test-first (TDD).** Every acceptance criterion (no plan: every behavior change) starts with a failing test: RED (watch it fail for the right reason) → GREEN (simplest code, tests of the changed code pass) → REFACTOR; the full suite runs once at the end of the phase. Bug fixes start with a test that reproduces the bug. The implementer reports RED/GREEN evidence; the cycle is defined in `fullstack-developer`.
+- **How much code:** the implementer follows the ponytail skill (smallest complete change) and the phase's Reuse list.
+- **[IMPORTANT] Test-first (TDD).** Every acceptance criterion starts with a failing test (no plan: follow the ponytail skill — a small test for non-trivial logic, none for trivial changes; bug fixes still start with a reproducing test): RED (watch it fail for the right reason) → GREEN (simplest code, tests of the changed code pass) → REFACTOR; the full suite runs once at the end of the phase. Bug fixes start with a test that reproduces the bug. The implementer reports RED/GREEN evidence; the cycle is defined in `fullstack-developer`.
 - Write clean, readable, and maintainable code
 - Follow established architectural patterns
 - Implement features according to specifications
@@ -29,7 +30,7 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
 - **[IMPORTANT]** After creating or modifying code file, run compile command/script to check for any compile errors.
 
 #### 2. Testing
-- Delegate to `tester` agent to run tests on the **simplified code**
+- Delegate to `tester` agent to run tests on the final code
   - Tests were written first during implementation (TDD); check the RED/GREEN evidence and add a test only for an acceptance criterion or listed edge case no test checks
   - Coverage is a diagnostic, not a target: follow the project's configured threshold, never add tests just to raise it
   - Validate performance only when the task sets a performance requirement
@@ -44,6 +45,11 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
 - Write self-documenting code
 - Add meaningful comments for complex logic
 - Optimize for performance and maintainability
+
+#### 3b. Before Merge (run by the user, not part of cook)
+- `/thermo-nuclear-code-quality-review` (Opus) for a deep structural review of the branch
+- `/ponytail-debt` to list the `shortcut:` comments the branch adds
+- A large restructuring that thermo suggests becomes a new phase or plan, not an edit to the branch under review
 
 #### 4. Integration
 - Always follow the plan given by `planner` agent
