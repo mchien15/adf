@@ -1,24 +1,23 @@
 ---
 name: code-review
-description: "Review code quality, receive feedback with technical rigor, verify completion claims. Use before PRs, after implementing features, when claiming task completion. Includes scout-based edge case detection and native Task pipeline orchestration."
-argument-hint: "[context] OR codebase [parallel]"
+description: "Review a diff against the plan's acceptance criteria, receive feedback with technical rigor, verify completion claims. Use after implementing features, before PRs, when claiming task completion."
+argument-hint: "[context]"
 ---
 
 # Code Review
 
 Guide proper code review practices emphasizing technical rigor, evidence-based claims, and verification over performative responses.
 
-## Default (No Arguments)
+## Which review to run
 
-If invoked with context (recent changes/PR), proceed with review. If invoked WITHOUT arguments, use `AskUserQuestion` to present available review operations:
+| Need | Run |
+|------|-----|
+| Diff from a plan or /fix, judged against acceptance criteria | this skill → `code-reviewer` subagent |
+| Quick review of a diff with no plan | `/ponytail-review` (ponytail plugin) |
+| Whole-repo audit | `/ponytail-audit` (ponytail plugin) |
+| Deep structural review before merging a large branch | `/thermo-nuclear-code-quality-review`, run by the user |
 
-| Operation | Description |
-|-----------|-------------|
-| `(default)` | Review recent changes/PR |
-| `codebase` | Full codebase scan & analysis |
-| `codebase parallel` | Parallel multi-reviewer audit |
-
-Present as options via `AskUserQuestion` with header "Review Operation", question "What would you like to do?".
+Invoked without context: review the current branch's changes.
 
 ## Core Principle
 
@@ -34,9 +33,7 @@ Verify before implementing. Ask before assuming. Evidence before claims.
 | Receiving feedback | Unclear feedback, external reviewers, needs prioritization | `references/code-review-reception.md` |
 | Requesting review | After tasks, before merge, stuck on problem | `references/requesting-code-review.md` |
 | Verification gates | Before any completion claim, commit, PR | `references/verification-before-completion.md` |
-| Edge case scouting | After implementation, before review | `references/edge-case-scouting.md` |
 | Architecture & reliability | Every review (R1–R9 only on trigger); architecture & reliability reviewer when risk is high | `references/architecture-reliability-checklist.md` |
-| **Task-managed reviews** | Multi-file features (3+ files), parallel reviewers, fix cycles | `references/task-management-reviews.md` |
 
 ## Quick Decision Tree
 
@@ -44,8 +41,7 @@ Verify before implementing. Ask before assuming. Evidence before claims.
 SITUATION?
 │
 ├─ Received feedback → STOP if unclear, verify if external, implement if human partner
-├─ Completed work → Scout edge cases → Request code-reviewer subagent
-├─ Multi-file feature (3+ files) → Create review pipeline tasks (scout→review→fix→verify)
+├─ Completed work → Request code-reviewer subagent
 └─ About to claim status → RUN verification command FIRST
 ```
 
@@ -70,44 +66,12 @@ SITUATION?
 **When:** After each task, major features, before merge
 
 **Process:**
-1. **Scout edge cases first** (see below)
-2. Base: `BASE_SHA`, picked by the snippet in [`code-reviewer.md`](../../agents/code-reviewer.md) → Review Process §1 unless you already have one; the review covers committed, uncommitted and untracked changes since it
-3. Classify risk with `../cook/references/risk-and-gates.md` → Risk Levels, state it in the dispatch and report; the user may override
-4. Dispatch code-reviewer subagent with: WHAT, PLAN, BASE_SHA, HEAD_SHA, RISK, EVIDENCE, DESCRIPTION. Risk high → also dispatch the architecture & reliability reviewer in the same message; merge both reports (see `references/requesting-code-review.md`)
-5. Fix Critical immediately, High before proceeding
+1. Base: `BASE_SHA`, picked by the snippet in [`code-reviewer.md`](../../agents/code-reviewer.md) → Review Process §1 unless you already have one; the review covers committed, uncommitted and untracked changes since it
+2. Classify risk with `../cook/references/risk-and-gates.md` → Risk Levels, state it in the dispatch and report; the user may override
+3. Dispatch code-reviewer subagent with: WHAT, PLAN, BASE_SHA, HEAD_SHA, RISK, EVIDENCE, DESCRIPTION. Risk high → also dispatch the architecture & reliability reviewer in the same message; merge both reports (see `references/requesting-code-review.md`)
+4. Fix Critical immediately, High before proceeding
 
 **Full protocol:** `references/requesting-code-review.md`
-
-## Edge Case Scouting
-
-**When:** After implementation, before requesting code-reviewer
-
-**Process:**
-1. Invoke `/scout` with edge-case-focused prompt
-2. Scout analyzes: affected files, data flows, error paths, boundary conditions
-3. Review scout findings for potential issues
-4. Hand the findings (each with its scenario) to the reviewer; scouting adds no tests
-
-**Full protocol:** `references/edge-case-scouting.md`
-
-## Task-Managed Review Pipeline
-
-**When:** Multi-file features (3+ changed files), parallel code-reviewer scopes, review cycles with Critical fix iterations.
-
-**Pipeline:** scout → review → fix → verify (each a Task with dependency chain)
-
-```
-TaskCreate: "Scout edge cases"         → pending
-TaskCreate: "Review implementation"    → pending, blockedBy: [scout]
-TaskCreate: "Fix critical issues"      → pending, blockedBy: [review]
-TaskCreate: "Verify fixes pass"        → pending, blockedBy: [fix]
-```
-
-**Parallel reviews:** Spawn scoped code-reviewer subagents for independent file groups (e.g., backend + frontend). Fix task blocks on all reviewers completing.
-
-**Re-review cycles:** If fixes introduce new issues, create cycle-2 review task. Limit 3 cycles, escalate to user after.
-
-**Full protocol:** `references/task-management-reviews.md`
 
 ## Verification Gates
 
@@ -127,23 +91,13 @@ TaskCreate: "Verify fixes pass"        → pending, blockedBy: [fix]
 
 ## Integration with Workflows
 
-- **Subagent-Driven:** Scout edge cases → Review after EACH task → Verify before next
-- **Pull Requests:** Scout → Verify tests → Code-reviewer review → Merge
-- **Task Pipeline:** Create review tasks with dependencies → auto-unblock through chain
-- **Cook Handoff:** Cook completes phase → review pipeline tasks → all complete → cook proceeds
-
-## Codebase Analysis Subcommands
-
-| Subcommand | Reference | Purpose |
-|------------|-----------|---------|
-| `/code-review codebase` | `references/codebase-scan-workflow.md` | Scan & analyze the codebase |
-| `/code-review codebase parallel` | `references/parallel-review-workflow.md` | Ultrathink edge cases, then parallel verify |
+- **Cook / fix:** cook runs one review after the last phase (or per phase with `--per-phase`) → fix Critical/High → re-review
+- **Pull Requests:** Verify tests → code-reviewer review → before merge, optionally `/thermo-nuclear-code-quality-review` and `/ponytail-debt` → Merge
 
 ## Bottom Line
 
 1. Technical rigor over social performance
-2. Scout edge cases before review
-3. Task-manage reviews for multi-file features
-4. Evidence before claims
+2. Judge acceptance criteria from evidence
+3. Evidence before claims
 
-Verify. Scout. Question. Then implement. Evidence. Then claim.
+Verify. Question. Then implement. Evidence. Then claim.
