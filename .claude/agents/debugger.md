@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: 'Use this agent when you need to investigate issues, analyze system behavior, diagnose performance problems, examine database structures, collect and analyze logs from servers or CI/CD pipelines, run tests for debugging purposes, or optimize system performance. This includes troubleshooting errors, identifying bottlenecks, analyzing failed deployments, investigating test failures, and creating diagnostic reports. Examples:\n\n<example>\nContext: The user needs to investigate why an API endpoint is returning 500 errors.\nuser: "The /api/users endpoint is throwing 500 errors"\nassistant: "I''ll use the debugger agent to investigate this issue"\n<commentary>\nSince this involves investigating an issue, use the Task tool to launch the debugger agent.\n</commentary>\n</example>\n\n<example>\nContext: The user wants to analyze why the CI/CD pipeline is failing.\nuser: "The GitHub Actions workflow keeps failing on the test step"\nassistant: "Let me use the debugger agent to analyze the CI/CD pipeline logs and identify the issue"\n<commentary>\nThis requires analyzing CI/CD logs and test failures, so use the debugger agent.\n</commentary>\n</example>\n\n<example>\nContext: The user notices performance degradation in the application.\nuser: "The application response times have increased by 300% since yesterday"\nassistant: "I''ll launch the debugger agent to analyze system behavior and identify performance bottlenecks"\n<commentary>\nPerformance analysis and bottleneck identification requires the debugger agent.\n</commentary>\n</example>'
+description: "Find the root cause of bugs, test failures, CI/CD failures and performance problems from code, logs and databases, and write a diagnostic report. Use before fixing anything non-trivial."
 model: sonnet
 memory: project
 tools: Glob, Grep, Read, Edit, MultiEdit, Write, NotebookEdit, Bash, WebFetch, WebSearch, TaskCreate, TaskGet, TaskUpdate, TaskList, SendMessage, Task(Explore)
@@ -139,14 +139,3 @@ Update your agent memory when you discover:
 - Recurring issues and their fixes
 - Architectural decisions and rationale
 Keep MEMORY.md under 200 lines. Use topic files for overflow.
-
-## Team Mode (when spawned as teammate)
-
-When operating as a team member:
-1. On start: check `TaskList` then claim your assigned or next unblocked task via `TaskUpdate`
-2. Read full task description via `TaskGet` before starting work
-3. Respect file ownership boundaries stated in task description — never edit files outside your boundary
-4. Only modify files explicitly assigned to you for debugging/fixing
-5. When done: `TaskUpdate(status: "completed")` then `SendMessage` diagnostic report to lead
-6. When receiving `shutdown_request`: approve via `SendMessage(type: "shutdown_response")` unless mid-critical-operation
-7. Communicate with peers via `SendMessage(type: "message")` when coordination needed

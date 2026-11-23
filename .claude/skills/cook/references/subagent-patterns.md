@@ -27,13 +27,6 @@ Task(subagent_type="planner", prompt="Create implementation plan based on report
 - Input: researcher and scout reports
 - Output: `plan.md` + `phase-XX-*.md` files
 
-## UI Implementation
-```
-Task(subagent_type="ui-ux-designer", prompt="Implement [feature] UI per ./docs/design-system/design-principles.md", description="UI [feature]")
-```
-- For frontend work
-- Follow design guidelines
-
 ## Testing
 ```
 Task(subagent_type="tester", prompt="Run the full test suite for [all phases of this run | phase-name with --per-phase]. Check the implementer's RED/GREEN evidence: [evidence from every phase covered]. Add a test only for an acceptance criterion or listed edge case no test checks (older plans: per your agent definition), naming it; otherwise add none. Report each criterion → test or command → result, and the exact commands used.", description="Test [scope]")
@@ -61,11 +54,6 @@ Task(subagent_type="code-reviewer", prompt="Architecture & reliability review on
 ```
 - Step 6 with risk high only. Spawn in the same message as Code Review so both run in parallel, with the same `BASE_SHA`
 - Merge: `review-cycle.md` → Merging Two Reviews
-
-## Project Management
-```
-Task(subagent_type="project-manager", prompt="Run full sync-back in [plan-path]: reconcile completed tasks with all phase files, backfill stale completed checkboxes across all phases, update plan.md status/progress, and report unresolved mappings. Include final verification evidence status in the summary.", description="Update plan")
-```
 
 ## Documentation
 ```

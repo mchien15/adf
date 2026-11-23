@@ -153,7 +153,7 @@ Cook evaluates a **binary decision gate** before finalization:
   
 - **Gate FALSE (Delegated)**: Route to full finalization pipeline
   - When: Scope deviation, doc changes detected, complex git state, or unclear boundaries
-  - Agents: Spawn `project-manager` (full-plan sync-back), `docs-manager` (docs eval), `git-manager` (closeout)
+  - Main agent runs the full-plan sync-back; spawns `docs-manager` (docs eval) and `git-manager` (closeout)
   - Process: Sync checkboxes `[ ]` → `[x]` across all phase files, update `plan.md`
 
 **Critical:** Cook prints decision line BEFORE any tool call. Decision is invalid if reasoning contains forbidden justifications (fake mocks, assertion changes, etc.). See cook skill `SKILL.md` → "Step 6 Delegation Gate" for full gate criteria.

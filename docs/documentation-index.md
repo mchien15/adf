@@ -27,7 +27,7 @@ This file provides a navigation guide to all ADF documentation with description 
 **Contents:**
 - Vision, mission, and value proposition
 - Target users and personas
-- Key features (16 agents, 12 skills, slash-command workflows)
+- Key features (8 agents, 12 skills, slash-command workflows)
 - Functional and non-functional requirements
 - Success metrics and technical architecture
 

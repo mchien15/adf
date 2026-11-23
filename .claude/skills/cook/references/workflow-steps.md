@@ -90,7 +90,7 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 **Run base — all modes, before dispatching Phase 1:** write `git rev-parse HEAD` to `{plan-dir}/reports/run-base.txt` only if the file is absent. The file present means an earlier run of this plan stopped before its Step 6 approval: reuse it (resume). Its content is `BASE_SHA` for Step 6 and for any phase-scoped review; Step 7 deletes it once Step 6 approved.
 
 **All modes — the main agent orchestrates and never edits code itself:**
-- Spawn one fresh `fullstack-developer` subagent per phase, in phase order (`ui-ux-designer` for frontend UI). Prompt: see `subagent-patterns.md` → Implementation
+- Spawn one fresh `fullstack-developer` subagent per phase, in phase order. Prompt: see `subagent-patterns.md` → Implementation
 - Use `TaskUpdate` to assign the phase's tasks to the subagent and mark them `in_progress` when dispatching
 - The subagent works test-first (TDD): failing test → minimal code → tests of the changed code green, then the full suite once at the end of the phase, and reports RED/GREEN evidence per acceptance criterion. A criterion without evidence and without an allowed skip reason goes back to the subagent
 - On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
@@ -184,17 +184,16 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 
    **Do not compute a count or filter by `Gate`.** An earlier version tried to count "rows written during implementation" by testing `Gate != Post-Plan`. Measured on the plan that built this feature: 32 rows, `Post-Plan` appearing **zero** times, so the filter selected 32 of 32 and discriminated nothing. It also assumed a `Gate` vocabulary nobody defined, broke on blank cells, and only parsed at all because that column happened to be written in English while the rest of the table was not. A human scanning ten rows is faster and more accurate than any of it.
 
-   **Order matters.** A record created after the trio below has missed `docs-manager` (so it never reaches `system-architecture.md`) and missed `git-manager` (so it is not in the commit). Both failures are silent.
+   **Order matters.** A record created after the subagents below has missed `docs-manager` (so it never reaches `system-architecture.md`) and missed `git-manager` (so it is not in the commit). Both failures are silent.
 
    **Auto mode:** do not ask and do not create a record — append one line to the Decision Log noting a sweep is owed.
 
    **Output:** `✓ Step 7: Decision Log swept - ADR [created|declined|deferred-to-log|n/a]`
 
 1. **MUST** spawn these subagents in parallel:
-   - `Task(subagent_type="project-manager", prompt="Run full sync-back for [plan-path]: reconcile all completed Claude Tasks with all phase files, backfill stale completed checkboxes across every phase, then update plan.md frontmatter/table progress. Do NOT only mark current phase.", description="Update plan")`
    - `Task(subagent_type="docs-manager", prompt="Update docs for changes. Leave the ADR directory alone — it is hand-maintained and cannot be derived from code.", description="Update docs")`
    - `Task(subagent_type="git-manager", prompt="Prepare git closeout options, stage if approved, and only commit/push when the user or mode already approved git actions.", description="Git closeout")`
-2. Project-manager sync-back MUST include:
+2. While they run, do the plan sync-back yourself (plan files are markdown). It MUST include:
    - Sweep all `phase-XX-*.md` files in the plan directory.
    - Mark every completed item `[ ] → [x]` based on completed tasks (including earlier phases finished before current phase).
    - Update `plan.md` status/progress (`pending`/`in-progress`/`completed`) from actual checkbox state.
@@ -256,10 +255,10 @@ Trade-off: the default runs one tester, one reviewer and one finalize instead of
 - Never skip steps without mode justification
 - Never skip hard gates because of mode flags
 - **MANDATORY SUBAGENT DELEGATION:** Steps 3, 4, 6, 7 MUST spawn subagents via Task tool. DO NOT implement directly. By default Steps 4, 6, 7 run once for all phases of the run; with `--per-phase`, once per phase
-  - Step 3: `fullstack-developer` per phase (`ui-ux-designer` for UI) — also for every fix requested by tester, debugger or code-reviewer
+  - Step 3: `fullstack-developer` per phase — also for every fix requested by tester, debugger or code-reviewer
   - Step 4: `tester` (and `debugger` if failures)
   - Step 6: `code-reviewer` (two in parallel when risk is high)
-  - Step 7: `project-manager`, `docs-manager`, `git-manager`
+  - Step 7: `docs-manager`, `git-manager` (plan sync-back by the main agent)
 - Use `TaskCreate` to create Claude Tasks for each unchecked item with priority order and dependencies.
 - Use `TaskUpdate` to mark Claude Tasks `in_progress` when picking up a task.
 - Use `TaskUpdate` to mark Claude Tasks `completed` as soon as their phase is verified (Step 3); Step 7 only reconciles.

@@ -167,14 +167,3 @@ Update your agent memory when you discover:
 - Recurring issues and their fixes (source for Harness Follow-up)
 - Architectural decisions and rationale
 Keep MEMORY.md under 200 lines. Use topic files for overflow.
-
-## Team Mode (when spawned as teammate)
-
-When operating as a team member:
-1. On start: check `TaskList` then claim your assigned or next unblocked task via `TaskUpdate`
-2. Read full task description via `TaskGet` before starting work
-3. Do NOT make code changes — report findings and recommendations only
-4. Use `Bash` for running lint/typecheck/test commands, but never edit files
-5. When done: `TaskUpdate(status: "completed")` then `SendMessage` review report to lead
-6. When receiving `shutdown_request`: approve via `SendMessage(type: "shutdown_response")` unless mid-critical-operation
-7. Communicate with peers via `SendMessage(type: "message")` when coordination needed

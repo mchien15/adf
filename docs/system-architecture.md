@@ -95,32 +95,23 @@ adf claude --git-profile cmc
 
 ### 2. Agent Layer
 
-#### 2.1 Agent Types (16 Agents)
+#### 2.1 Agent Types (8 Agents)
 
 **Planning Agents**:
 - `planner` - Technical planning and architecture (Opus)
 - `researcher` - Research and analysis
-- `brainstormer` - Solution ideation
-
-**Analysis Agents**:
-- `business-analyst` - Requirements analysis, FSD and use case creation (Opus)
 
 **Implementation Agents**:
 - `fullstack-developer` - Full-stack implementation
-- `ui-ux-designer` - Design creation and UX analysis
 
 **Quality Assurance Agents**:
 - `code-reviewer` - Code quality, architecture and reliability review
 - `tester` - Test creation and execution
 - `debugger` - Issue analysis, root-cause diagnosis
-- `testcase-writer` - Test case generation from BA docs (Sonnet)
 
 **Documentation & Operations Agents**:
-- `docs-manager` - Documentation maintenance (Gemini)
-- `journal-writer` - Development decision journaling
+- `docs-manager` - Documentation maintenance (Haiku)
 - `git-manager` - Version control and commit management
-- `project-manager` - Progress tracking and oversight
-- `mcp-manager` - MCP server management and integration
 
 #### 2.2 Agent Definition Structure
 

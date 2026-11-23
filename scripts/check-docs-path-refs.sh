@@ -19,8 +19,6 @@ FILES="
 .claude/agents/code-reviewer.md
 .claude/skills/code-review/references/architecture-reliability-checklist.md
 .claude/agents/fullstack-developer.md
-.claude/agents/business-analyst.md
-.claude/agents/testcase-writer.md
 "
 
 # Anti-pattern: a literal (./)docs/<generated-doc>.md reference (lowercase docs/ only;

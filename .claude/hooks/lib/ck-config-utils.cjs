@@ -301,12 +301,8 @@ const REPORT_TYPES = Object.freeze([
   'debugger',
   'code-reviewer',
   'docs-manager',
-  'project-manager',
   'audit',
-  'fullstack-developer',
-  'ui-ux-designer',
-  'business-analyst',
-  'testcase-writer'
+  'fullstack-developer'
 ]);
 
 /** cwd -> resolved plans base dir (see resolvePlansBaseDir) */

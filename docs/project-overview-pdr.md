@@ -353,7 +353,7 @@ Why this matters:
 **Outcome**: Professional commit history and clean PR ready for review
 
 ### UC4: Update Documentation
-**Actor**: Project Manager
+**Actor**: Developer
 **Goal**: Ensure docs are current
 **Flow**:
 1. Run `/docs update`

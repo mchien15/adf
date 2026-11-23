@@ -98,7 +98,7 @@ Human review required at these checkpoints (skipped with `--auto`):
 - **`no-test` limits:** cannot bypass verification and should not be used for bugfix/high-risk logic work
 - **Code Review:** User approval OR auto-approve (verdict Accept, 0 Critical, 0 ✕). Once over the diff of all phases in the run by default; per phase with `--per-phase`
 - **Finalize (MANDATORY - never skip):**
-  1. `project-manager` subagent → run full plan sync-back (all completed tasks/steps across all `phase-XX-*.md`, not only current phase), then update `plan.md` status/progress
+  1. Main agent → run full plan sync-back itself (all completed tasks/steps across all `phase-XX-*.md`, not only current phase), then update `plan.md` status/progress
   2. `docs-manager` subagent → update `./docs` if changes warrant
   3. `TaskUpdate` → mark all Claude Tasks complete after sync-back verification
   4. `git-manager` subagent → prepare git closeout; commit/push only if user or mode already approved git actions
@@ -111,14 +111,13 @@ Human review required at these checkpoints (skipped with `--auto`):
 | Scout | `scout` | Optional in code |
 | Plan | `planner` | Optional in code |
 | Implement | `fullstack-developer` | **MUST** spawn (one per phase) |
-| UI Work | `ui-ux-designer` | If frontend work (replaces `fullstack-developer` for UI) |
 | Testing | `tester`, `debugger` | **MUST** spawn |
 | Review | `code-reviewer` (+ architecture & reliability reviewer when risk is high) | **MUST** spawn |
-| Finalize | `project-manager`, `docs-manager`, `git-manager` | **MUST** spawn all 3 |
+| Finalize | `docs-manager`, `git-manager` | **MUST** spawn both (plan sync-back is the main agent's) |
 
 **CRITICAL ENFORCEMENT:**
 - Steps 3, 4, 6, 7 **MUST** use Task tool to spawn subagents
-- DO NOT write code, tests, reviews, or finalization yourself - DELEGATE. Fixes from test/review cycles go to `fullstack-developer` too
+- DO NOT write code, tests or reviews yourself - DELEGATE. The plan sync-back in Finalize is yours (plan files are markdown). Fixes from test/review cycles go to `fullstack-developer` too
 - If workflow ends with 0 Task tool calls, it is INCOMPLETE
 - Pattern: `Task(subagent_type="[type]", prompt="[task]", description="[brief]")`
 

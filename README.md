@@ -259,7 +259,7 @@ Syncs `docs/` with current codebase state.
 
 ```
 ├── .claude/                 # Canonical source of truth
-│   ├── agents/             # 16 specialist agent definitions
+│   ├── agents/             # 8 specialist agent definitions
 │   ├── hooks/              # Claude Code event hooks
 │   ├── rules/              # Development rules and workflows
 │   ├── skills/             # 12 skills
@@ -275,26 +275,20 @@ Syncs `docs/` with current codebase state.
 
 ## The AI Agent Team
 
-16 specialized agents that coordinate through file-based communication:
+8 specialized agents that coordinate through file-based communication:
 
 | Agent | Focus |
 |-------|-------|
-| **Business Analyst** | Requirements analysis, FSD, use cases |
-| **Testcase Writer** | Test case generation from BA docs |
 | **Planner** | Research, architecture, implementation plans |
 | **Researcher** | Technical investigation, best practices |
 | **Fullstack Developer** | Code implementation (backend + frontend) |
-| **Code Reviewer** | Quality analysis, standards enforcement |
-| **Code Simplifier** | Refactoring, clarity, maintainability |
+| **Code Reviewer** | Acceptance criteria, correctness, security, reliability |
 | **Tester** | Test execution, coverage, validation |
 | **Debugger** | Root cause analysis, diagnostics |
 | **Docs Manager** | Documentation sync and maintenance |
 | **Git Manager** | Commits, PRs, branch management |
-| **Project Manager** | Progress tracking, plan sync-back |
-| **UI/UX Designer** | Interface design, design systems |
-| **Brainstormer** | Trade-off analysis, solution ideation |
-| **Journal Writer** | Decision records, lessons learned |
-| **MCP Manager** | MCP server integration management |
+
+The main agent keeps plan files in sync itself; unused agents (project manager, UI/UX designer, brainstormer, journal writer, MCP manager, business analyst, testcase writer) sit in `archive/agents/`.
 
 Agents work in **sequential chains** (plan → implement → test → review) or **parallel execution** (multiple researchers investigating simultaneously).
 

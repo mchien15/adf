@@ -400,8 +400,7 @@ describe('buildContextOutput plan label (session-init banner)', () => {
 describe('fixed report types', () => {
   const expected = [
     'researcher', 'brainstormer', 'scout', 'planner', 'tester',
-    'debugger', 'code-reviewer', 'docs-manager', 'project-manager', 'audit',
-    'fullstack-developer', 'ui-ux-designer', 'business-analyst', 'testcase-writer'
+    'debugger', 'code-reviewer', 'docs-manager', 'audit', 'fullstack-developer'
   ];
 
   it('REPORT_TYPES is the fixed list', () => {

@@ -136,14 +136,3 @@ Use the naming pattern from the `## Naming` section injected by hooks. The patte
 
 **IMPORTANT**: Sacrifice grammar for concision in reports.
 **IMPORTANT**: List unresolved questions at end if any.
-
-## Team Mode (when spawned as teammate)
-
-When operating as a team member:
-1. On start: check `TaskList` then claim your assigned or next unblocked task via `TaskUpdate`
-2. Read full task description via `TaskGet` before starting work
-3. Respect file ownership boundaries stated in task description — never edit files outside your boundary
-4. File ownership rules from phase execution apply equally in team mode
-5. When done: `TaskUpdate(status: "completed")` then `SendMessage` implementation report to lead
-6. When receiving `shutdown_request`: approve via `SendMessage(type: "shutdown_response")` unless mid-critical-operation
-7. Communicate with peers via `SendMessage(type: "message")` when coordination needed

@@ -13,7 +13,7 @@ Agentic Development Framework is a comprehensive boilerplate template for buildi
 ```
 agentic-development-framework/
 ├── .claude/                  # Source-repo canonical source of truth
-│   ├── agents/              # Specialized agent definitions (16 agents)
+│   ├── agents/              # Specialized agent definitions (8 agents)
 │   ├── hooks/               # Claude Code hooks and scripts
 │   ├── skills/              # Specialized skills library (12 skills)
 │   ├── rules/               # Development workflow definitions
@@ -48,7 +48,7 @@ agentic-development-framework/
 
 ## Key Components
 
-### 1. Agent Orchestration System (16 Agents)
+### 1. Agent Orchestration System (8 Agents)
 
 **Claude Code Agents** (`.claude/agents/`):
 - `planner.md` - Technical planning and architecture (Opus model)
@@ -57,15 +57,8 @@ agentic-development-framework/
 - `code-reviewer.md` - Code quality, architecture and reliability review
 - `tester.md` - Testing and validation
 - `debugger.md` - Issue analysis and debugging
-- `docs-manager.md` - Documentation management (Gemini model)
+- `docs-manager.md` - Documentation management (Haiku model)
 - `git-manager.md` - Version control operations
-- `journal-writer.md` - Development journaling
-- `brainstormer.md` - Solution ideation
-- `project-manager.md` - Project tracking
-- `ui-ux-designer.md` - UI/UX design
-- `mcp-manager.md` - MCP server management
-- `business-analyst.md` - Requirements analysis, FSD and use cases (Opus model)
-- `testcase-writer.md` - Test case generation from BA docs (Sonnet model)
 
 ### 2. Workflow System
 

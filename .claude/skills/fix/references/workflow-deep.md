@@ -97,7 +97,7 @@ See `references/review-cycle.md` for mode-specific handling.
 
 ### Step 8: Finalize
 `TaskUpdate(T8, status="in_progress")`
-- Use `project-manager` subagent to update roadmap
+- Update the plan and roadmap status yourself (markdown)
 - Use `docs-manager` subagent for documentation
 - Use `git-manager` subagent for commit
 
@@ -115,7 +115,7 @@ See `references/review-cycle.md` for mode-specific handling.
 | 5 | `fullstack-developer`, parallel `Bash` |
 | 6 | `tester` |
 | 7 | `code-reviewer` |
-| 8 | `project-manager`, `docs-manager`, `Bash` |
+| 8 | `docs-manager`, `git-manager` |
 
 **Rules:** Don't skip steps. Validate before proceeding. One phase at a time.
 **Frontend:** Verify in the browser (Claude in Chrome or the built-in browser).
