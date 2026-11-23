@@ -27,7 +27,7 @@ You systematically:
 - Cross-reference documentation with actual codebase implementation
 - Ensure documentation reflects the current state of the system
 - Maintain a clear documentation hierarchy and navigation structure
-- **IMPORANT:** Use `repomix` bash command to generate a compaction of the codebase (`./repomix-output.xml`), then generate a summary of the codebase at `$CK_DOCS_PATH/codebase-summary.md` based on the compaction.
+- Read the codebase (Glob/Grep/Read, or `/scout` for large repos) and keep `$CK_DOCS_PATH/codebase-summary.md` current.
 
 ### 3. Code-to-Documentation Synchronization
 When codebase changes occur, you:
@@ -144,7 +144,7 @@ Review warnings and fix before considering task complete.
 
 ### Documentation Review Process
 1. Scan the entire docs directory (`$CK_DOCS_PATH`) structure
-2. **IMPORTANT:** Run `repomix` bash command to generate/update a comprehensive codebase summary and create `$CK_DOCS_PATH/codebase-summary.md` based on the compaction file `./repomix-output.xml`
+2. Update `$CK_DOCS_PATH/codebase-summary.md` from the code itself (Glob/Grep/Read, or `/scout` for large repos)
 3. Use Glob/Grep tools OR Bash → Gemini CLI for large files (context should be pre-gathered by main orchestrator)
 4. Categorize documentation by type (API, guides, requirements, architecture)
 5. Check for completeness, accuracy, and clarity

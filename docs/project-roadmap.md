@@ -22,7 +22,7 @@ Agentic Development Framework (ADF) is an AI-powered development orchestration f
 - Phase files: numbered acceptance criteria (`AC1…`, one `Check:` each, `Edge cases:` on the criterion) and `Out of scope` replace open-ended Success Criteria; old plans' Success Criteria are read as criteria. The user approves them at cook Gate 2.
 - One test (or parametrized test) per criterion; the tester adds a test only for a criterion or listed edge case with none; a review fix gets a test only when its Critical/High finding has "when X → Y".
 - Scouting reports findings with scenarios, never "add test". Reviewer: `Tests` row (weakened test config → High; tautological, duplicate or passes-on-base tests → Medium), no Low level, "No findings" is valid, `Harness Follow-up`; `Test Coverage: [%]` removed.
-- Cook collects evidence; the reviewer judges each criterion (✓/✕) and any ✕ blocks approval, also in `--auto`; an Out of scope item that was built is a ✕ row. PR/MR bodies: `## Evidence` replaces `## Test plan`. `/team review` reviewers use the session model, not Haiku.
+- Cook collects evidence; the reviewer judges each criterion (✓/✕) and any ✕ blocks approval, also in `--auto`; an Out of scope item that was built is a ✕ row. PR/MR bodies: `## Evidence` replaces `## Test plan`.
 - Breaking: review `score X/10` and the 9.5 / 9.0 / 8.5 auto-approve thresholds replaced by a verdict derived from findings (Block = Critical or unmet criterion, Revise = High, Accept = neither). `cook --auto` and `/fix` auto-approve on Accept with 0 Critical and 0 ✕ (`review-cycle.md` → Auto-Handling Cycle); anything outside this repo that reads `[score]/10` must read the verdict.
 - Decision record: [ADR-0001](./adr/0001-261025-review-verdict.md) (Proposed) — the verdict-from-findings rule above.
 
@@ -61,10 +61,7 @@ First public release. Includes full agent orchestration, skills library, hook sy
 
 **Infrastructure:**
 - **Cross-Platform**: Claude Code (macOS/Linux/Windows)
-- Plans dashboard (`/plans-kanban`)
-- Preview system (`/preview --explain|--diagram|--slides|--ascii`)
-- Agent Teams for parallel multi-session collaboration (`/team`)
-- MCP integrations (context7, sequential-thinking, chrome-devtools)
+- MCP integrations (context7)
 
 **Documentation:**
 - Auto-generated project docs (overview, architecture, code standards, codebase summary)
@@ -107,7 +104,6 @@ First public release. Includes full agent orchestration, skills library, hook sy
 
 | Category | Target |
 |----------|--------|
-| Bootstrap time | < 10 minutes |
 | Planning-to-implementation cycle | 50% reduction |
 | Documentation coverage | > 90% |
 | Test coverage | > 80% |
@@ -119,11 +115,11 @@ First public release. Includes full agent orchestration, skills library, hook sy
 
 ## Technical Stack
 
-- **Runtime:** Node.js >= 18, Bash, Python (skills venv)
+- **Runtime:** Node.js >= 18, Bash
 - **AI:** Anthropic Claude (primary), Google Gemini (multimodal)
-- **Tools:** Repomix, Puppeteer, Playwright
+- **Tools:** Puppeteer, Playwright
 - **CI/CD:** GitHub Actions
-- **Languages:** JavaScript, Python, Bash, Markdown
+- **Languages:** JavaScript, Bash, Markdown
 
 ---
 

@@ -318,70 +318,6 @@ Step 5: Agent times out (3m)     → Keep in_progress, add error metadata
 
 ---
 
-### 7. Team Skill (`/team`) — Agent Teams
-
-**Tools API Surface:**
-
-| Tool | Operation | Purpose |
-|------|-----------|---------|
-| TeammateTool | `spawnTeam` | Create team + task list |
-| TeammateTool | `cleanup` | Remove team/task dirs |
-| SendMessage | `message` | DM to one teammate |
-| SendMessage | `broadcast` | Send to ALL teammates |
-| SendMessage | `shutdown_request` | Ask teammate to exit |
-| SendMessage | `plan_approval_response` | Lead approves/rejects plan |
-
-**Task Fields:**
-
-| Field | Purpose |
-|-------|---------|
-| `status` | `pending` → `in_progress` → `completed` |
-| `owner` | Agent name assigned to task |
-| `blocks` | Task IDs this task blocks |
-| `blockedBy` | Task IDs that must complete first |
-| `addBlocks` | Set blocking relations (write) |
-| `addBlockedBy` | Set dependency relations (write) |
-| `metadata` | Arbitrary key-value pairs |
-
-**Hook Events:**
-- **TaskCompleted**: Fires when teammate calls `TaskUpdate(status: "completed")`
-- **TeammateIdle**: Fires after `SubagentStop` for team members
-
-**Event Lifecycle:**
-```
-SubagentStart(worker) → TaskCompleted(task) → SubagentStop(worker) → TeammateIdle(worker)
-```
-
----
-
-### 8. Project-Management Skill (`/project-management`)
-
-**Hydration Workflow:**
-
-1. Read plan files: `plan.md` + `phase-XX-*.md`
-2. Check `TaskList()` — if tasks exist, skip re-creation
-3. `TaskCreate` per unchecked `[ ]` item
-4. Set up `addBlockedBy` chains between phases
-5. During work: `TaskUpdate` tracks status
-6. Sync-back: Update `[ ]` → `[x]`, update frontmatter
-
-**YAML Frontmatter Sync:**
-
-```yaml
----
-title: Feature name
-description: Brief description
-status: in-progress  # pending | in-progress | completed
-priority: P1
-effort: medium
-branch: feature-branch
-tags: [auth, api]
-created: 2026-02-05
----
-```
-
----
-
 ## Best Practices
 
 ### Task Creation
@@ -439,19 +375,6 @@ Nếu `TaskCreate` fails:
 1. Log warning
 2. Continue with sequential execution
 3. Tasks add visibility, không phải core functionality
-
----
-
-## Subagent vs Agent Teams Comparison
-
-| Aspect | Subagents | Agent Teams |
-|--------|-----------|-------------|
-| **Context** | Own window; results return to caller | Own window; fully independent |
-| **Communication** | Report back to main agent only | Message each other directly |
-| **Coordination** | Main agent manages all work | Shared task list, self-coordination |
-| **Best for** | Focused tasks, result-only | Complex work requiring discussion |
-| **Token cost** | Lower | Higher (each teammate = separate instance) |
-| **Task persistence** | Session-scoped | Session-scoped with shared task list |
 
 ---
 

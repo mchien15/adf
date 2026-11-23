@@ -50,11 +50,7 @@ See `references/parallel-exploration.md` for patterns.
 
 ### Step 3: Implement Fix
 `TaskUpdate(T3, status="in_progress")` — auto-unblocked when T1 + T2 complete.
-Delegate to a `fullstack-developer` subagent with the debugging and scouting findings. It writes a failing test that reproduces the bug before fixing it (TDD). Pass these hints on to it:
-
-- Apply `problem-solving` skill if stuck
-- Use `sequential-thinking` for complex logic
-
+Delegate to a `fullstack-developer` subagent with the debugging and scouting findings. It writes a failing test that reproduces the bug before fixing it (TDD).
 **After implementation - Parallel Verification:**
 Launch `Bash` agents in parallel to verify:
 ```
@@ -101,11 +97,10 @@ See `references/review-cycle.md` for mode-specific handling.
 |------|------------------|
 | 1 | `debug`, `debugger` subagent |
 | 2 | Multiple `Explore` subagents in parallel (optional) |
-| 3 | `problem-solving`, `sequential-thinking`, parallel `Bash` for verification |
+| 3 | `fullstack-developer`, parallel `Bash` for verification |
 | 4 | `tester` subagent |
 | 5 | `code-reviewer` subagent |
 | 6 | `git-manager`, `docs-manager` subagents |
 
 **Rules:** Don't skip steps. Validate before proceeding. One phase at a time.
-**Frontend:** Use `chrome`, `chrome-devtools` or any relevant skills/tools to verify.
-**Visual Assets:** Use `ai-multimodal` for visual assets generation, analysis and verification.
+**Frontend:** Verify in the browser (Claude in Chrome or the built-in browser).

@@ -34,7 +34,6 @@ Pass the gathered context to docs-manager agent to update documentation:
 - `$CK_DOCS_PATH/project-roadmap.md`: Update project roadmap
 - `$CK_DOCS_PATH/deployment-guide.md` [optional]: Update deployment guide
 - `$CK_DOCS_PATH/design-system/design-principles.md` [optional]: Update design principles
-- `$CK_DOCS_PATH/project-fsd.md` [if exists]: Check FSD staleness — if new modules/features in code lack FSD coverage, flag and suggest running `/specs update`
 - `$CK_DOCS_PATH/usecases/` [if exists]: Check for orphaned use cases or missing coverage
 
 **Code-level-only (cmc) mode:** when the injected context shows `Docs mode: code-level only`, update ONLY `$CK_DOCS_PATH/codebase-summary.md`, `$CK_DOCS_PATH/code-standards.md`, and `$CK_DOCS_PATH/documentation-index.md`. The company `docs/` tree owns overview-pdr / system-architecture / roadmap / FSD / use-cases — do not regenerate them; cross-link instead.

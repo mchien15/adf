@@ -16,7 +16,7 @@ If invoked with a task description, proceed with planning workflow. If invoked W
 | Operation | Description |
 |-----------|-------------|
 | `(default)` | Create implementation plan for a task |
-| `archive` | Write journal entry & archive plans |
+| `archive` | Archive plans |
 | `audit` | Adversarial plan audit |
 | `validate` | Critical questions interview |
 
@@ -145,7 +145,7 @@ ALWAYS create plans or reports at the `Plans:` / `Reports:` paths injected by ho
 
 | Subcommand | Reference | Purpose |
 |------------|-----------|---------|
-| `/plan archive` | `references/archive-workflow.md` | Archive plans + write journal entries |
+| `/plan archive` | `references/archive-workflow.md` | Archive completed or cancelled plans |
 | `/plan audit` | `references/audit-workflow.md` | Adversarial plan audit with hostile reviewers |
 | `/plan validate` | `references/validate-workflow.md` | Validate plan with critical questions interview |
 

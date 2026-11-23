@@ -177,7 +177,6 @@ Plan files are saved to `plans/{date}-{slug}/` with `plan.md` (overview) and `ph
 | `/fix --parallel "issue"` | Multi-agent investigation |
 | `/fix test` | Run tests and fix failures |
 | `/fix types` | Fix TypeScript type errors |
-| `/fix ui "issue"` | Fix UI/visual issues |
 | `/fix ci <url>` | Analyze GitHub Actions logs and fix |
 | `/fix logs "issue"` | Analyze app logs and fix |
 
@@ -205,23 +204,6 @@ Multi-pass review: code quality, security, performance, edge cases.
 
 Root cause analysis with diagnostic report in `plans/reports/`.
 
-#### Business Analysis (Optional)
-
-```
-/specs init                           # Create FSD + use cases from codebase
-/specs analyze "add payment feature"  # Document new feature requirements
-/specs update                         # Sync FSD with codebase changes
-```
-
-#### Test Case Generation (Optional)
-
-```
-/test-cases generate               # Generate test cases from all use cases
-/test-cases generate auth          # Generate for specific module
-/test-cases update                 # Sync test cases with UC changes
-/test-cases export csv             # Export for manual QA testing
-```
-
 #### Commit and Push
 
 ```
@@ -243,8 +225,6 @@ Syncs `docs/` with current codebase state.
 ### Everyday Workflow
 
 ```
-/specs init                        # 0. (Optional) Create requirements docs
-/test-cases generate            # 0. (Optional) Generate test cases
 /plan "feature description"     # 1. Plan
 /cook "implement the plan"      # 2. Build
 /test                           # 3. Test
@@ -259,7 +239,6 @@ Syncs `docs/` with current codebase state.
 ```
 /brainstorm "should we use WebSockets or SSE?"   # Trade-off analysis
 /adr "choose Postgres over MongoDB"               # Record an architecture decision
-/ask "how does the middleware chain work?"        # Technical questions
 /scout "find all API route handlers"              # Codebase exploration
 /quality-gates setup                             # Configure security gates for project
 /quality-gates report                            # Generate markdown report from last run
@@ -283,8 +262,9 @@ Syncs `docs/` with current codebase state.
 │   ├── agents/             # 16 specialist agent definitions
 │   ├── hooks/              # Claude Code event hooks
 │   ├── rules/              # Development rules and workflows
-│   ├── skills/             # 45 skill modules
+│   ├── skills/             # 12 skills
 │   └── config/             # ADF configuration
+├── archive/                # Unused skills/agents/scripts: not installed or loaded (restore with git mv)
 ├── scripts/                # adf installer, sync-claude-global.sh
 ├── docs/                   # Project documentation (auto-generated)
 ├── plans/                  # Implementation plans and reports

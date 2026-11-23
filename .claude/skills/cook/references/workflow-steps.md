@@ -96,7 +96,6 @@ Read `## Impact` in `plan.md` (spec: [`../../plan/references/plan-organization.m
 - On return: read the report, check `git diff --stat` against the phase's file list, run type checking/build
 - Wrong or incomplete → `SendMessage` the findings to the same subagent (it keeps its context); spawn a fresh one if it is stuck. Do not patch the code yourself
 - Once the phase is verified, `TaskUpdate` its tasks to `completed` — this unblocks the next phase's `addBlockedBy`; Step 7 sync-back only reconciles
-- Use `ai-multimodal` for image assets
 - If high-risk: run checkpoint review before leaving the phase. With `--per-phase`, also for medium-risk phases with 3+ touched files or cross-cutting behavior (by default those are covered by the final review)
 - Default scope: once the phase is verified, go straight to the next phase — no tester, reviewer or finalize in between (see Review Scope)
 - Fixes from the final test/review span several phases' files: `SendMessage` each finding to the subagent that owns the file, or give the full list to one fresh `fullstack-developer` if those subagents are gone

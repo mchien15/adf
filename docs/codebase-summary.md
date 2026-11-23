@@ -15,7 +15,7 @@ agentic-development-framework/
 ├── .claude/                  # Source-repo canonical source of truth
 │   ├── agents/              # Specialized agent definitions (16 agents)
 │   ├── hooks/               # Claude Code hooks and scripts
-│   ├── skills/              # Specialized skills library (45 skills)
+│   ├── skills/              # Specialized skills library (12 skills)
 │   ├── rules/               # Development workflow definitions
 │   ├── config/              # ADF configuration
 │   ├── metadata.json        # Framework version metadata
@@ -31,6 +31,7 @@ agentic-development-framework/
 ├── plans/                    # Implementation plans and reports
 │   └── reports/             # Agent reports not tied to a plan, by month ({YYMM}/)
 ├── .github/                  # GitHub workflows
+├── archive/                  # Unused skills, agents and scripts; not installed or loaded
 ├── CLAUDE.md                # Claude Code instruction file
 └── README.md                # Project overview
 ```
@@ -40,9 +41,6 @@ agentic-development-framework/
 ### Runtime & Dependencies
 - **Node.js**: >=18.0.0 (hooks only — no npm package)
 - **License**: MIT
-
-### Development Tools
-- **Repomix**: Codebase compaction for AI consumption
 
 ### CI/CD
 - **GitHub Actions**: Automated workflows
@@ -75,8 +73,6 @@ agentic-development-framework/
 - `/plan` - Research and planning (--fast, --hard, --two, --parallel variants)
 - `/cook` - Risk-gated feature implementation (--auto skips approval gates only, --fast, --parallel, policy-limited --no-test, one test + review after the last phase (--per-phase to review each phase), mandatory verification)
 - `/test` - Test execution and coverage analysis
-- `/ask` - Technical consultation
-- `/bootstrap` - Project initialization
 - `/brainstorm` - Solution ideation
 - `/debug` - Root cause analysis and debugging
 - `/fix` - Bug fixes (--quick, --parallel, specialized: test, types, ui, ci, logs)
@@ -84,38 +80,16 @@ agentic-development-framework/
 - `/docs` - Documentation generation and updates
 - `/git` - Conventional commits, PRs/MRs, branch management
 - `/scout` - Codebase exploration
-- `/specs` - Business analysis (init, analyze, update)
-- `/test-cases` - Test case generation and export (generate, update, export)
 
 **Slash-command tools** (`.claude/skills/`):
 - Claude Code exposes ADF workflows directly as slash commands
 
-### 3. Skills Library (45 Skills, Unified)
+### 3. Skills Library (12 Skills)
 
 **Location**: `.claude/skills/` (canonical)
 **Available in**: Claude Code
 
-**Current Skills (45 Total)**:
-- **AI & Vision**: ai-artist, ai-multimodal, agent-browser
-- **Authentication**: better-auth
-- **Backend & Databases**: backend-development, databases
-- **Code Quality**: code-review, debug, sequential-thinking, quality-gates
-- **Content**: copywriting, brainstorm
-- **Design & Frontend**: design-mockup-create, design-system, frontend-design, frontend-development, ui-styling, ui-ux-pro-max, web-design-guidelines
-- **DevOps**: devops, git
-- **Documentation**: docs-seeker, repomix, markdown-novel-viewer, document-skills
-- **Framework Integration**: web-frameworks, react-best-practices, shopify
-- **Game Dev**: threejs, shader
-- **Media**: media-processing (FFmpeg, ImageMagick)
-- **MCP**: mcp-builder, mcp-management
-- **Mobile**: mobile-development
-- **Project Planning**: plan, plans-kanban
-- **Security**: quality-gates (gitleaks, trivy, semgrep, nuclei, SonarQube)
-- **Skills**: skill-creator, template-skill
-- **Testing**: web-testing
-- **Visualization**: mermaidjs-v11
-- **Business Analysis**: ba (FSD + use cases), test-cases (TC generation + export)
-- **Workflow Tools**: cook, research, scout, payment-integration
+**Current Skills (12 Total)**: adr, brainstorm, code-review, cook, debug, docs, fix, git, plan, quality-gates, scout, test
 
 **quality-gates skill v1** (`.claude/skills/quality-gates/`) — Production release (2026-03-31):
 - Gates: secrets (gitleaks), deps (trivy), sast (semgrep), dast (nuclei), coverage, sonar (opt-in)
@@ -305,11 +279,11 @@ Types:
 
 **Framework Components**:
 - 16 specialized agent definitions
-- 45 skills in organized categories
+- 12 skills
 - 13 core hooks with cross-platform support
 - Complete documentation system
 
-**Languages**: JavaScript/Node.js, Python, Bash, Markdown
+**Languages**: JavaScript/Node.js, Bash, Markdown
 **CI/CD**: GitHub Actions
 **License**: MIT
 
@@ -323,18 +297,11 @@ Purpose: Send project updates to Discord channels
 Workflow: `.github/workflows/branch-protection.yml`
 Features: Branch protection rules
 
-### Agent Skills
-- **brain**: Advanced reasoning
-- **docs-seeker**: Documentation reading
-- **ai-multimodal**: Visual understanding
-- **ai-multimodal & imagemagick skills**: Content generation and processing
-
 ## Critical Files
 
 ### Configuration
 - `.claude/metadata.json` - Framework version
 - `.gitignore` - Git exclusions
-- `.repomixignore` - Repomix exclusions
 
 ### Documentation
 - `README.md` - Main project docs

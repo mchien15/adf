@@ -51,7 +51,6 @@ Report summary to user.
 - `debug` - Always (Step 1)
 - Parallel `git-manager` - Verification (Step 2)
 - `code-reviewer` subagent - Always (Step 3)
-- `context-engineering` - If dealing with AI/LLM code
 
 ## Notes
 

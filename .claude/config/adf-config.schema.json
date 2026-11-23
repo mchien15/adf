@@ -276,19 +276,6 @@
     "skills": {
       "type": "object",
       "description": "Per-skill configuration",
-      "properties": {
-        "research": {
-          "type": "object",
-          "properties": {
-            "useGemini": {
-              "type": "boolean",
-              "default": true,
-              "description": "Use Gemini CLI for research (false=use WebSearch)"
-            }
-          },
-          "additionalProperties": true
-        }
-      },
       "additionalProperties": {
         "type": "object",
         "description": "Custom skill configuration"

@@ -13,12 +13,6 @@
 - **After Security Updates**: Record security improvements and version updates
 - **Weekly Reviews**: Update progress percentages and milestone statuses
 
-### BA/QA Documentation
-- **Functional Spec** (`./docs/project-fsd.md`): Feature specs, data models, business rules, API contracts, screen descriptions
-- **Use Cases** (`./docs/usecases/{module}/`): Per-module use case files (UC-{MOD}-{NNN})
-- **Test Cases** (`./test-cases/{module}/`): Per-module test case files (TC-{MOD}-{NNN}-{NN})
-- **Test Summary** (`./test-cases/test-summary.md`): Coverage matrix, priority/type distribution
-
 ### Documentation Triggers
 The `project-manager` agent MUST update these documents when:
 - A development phase status changes (e.g., from "In Progress" to "Complete")
@@ -26,8 +20,6 @@ The `project-manager` agent MUST update these documents when:
 - Significant bugs are resolved or security patches applied
 - Project timeline or scope adjustments are made
 - External dependencies or breaking changes occur
-- After BA analysis: update FSD and use cases via `/specs update`
-- After QA generation: update test cases via `/test-cases update`
 
 ### Update Protocol
 1. **Before Updates**: Always read current roadmap and changelog status

@@ -23,11 +23,7 @@ Skip Tasks for Quick workflow (< 3 steps). See `references/task-orchestration.md
 
 | Skill | Activate When |
 |-------|---------------|
-| `problem-solving` | Stuck on approach, multiple failed attempts |
-| `sequential-thinking` | Complex logic chain, multi-step reasoning needed |
 | `brainstorm` | Multiple valid approaches, architecture decision |
-| `context-engineering` | Fixing AI/LLM/agent code, context window issues |
-| `ai-multimodal` | UI issues, screenshots provided, visual bugs |
 
 ## Subagent Usage
 
@@ -62,17 +58,13 @@ See `references/parallel-exploration.md` for detailed patterns.
 | Workflow | Skills Activated |
 |----------|------------------|
 | Quick | `debug`, `code-review`, parallel `Bash` verification |
-| Standard | Above + Tasks, `problem-solving`, `sequential-thinking`, `tester`, parallel `Explore` |
-| Deep | All above + `brainstorm`, `context-engineering`, `researcher`, `planner` |
+| Standard | Above + Tasks, `tester`, parallel `Explore` |
+| Deep | All above + `brainstorm`, `researcher`, `planner` |
 | Parallel | Per-issue Task trees + `fullstack-developer` agents + coordination via `TaskList` |
 
 ## Detection Triggers
 
 | Keyword/Pattern | Skill to Consider |
 |-----------------|-------------------|
-| "AI", "LLM", "agent", "context" | `context-engineering` |
-| "stuck", "tried everything" | `problem-solving` |
-| "complex", "multi-step" | `sequential-thinking` |
 | "which approach", "options" | `brainstorm` |
 | "latest docs", "best practice" | `researcher` subagent |
-| Screenshot attached | `ai-multimodal` |

@@ -89,9 +89,9 @@ project-root/
 - Main file always named `SKILL.md`
 - Supporting files in `references/` or `scripts/`
 - Examples:
-  - `better-auth/SKILL.md`
-  - `cloudflare-workers/SKILL.md`
-  - `mongodb/SKILL.md`
+  - `cook/SKILL.md`
+  - `git/SKILL.md`
+  - `quality-gates/SKILL.md`
 
 **Documentation** (`docs/`):
 - Format: `[document-purpose].md`

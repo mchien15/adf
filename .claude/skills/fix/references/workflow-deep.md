@@ -67,7 +67,7 @@ Use `planner` subagent to create implementation plan.
 
 ### Step 5: Implement
 `TaskUpdate(T5, status="in_progress")`
-Delegate each plan phase to a fresh `fullstack-developer` subagent, in order; it works test-first, starting with a failing test that reproduces the bug. Tell it to use `context-engineering`, `sequential-thinking`, `problem-solving` as needed.
+Delegate each plan phase to a fresh `fullstack-developer` subagent, in order; it works test-first, starting with a failing test that reproduces the bug.
 
 **Parallel Verification:** Launch `Bash` agents: typecheck + lint + build
 See `references/parallel-exploration.md`
@@ -112,11 +112,10 @@ See `references/review-cycle.md` for mode-specific handling.
 | 2 | `researcher` (runs parallel with step 1) |
 | 3 | `brainstorm` |
 | 4 | `planner` |
-| 5 | `problem-solving`, `sequential-thinking`, `context-engineering`, parallel `Bash` |
+| 5 | `fullstack-developer`, parallel `Bash` |
 | 6 | `tester` |
 | 7 | `code-reviewer` |
 | 8 | `project-manager`, `docs-manager`, `Bash` |
 
 **Rules:** Don't skip steps. Validate before proceeding. One phase at a time.
-**Frontend:** Use `chrome`, `chrome-devtools` or any relevant skills/tools to verify.
-**Visual Assets:** Use `ai-multimodal` for visual assets generation, analysis and verification.
+**Frontend:** Verify in the browser (Claude in Chrome or the built-in browser).

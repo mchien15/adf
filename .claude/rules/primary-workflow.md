@@ -3,16 +3,6 @@
 **IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.
 **IMPORTANT**: Ensure token efficiency while maintaining high quality.
 
-#### 0. Requirements Analysis (Optional)
-For projects that need formal requirements documentation:
-- `/specs init` — Create initial FSD + use cases from codebase and PRD
-- `/specs analyze "feature"` — Document new feature requirements
-- `/specs update` — Sync FSD and use cases with code changes
-- `/test-cases generate` — Generate test cases from use cases
-- `/test-cases export csv` — Export for manual QA testing
-
-These steps are optional. Skip if project doesn't need formal BA/QA documentation.
-
 #### 1. Code Implementation
 - Before you start, delegate to `planner` agent to create a implementation plan with TODO tasks in `./plans` directory.
 - When in planning phase, use multiple `researcher` agents in parallel to conduct research on different relevant technical topics and report back to `planner` agent to create implementation plan.
@@ -64,14 +54,3 @@ These steps are optional. Skip if project doesn't need formal BA/QA documentatio
 - Read the summary report from `debugger` agent and delegate the fix to a `fullstack-developer` subagent (see Step 1).
 - Delegate to `tester` agent to run tests and analyze the summary report.
 - If the `tester` agent reports failed tests, fix them follow the recommendations and repeat from the **Step 3**.
-
-#### 6. Visual Explanations
-When explaining complex code, protocols, or architecture:
-- **When to use:** User asks "explain", "how does X work", "visualize", or topic has 3+ interacting components
-- Use `/preview --explain <topic>` to generate visual explanation with ASCII + Mermaid
-- Use `/preview --diagram <topic>` for architecture and data flow diagrams
-- Use `/preview --slides <topic>` for step-by-step walkthroughs
-- Use `/preview --ascii <topic>` for terminal-friendly output only
-- **Plan context:** Visuals save to plan folder from `## Plan Context` hook injection; if none, uses `plans/visuals/`
-- Auto-opens in browser via markdown-novel-viewer with Mermaid rendering
-- See `development-rules.md` → "Visual Aids" section for additional guidance

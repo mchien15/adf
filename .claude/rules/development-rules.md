@@ -12,12 +12,8 @@
   - No metaphors, invented jargon or sentence-shaped identifiers, files or branches (`stamp_ids`, `reads-its-own-record`); things are nouns, actions are verbs
   - Tests: the behavior in about 8 words or fewer. Branch, plan and ADR slugs: 2–4 plain words (formats: `git` and `adr` skills)
   - Casing follows the language: kebab-case for JS/TS/shell, snake_case for Python (a kebab-case module cannot be imported), PascalCase for C#/Java/Kotlin/Swift, snake_case for Go/Rust. A short name for what the module holds beats a long one. Add a new file only for a new concept, never to keep another file short.
-- When looking for docs, activate `docs-seeker` skill (`context7` reference) for exploring latest docs.
 - Use `gh` bash command to interact with Github features if needed
 - Use `psql` bash command to query Postgres database for debugging if needed
-- Use `ai-multimodal` skill for describing details of images, videos, documents, etc. if needed
-- Use `ai-multimodal` skill and `imagemagick` skill for generating and editing images, videos, documents, etc. if needed
-- Use `sequential-thinking` and `debug` skills for sequential thinking, analyzing code, debugging, etc. if needed
 - **[IMPORTANT]** Follow the codebase structure and code standards in the configured docs dir (`$CK_DOCS_PATH`) during implementation.
 - **[IMPORTANT]** Do not just simulate the implementation or mocking them, always implement the real code.
 
@@ -42,13 +38,3 @@
 - Implement features according to specifications
 - Handle edge cases and error scenarios
 - **DO NOT** create new enhanced files, update to the existing files directly.
-
-## Visual Aids
-- Use `/preview --explain` when explaining unfamiliar code patterns or complex logic
-- Use `/preview --diagram` for architecture diagrams and data flow visualization
-- Use `/preview --slides` for step-by-step walkthroughs and presentations
-- Use `/preview --ascii` for terminal-friendly diagrams (no browser needed to understand)
-- **Plan context:** Active plan determined from `## Plan Context` in hook injection; visuals save to `{plan_dir}/visuals/`
-- If no active plan, fallback to `plans/visuals/` directory
-- For Mermaid diagrams, use `/mermaidjs-v11` skill for v11 syntax rules
-- See `primary-workflow.md` → Step 6 for workflow integration

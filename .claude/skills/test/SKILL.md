@@ -40,13 +40,7 @@ Execute test suites, analyze results, generate coverage. Supports JS/TS (Jest/Vi
 
 **Load when:** Running unit/integration/e2e tests, checking coverage, validating builds
 
-### 2. UI Testing (`references/ui-testing-workflow.md`)
-
-Browser-based visual testing via `chrome-devtools` skill. Screenshots, responsive checks, accessibility audits, form automation, console error collection. Includes auth injection for protected routes.
-
-**Load when:** Visual regression testing, UI bugs, responsive layout checks, accessibility audits
-
-### 3. Report Format (`references/report-format.md`)
+### 2. Report Format (`references/report-format.md`)
 
 Structured QA report template: test results overview, coverage metrics, failed tests, performance, build status, recommendations.
 
@@ -59,10 +53,6 @@ Code tests     → test-execution-workflow.md
   npm test / pytest / go test / cargo test / flutter test
   Coverage: npm run test:coverage / pytest --cov
 
-UI tests       → ui-testing-workflow.md
-  Screenshots, responsive, a11y, forms, console errors
-  Auth: inject-auth.js for protected routes
-
 Reports        → report-format.md
   Structured QA summary with metrics & recommendations
 ```
@@ -74,17 +64,15 @@ Reports        → report-format.md
 3. Execute appropriate test suites
 4. Analyze results — focus on failures
 5. Generate coverage reports if applicable
-6. For frontend: run UI tests via `chrome-devtools` skill
+6. For frontend: check the UI in the browser (Claude in Chrome or the built-in browser)
 7. Produce structured summary report
 
 ## Tools Integration
 
 - **Test runners**: Jest, Vitest, Mocha, pytest, go test, cargo test, flutter test
 - **Coverage**: Istanbul/c8/nyc, pytest-cov, go cover
-- **Browser**: `chrome-devtools` skill for UI testing (screenshots, ARIA, console, network)
-- **Analysis**: `ai-multimodal` skill for screenshot analysis
+- **Browser**: Claude in Chrome or the built-in browser for UI checks (screenshots, console, network)
 - **Debugging**: `debug` skill when tests reveal bugs requiring investigation
-- **Thinking**: `sequential-thinking` skill for complex test failure analysis
 
 ## Quality Standards
 
@@ -97,12 +85,3 @@ Reports        → report-format.md
 ## Report Output
 
 Use naming pattern from `## Naming` section injected by hooks.
-
-## Team Mode
-
-When operating as teammate:
-1. On start: check `TaskList`, claim assigned/next unblocked task via `TaskUpdate`
-2. Read full task description via `TaskGet` before starting
-3. Wait for blocked tasks (implementation) to complete before testing
-4. Respect file ownership — only create/edit test files assigned
-5. When done: `TaskUpdate(status: "completed")` then `SendMessage` results to lead

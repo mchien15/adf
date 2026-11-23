@@ -49,11 +49,7 @@
   "gemini": {
     "model": "gemini-3-flash-preview"
   },
-  "skills": {
-    "research": {
-      "useGemini": true
-    }
-  },
+  "skills": {},
   "hooks": {},
   "assertions": []
 }

@@ -55,11 +55,7 @@ const DEFAULT_CONFIG = {
     packageManager: 'auto',
     framework: 'auto'
   },
-  skills: {
-    research: {
-      useGemini: true  // Toggle Gemini CLI usage in research skill
-    }
-  },
+  skills: {},
   assertions: [],
   statusline: 'full',
   hooks: {

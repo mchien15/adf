@@ -27,7 +27,7 @@ This file provides a navigation guide to all ADF documentation with description 
 **Contents:**
 - Vision, mission, and value proposition
 - Target users and personas
-- Key features (16 agents, 45 skills, slash-command workflows)
+- Key features (16 agents, 12 skills, slash-command workflows)
 - Functional and non-functional requirements
 - Success metrics and technical architecture
 
@@ -62,16 +62,7 @@ This file provides a navigation guide to all ADF documentation with description 
 
 ## Specialized Topics
 
-### 7. [Agent Teams Guide](./agent-teams-guide.md) — Parallel Collaboration
-**Audience:** Advanced workflow users, team leads
-**Contents:**
-- Agent team spawning and coordination
-- Parallel research patterns
-- Message passing between agents
-- Report generation and aggregation
-- Team scaling strategies
-
-### 8. [Skill-Native Task](./skill-native-task.md) — Custom Skill Development
+### 7. [Skill-Native Task](./skill-native-task.md) — Custom Skill Development
 **Audience:** Skill developers, extension authors
 **Contents:**
 - Anatomy of a skill
@@ -80,25 +71,9 @@ This file provides a navigation guide to all ADF documentation with description 
 - Skill testing and validation
 - Skill publishing guidelines
 
-### 9. [Skills Dependency Graph](./skills-dependency-graph.md) — Skill Relationships
-**Audience:** Architects, skill maintainers
-**Contents:**
-- Dependency tree visualization
-- Direct vs transitive dependencies
-- Breaking change impact analysis
-- Circular dependency detection
-
-### 10. [Skills Interconnection Map](./skills-interconnection-map.md) — Skill Workflow Integration
-**Audience:** Advanced workflow users, orchestration planners
-**Contents:**
-- Which skills call which other skills
-- Common skill composition patterns
-- Agent-to-skill routing
-- Workflow bottlenecks and optimization opportunities
-
 ## Installation & Operations
 
-### 11. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer Architecture
+### 8. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer Architecture
 **Audience:** Operations teams, deployment engineers
 **Contents:**
 - Canonical vs installed payload structure
@@ -106,7 +81,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Local configuration overrides
 - Repair and rollback capabilities
 
-### 12. [ADF Install Migration Guide](./adf-install-migration-guide.md) — Upgrading
+### 9. [ADF Install Migration Guide](./adf-install-migration-guide.md) — Upgrading
 **Audience:** Users updating existing ADF installations
 **Contents:**
 - Safe upgrade procedures
@@ -114,7 +89,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Breaking change handling
 - Data preservation during upgrade
 
-### 13. [ADF Rollback and Repair](./adf-rollback-and-repair.md) — Recovery
+### 10. [ADF Rollback and Repair](./adf-rollback-and-repair.md) — Recovery
 **Audience:** Operations, support teams
 **Contents:**
 - Rollback to previous versions
@@ -122,7 +97,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Snapshot management
 - Safety procedures
 
-### 14. [ADF Legacy Adoption Rules](./adf-legacy-adoption-rules.md) — Integration
+### 11. [ADF Legacy Adoption Rules](./adf-legacy-adoption-rules.md) — Integration
 **Audience:** Teams migrating from non-ADF projects
 **Contents:**
 - Adopting existing projects
@@ -130,7 +105,7 @@ This file provides a navigation guide to all ADF documentation with description 
 - Breaking changes
 - Safe adoption checklist
 
-### 15. [ADF Manifest Schema](./adf-manifest-schema.md) — Specification
+### 12. [ADF Manifest Schema](./adf-manifest-schema.md) — Specification
 **Audience:** Tool builders, integration engineers
 **Contents:**
 - `.adf/manifest.json` schema
@@ -154,7 +129,6 @@ This file provides a navigation guide to all ADF documentation with description 
 
 **Maintainers:**
 1. [ADF Install Ownership Model](./adf-install-ownership-model.md) — Installer ops
-2. [Skills Dependency Graph](./skills-dependency-graph.md) — Impact analysis
 
 **Operations / DevOps:**
 1. [ADF Install Ownership Model](./adf-install-ownership-model.md)
@@ -163,8 +137,6 @@ This file provides a navigation guide to all ADF documentation with description 
 **Architects:**
 1. [System Architecture](./system-architecture.md)
 2. [Project Overview & PDR](./project-overview-pdr.md) — Design decisions
-3. [Skills Dependency Graph](./skills-dependency-graph.md)
-4. [Skills Interconnection Map](./skills-interconnection-map.md)
 
 ### By Topic
 
@@ -181,8 +153,6 @@ This file provides a navigation guide to all ADF documentation with description 
 
 **Extending ADF:**
 - [Skill-Native Task](./skill-native-task.md) — Build custom skills
-- [Skills Dependency Graph](./skills-dependency-graph.md) — Understand dependencies
-- [Agent Teams Guide](./agent-teams-guide.md) — Orchestrate agents
 
 **Project Status:**
 - [Project Roadmap](./project-roadmap.md) — What's planned

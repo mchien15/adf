@@ -186,8 +186,6 @@ Issues, blockers, or questions
 - `/plan` - Research and planning
 - `/cook` - Feature implementation
 - `/test` - Test execution
-- `/ask` - Technical consultation
-- `/bootstrap` - Project initialization
 - `/brainstorm` - Solution ideation
 - `/debug` - Deep analysis
 - `/fix` - Bug fixes
@@ -195,12 +193,7 @@ Issues, blockers, or questions
 - `/docs` - Documentation updates
 - `/git` - Git operations
 
-**Business Analysis & QA**:
-- `/specs` - Requirements analysis, FSD and use case management (init, analyze, update)
-- `/test-cases` - Test case generation, update, and export (generate, update, export csv/json)
-
 **Skill-Backed Commands** (`.claude/skills/`):
-- `bootstrap/` - Project initialization workflows
 - `docs/` - Documentation workflows
 - `plan/` - Planning workflow variants
 - `code-review/` - Code review workflows
@@ -280,11 +273,10 @@ Explore different approaches simultaneously
 **Documentation Update Workflow**:
 1. User: `/docs update`
 2. Docs Manager: Check doc freshness
-3. (If >1 day old): Run `repomix` for codebase summary
-4. Docs Manager: Analyze codebase changes
-5. Docs Manager: Update affected documentation
-6. Docs Manager: Validate naming conventions
-7. Docs Manager: Create update report
+3. Docs Manager: Read the codebase (Glob/Grep/Read, or `/scout` for large repos)
+4. Docs Manager: Update affected documentation
+5. Docs Manager: Validate naming conventions
+6. Docs Manager: Create update report
 
 ### 5. Skills Layer
 
@@ -303,21 +295,7 @@ Explore different approaches simultaneously
     └── scripts/           # Utility scripts (if applicable)
 ```
 
-**Skill Categories**:
-- **Authentication**: better-auth
-- **Cloud Platforms**: Cloudflare, Google Cloud
-- **Databases**: MongoDB, PostgreSQL
-- **Design**: Canvas design generation
-- **Debugging**: Systematic approaches
-- **Development**: Next.js, Turborepo
-- **Documentation**: Repomix, docs-seeker
-- **Document Processing**: PDF, DOCX, PPTX, XLSX
-- **Infrastructure**: Docker
-- **Media**: FFmpeg, ImageMagick
-- **MCP**: Server building
-- **Problem Solving**: Meta-patterns, thinking frameworks
-- **UI Frameworks**: shadcn/ui, Tailwind CSS
-- **Ecommerce**: Shopify
+**Current Skills (12 Total)**: adr, brainstorm, code-review, cook, debug, docs, fix, git, plan, quality-gates, scout, test
 
 #### 5.2 Skill Invocation
 
@@ -432,132 +410,7 @@ All hooks located in `.claude/hooks/` with consistent patterns - fail-safe exit 
 - Smart Dedup: Prevent redundant context injection
 - Comprehensive Testing: Cross-platform test coverage
 
-#### 6.2 MCP (Model Context Protocol) Integration
-
-**Available MCP Servers**:
-
-**docs-seeker** skill (Documentation):
-- Read latest docs for packages/plugins
-- Access up-to-date technical information
-
-**sequential-thinking** skill (Problem Solving):
-- Structured thinking process
-- Break down complex problems
-- Reflective analysis
-
-**ai-multimodal** skill (Visual Analysis):
-- Describe images, videos, documents
-- UI/UX analysis from screenshots
-
-**ai-multimodal & imagemagick skills** (Generation & Processing):
-- Generate images, videos, and documents via ai-multimodal skills
-- Perform design asset creation and edits with imagemagick skill workflows
-
-**brain** (Advanced Reasoning):
-- Sequential thinking
-- Code analysis
-- Debugging assistance
-
-#### 6.3 Preview Dashboard System (COMPLETE - Phase 6)
-
-**Purpose**: Interactive web-based visualization of implementation plans and project progress
-
-**Architecture**:
-```
-.claude/skills/markdown-novel-viewer/
-├── scripts/
-│   ├── server.cjs              # HTTP server & request handler
-│   ├── lib/
-│   │   ├── plan-scanner.cjs    # Plan discovery & metadata extraction
-│   │   ├── dashboard-renderer.cjs  # Plan cards & dashboard rendering
-│   │   ├── plan-navigator.cjs  # Plan file parsing & traversal
-│   │   ├── markdown-renderer.cjs  # Markdown to HTML conversion
-│   │   ├── http-server.cjs     # HTTP server utilities
-│   │   ├── port-finder.cjs     # Available port detection
-│   │   └── process-mgr.cjs     # Process management
-│   ├── tests/                  # Test suites
-│   └── ...                     # Other modules
-├── assets/
-│   ├── dashboard-template.html # Dashboard UI template
-│   ├── dashboard.css           # Dashboard styles + theme
-│   └── dashboard.js            # Interactive dashboard logic
-└── SKILL.md                    # Skill documentation
-```
-
-**Core Components** (All 6 Phases Complete):
-
-**Phase 1-2: Infrastructure**
-- Plan Scanner, HTTP Server, Port detection utilities
-- Real-time plan discovery & metadata extraction
-- Security validation (path traversal prevention)
-
-**Phase 3-4: API & Data**
-- `/dashboard` route with HTML UI
-- `/api/dashboard` JSON API endpoint
-- Comprehensive metadata extraction (name, progress, status, phases, timestamps)
-
-**Phase 5-6: UI & Features** (COMPLETE)
-1. **Dashboard Renderer** (`dashboard-renderer.cjs`):
-   - Generates plan cards with progress visualization
-   - Calculates progress rings and status bars
-   - Supports sorting: by date, alphabetically, by progress
-   - Real-time filtering by status (all/pending/active/completed)
-   - Full-text search across plan names and descriptions
-
-2. **Dashboard Template** (`dashboard-template.html`):
-   - Responsive grid layout (auto-fit cards)
-   - Sticky header with controls
-   - Search bar with debounced input
-   - Sort/filter dropdowns
-   - Plan cards with metadata
-
-3. **Dashboard Styles** (`dashboard.css`):
-   - Dark/light theme support with CSS variables
-   - WCAG 2.1 AA color contrast compliance
-   - Progress ring visualization (SVG-based)
-   - Responsive design (mobile-first)
-   - Smooth transitions and animations
-
-4. **Dashboard Logic** (`dashboard.js`):
-   - Client-side filtering and sorting
-   - Theme toggle (persisted in localStorage)
-   - Real-time search with regex support
-   - Accessibility features (keyboard navigation, ARIA labels)
-   - Plan card interactions and detail views
-
-**Data Flow**:
-```
-User Request (/dashboard)
-    ↓
-HTTP Server
-    ↓
-Plan Scanner (discovers plans in ./plans)
-    ↓
-Dashboard Renderer (generates cards with progress)
-    ↓
-Dashboard Template (renders HTML with cards)
-    ↓
-Dashboard JS (enables interactivity)
-    ↓
-User sees sorted/filtered plan grid
-```
-
-**Features Complete**:
-- Real-time plan discovery (no manual updates)
-- Interactive card-based grid layout
-- Progress tracking with percentage calculation & rings
-- Status derivation (pending/in-progress/completed)
-- Sorting: date (newest first), alphabetical, progress %
-- Filtering: all, pending, active, completed
-- Full-text search with highlighting
-- Dark/light theme toggle with persistence
-- WCAG 2.1 AA accessibility compliance
-- Responsive mobile-friendly design
-- Phase breakdown with status indicators
-- Timestamp tracking for plan modifications
-- Security-validated path traversal
-
-#### 6.4 External Service Integration
+#### 6.2 External Service Integration
 
 **GitHub**:
 - Actions (CI/CD automation)
@@ -583,11 +436,6 @@ User sees sorted/filtered plan grid
 - `plans/<plan-name>/reports/` - Agent communication
 - `plans/<plan-name>/research/` - Research reports
 - `docs/` - Project documentation
-- `docs/project-fsd.md` - Functional Specification Document
-- `docs/usecases/{module}/` - Use case files per module
-- `test-cases/{module}/` - Test case files per module
-- `test-cases/test-summary.md` - Test coverage summary
-- `repomix-output.xml` - Codebase compaction
 
 **Version Control**:
 - `.git/` - Git repository
@@ -712,63 +560,10 @@ plans/<plan-name>/reports/251026-from-tester-to-main-test-results-report.md
 - OpenRouter (multi-model support)
 - Grok Code
 
-**Development Tools**:
-- Repomix (codebase compaction)
-
 **CI/CD**:
 - GitHub Actions
 - Conventional Commits
 - Semantic Versioning
-
-### Agent Skills Ecosystem
-
-**Sequential Thinking**: Problem decomposition
-**brain**: Advanced reasoning
-**docs-seeker**: Documentation access
-**ai-multimodal**: Visual understanding
-**ai-multimodal & imagemagick skills**: Content generation and processing
-
-## Data Flow Diagrams
-
-### Command Execution Flow
-
-```
-User → CLI → Parser → Command Def → Agent Workflow
-                                         ↓
-                        ┌────────────────┴────────────────┐
-                        ↓                                 ↓
-                Sequential Execution              Parallel Execution
-                        ↓                                 ↓
-                Agent A → Agent B → Agent C    Agent A + Agent B + Agent C
-                        ↓                                 ↓
-                        └─────────────┬───────────────────┘
-                                      ↓
-                              Collect Results
-                                      ↓
-                              Present to User
-```
-
-### File-Based Communication Flow
-
-```
-Agent A (Planner)
-    ↓ Writes
-./plans/<plan-name>/plan.md
-    ↓ Reads
-Main Agent
-    ↓ Implements
-Code Changes
-    ↓ Writes
-./plans/<plan-name>/reports/251026-from-main-to-tester-impl-report.md
-    ↓ Reads
-Tester Agent
-    ↓ Executes
-Tests
-    ↓ Writes
-./plans/<plan-name>/reports/251026-from-tester-to-main-results-report.md
-    ↓ Reads
-Main Agent (next steps)
-```
 
 ### Documentation Update Flow
 
@@ -777,14 +572,7 @@ Code Changes
     ↓
 Docs Manager Triggered
     ↓
-Check Freshness (< 1 day?)
-    ↓
-┌─────────┴─────────┐
-↓ No (outdated)     ↓ Yes (fresh)
-Run Repomix         Read Existing
-    ↓                   ↓
-Generate Summary        │
-    └────────┬──────────┘
+Read Existing Docs + Codebase
              ↓
     Analyze Changes
              ↓
@@ -866,7 +654,6 @@ Generate Summary        │
 ### Vertical Scalability
 
 **Context Management**:
-- Repomix for code compaction
 - Selective context loading
 - Chunked file processing
 - Efficient token usage
@@ -1005,7 +792,6 @@ User Project
 ### Optimization Strategies
 
 **Token Efficiency**:
-- Repomix for codebase compaction
 - Selective context inclusion
 - Efficient prompt engineering
 - Response caching where possible

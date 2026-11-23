@@ -69,7 +69,7 @@ Provide a production-ready template that:
 - **Management Agents**: Project tracking, progress monitoring, git operations
 
 **Orchestration Patterns**:
-- **Sequential Chaining**: BA → QA → Planning → Implementation → Testing → Review → Deploy
+- **Sequential Chaining**: Planning → Implementation → Testing → Review → Deploy
 - **Parallel Execution**: Multiple researchers exploring different approaches
 - **Query Fan-Out**: Simultaneous investigation of technical solutions
 
@@ -86,43 +86,22 @@ Provide a production-ready template that:
 - `/plan` - Research and create implementation plans
 - `/cook` - Implement features with full workflow
 - `/test` - Run comprehensive test suites
-- `/ask` - Expert technical consultation
-- `/bootstrap` - Initialize new projects end-to-end
 - `/brainstorm` - Solution ideation and evaluation
 - `/debug` - Deep issue analysis
 
 **Skill Organization** (`.claude/skills/`):
 Command behavior is implemented via skill directories:
-- `bootstrap/` - Project initialization workflows
 - `docs/` - Documentation generation and updates
 - `plan/` - Planning workflows and validators
 - `code-review/` - Code review workflows
 - `test/` - Testing and validation workflows
 
-### 3. Extensive Skills Library (45 Skills)
+### 3. Skills Library (12 Skills)
 
 **Location**: `.claude/skills/` (canonical source)
 **Available in**: Claude Code
 
-**Organized by Domain**:
-- **AI & Vision**: ai-artist, ai-multimodal, agent-browser
-- **Authentication**: better-auth
-- **Backend & Databases**: backend-development, databases
-- **Code Quality & Debugging**: code-review, debug, sequential-thinking
-- **Content & Copywriting**: copywriting, brainstorm
-- **Design & Frontend**: design-mockup-create, design-system, frontend-design, frontend-development, ui-styling, ui-ux-pro-max, web-design-guidelines
-- **DevOps & Infrastructure**: devops, git
-- **Documentation**: docs-seeker, repomix, markdown-novel-viewer, document-skills
-- **Framework Integration**: web-frameworks, react-best-practices, shopify
-- **Game Development**: threejs, shader
-- **Media Processing**: media-processing (FFmpeg, ImageMagick)
-- **MCP Tools**: mcp-builder, mcp-management
-- **Mobile Development**: mobile-development
-- **Project Planning**: plan, plans-kanban
-- **Skill Development**: skill-creator, template-skill
-- **Testing & QA**: web-testing
-- **Visualization**: mermaidjs-v11
-- **Workflow Tools**: cook, research, scout, payment-integration
+**Current Skills (12 Total)**: adr, brainstorm, code-review, cook, debug, docs, fix, git, plan, quality-gates, scout, test
 
 **Manual release process** (no npm, no semantic-release):
 1. Update version in `.claude/metadata.json`
@@ -173,7 +152,7 @@ Why this matters:
 - Provide command discovery and help
 
 **FR3: Documentation Management**
-- Auto-generate codebase summaries with repomix
+- Auto-generate codebase summaries
 - Keep docs synchronized with code changes
 - Maintain project roadmap and changelog
 - Update API documentation automatically
@@ -190,14 +169,6 @@ Why this matters:
 - Generate professional commit messages
 - Create clean PR descriptions
 - Support installer-selected git convention overlays per repository
-
-**FR6: Project Bootstrapping**
-- Initialize git repository
-- Gather requirements through questions
-- Research tech stacks
-- Generate project structure
-- Create initial documentation
-- Set up CI/CD
 
 ### Non-Functional Requirements
 
@@ -245,7 +216,6 @@ Why this matters:
 - Community engagement (issues, discussions, PRs)
 
 ### Performance Metrics
-- Average time to bootstrap new project: < 10 minutes
 - Planning to implementation cycle time: 50% reduction
 - Documentation coverage: > 90%
 - Test coverage: > 80%
@@ -286,7 +256,6 @@ Why this matters:
 - Error handling and recovery
 
 **4. Documentation System**
-- Repomix integration for codebase compaction
 - Template-based doc generation
 - Auto-update triggers
 - Version tracking
@@ -316,7 +285,6 @@ Why this matters:
 - Grok Code (for git-manager)
 
 **Development Tools**:
-- Repomix (codebase compaction)
 - Scout Block Hook (performance optimization)
 
 **CI/CD**:
@@ -328,7 +296,6 @@ Why this matters:
 
 **MCP Tools**:
 - **context7**: Read latest documentation
-- **sequential-thinking**: Structured problem solving
 - **SearchAPI**: Google and YouTube search
 - **review-website**: Web content extraction
 - **VidCap**: Video transcript analysis
@@ -339,22 +306,7 @@ Why this matters:
 
 ## Use Cases
 
-### UC1: Bootstrap New Project
-**Actor**: Developer
-**Goal**: Create new project from scratch
-**Flow**:
-1. Run `/bootstrap` command
-2. Answer requirement questions
-3. AI researches tech stacks
-4. Review and approve recommendations
-5. AI generates project structure
-6. AI implements initial features
-7. AI creates tests and documentation
-8. Project ready for development
-
-**Outcome**: Fully functional project with tests, docs, CI/CD in < 10 minutes
-
-### UC2: Implement New Feature
+### UC1: Implement New Feature
 **Actor**: Developer
 **Goal**: Add feature with full workflow
 **Flow**:
@@ -372,7 +324,7 @@ Why this matters:
 
 **Outcome**: Feature complete with tests, docs, and clean git history
 
-### UC3: Debug Production Issue
+### UC2: Debug Production Issue
 **Actor**: Developer
 **Goal**: Identify and fix production bug
 **Flow**:
@@ -387,7 +339,7 @@ Why this matters:
 
 **Outcome**: Bug fixed with comprehensive testing and documentation
 
-### UC4: Manage Commits and Deployments
+### UC3: Manage Commits and Deployments
 **Actor**: Developer
 **Goal**: Maintain professional git history
 **Flow**:
@@ -400,13 +352,13 @@ Why this matters:
 
 **Outcome**: Professional commit history and clean PR ready for review
 
-### UC5: Update Documentation
+### UC4: Update Documentation
 **Actor**: Project Manager
 **Goal**: Ensure docs are current
 **Flow**:
 1. Run `/docs update`
 2. Docs manager scans codebase
-3. Generates fresh summary with repomix
+3. Generates fresh summary
 4. Identifies outdated sections
 5. Updates API docs, guides, architecture
 6. Validates naming conventions
@@ -426,7 +378,6 @@ Why this matters:
 - Requires API keys for AI platforms
 - GitHub Actions minutes for CI/CD
 - Internet connection for MCP tools
-- Storage for repomix output files
 
 ### Design Constraints
 - Agent definitions must be Markdown with frontmatter
@@ -444,7 +395,7 @@ Why this matters:
 ### Risk 2: Context Window Limits
 **Impact**: Medium
 **Likelihood**: High
-**Mitigation**: Repomix for code compaction, selective context loading, chunking
+**Mitigation**: Selective context loading, chunking
 
 ### Risk 3: Agent Coordination Failures
 **Impact**: High
@@ -504,7 +455,6 @@ Why this matters:
 
 ### Integrations
 - GitHub Actions
-- Repomix
 - Various MCP servers
 
 ## Compliance & Standards
@@ -543,7 +493,6 @@ Why this matters:
 - **Slash Command**: Shortcut that triggers agent workflows (e.g., `/plan`)
 - **Skill**: Reusable knowledge module for specific technologies or patterns
 - **MCP**: Model Context Protocol for AI tool integration
-- **Repomix**: Tool for compacting codebases into AI-friendly format
 - **Sequential Chaining**: Running agents one after another with dependencies
 - **Parallel Execution**: Running multiple agents simultaneously
 - **Query Fan-Out**: Spawning multiple researchers to explore different approaches

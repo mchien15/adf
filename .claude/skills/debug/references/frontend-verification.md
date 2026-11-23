@@ -1,6 +1,6 @@
 # Frontend Verification
 
-Visual verification of frontend implementations using Chrome MCP (Claude Chrome Extension) or `chrome-devtools` skill fallback.
+Visual verification of frontend implementations using the browser tools: Claude in Chrome or the built-in browser.
 
 ## Applicability Check
 
@@ -11,17 +11,13 @@ Visual verification of frontend implementations using Chrome MCP (Claude Chrome 
 
 If none match, skip this technique.
 
-## Step 1: Detect Chrome MCP Availability
+## Step 1: Check a Browser Is Available
 
-Check if Chrome MCP server is available via `mcp-management` skill or `ListMcpResourcesTool`:
+Look for Claude in Chrome tools (`mcp__claude-in-chrome__*`) or the built-in browser tools (`mcp__Claude_Browser__*`).
 
-```
-Use ListMcpResourcesTool to check for Chrome MCP tools.
-Look for tools prefixed with "chrome__" (e.g., chrome__navigate, chrome__screenshot).
-```
-
-**Available** → Proceed to Step 2A (Chrome MCP)
-**Not available** → Proceed to Step 2B (chrome-devtools fallback)
+**Available** → Proceed to Step 2A
+**Not available** → skip visual verification and note in report:
+> "Visual verification skipped — no browser tools available."
 
 ## Step 2A: Chrome MCP Available — Direct Verification
 
@@ -58,24 +54,6 @@ Or navigate and observe any error output from Chrome MCP tool responses.
 chrome__get_content → extract DOM/text to verify rendered output matches expectations
 ```
 
-## Step 2B: Chrome MCP NOT Available — Fallback to chrome-devtools Skill
-
-When Chrome MCP is not configured, use `chrome-devtools` skill (Puppeteer with bundled Chromium):
-
-```bash
-SKILL_DIR="$HOME/.claude/skills/chrome-devtools/scripts"
-
-# Install deps if first time
-npm install --prefix "$SKILL_DIR" 2>/dev/null
-
-# Screenshot + console error check
-node "$SKILL_DIR/screenshot.js" --url http://localhost:3000 --output ./verification-screenshot.png
-node "$SKILL_DIR/console.js" --url http://localhost:3000 --types error,pageerror --duration 5000
-```
-
-If `chrome-devtools` skill is also unavailable, skip visual verification and note in report:
-> "Visual verification skipped — no Chrome MCP or chrome-devtools available."
-
 ## Step 3: Analyze Results
 
 After capture:
@@ -95,7 +73,7 @@ Standard verification → Tests pass → Build succeeds → Frontend visual veri
 Report format:
 ```
 ## Frontend Verification
-- Method: [Chrome MCP | chrome-devtools | skipped]
+- Method: [Claude in Chrome | built-in browser | skipped]
 - Screenshot: ./verification-screenshot.png
 - Console errors: [none | list]
 - Visual check: [pass | issues found]

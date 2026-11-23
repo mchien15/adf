@@ -76,7 +76,7 @@ Classify before routing. See `references/complexity-assessment.md`.
 See `references/skill-activation-matrix.md` for complete matrix.
 
 **Always activate:** `debug` (all workflows)
-**Conditional:** `problem-solving`, `sequential-thinking`, `brainstorm`, `context-engineering`
+**Conditional:** `brainstorm`
 **Subagents:** `fullstack-developer` (writes every fix), `debugger`, `researcher`, `planner`, `code-reviewer`, `tester`, `Bash`
 **Parallel:** Multiple `Explore` agents for scouting, `Bash` agents for verification
 
@@ -110,4 +110,3 @@ Load as needed:
 - `references/workflow-logs.md` - Application log analysis
 - `references/workflow-test.md` - Test suite failures
 - `references/workflow-types.md` - TypeScript type errors
-- `references/workflow-ui.md` - Visual/UI issues (requires design skills)

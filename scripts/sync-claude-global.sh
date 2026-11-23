@@ -23,7 +23,7 @@ DEST="$HOME/.claude"
 # Managed directories — synced with --delete so repo removals propagate to global.
 MANAGED_DIRS=(skills agents rules hooks scripts config)
 # Managed single files — copied, never --delete.
-MANAGED_FILES=(statusline.cjs statusline.ps1 statusline.sh .env.example .mcp.json.example metadata.json)
+MANAGED_FILES=(statusline.cjs statusline.ps1 statusline.sh metadata.json)
 
 # Cruft never published to global, even though it lives inside managed dirs:
 #   --filter ':- .gitignore' → honor any in-tree .gitignore (build/coverage/log artifacts)
