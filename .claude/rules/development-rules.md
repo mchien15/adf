@@ -1,9 +1,8 @@
 # Development Rules
 
-**IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.
-**IMPORTANT:** You ALWAYS follow these principles: **YAGNI (You Aren't Gonna Need It) - KISS (Keep It Simple, Stupid) - DRY (Don't Repeat Yourself)**
+Follow these principles: **YAGNI (You Aren't Gonna Need It) - KISS (Keep It Simple, Stupid) - DRY (Don't Repeat Yourself)**
 
-**IMPORTANT — Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected with each prompt as `Docs: <path>` under `## Paths` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
+**Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected with each prompt as `Docs: <path>` under `## Paths` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
 
 ## General
 - **Naming** (files, identifiers, tests, branches, ADRs, and terms in plans/reports — plan words end up in code):
@@ -15,16 +14,14 @@
 - Write markdown files only under the plans or docs paths (`$CK_PLANS_PATH`, `$CK_DOCS_PATH`) unless the user asks for another location
 - Use `gh` bash command to interact with Github features if needed
 - Use `psql` bash command to query Postgres database for debugging if needed
-- **[IMPORTANT]** Follow the codebase structure and code standards in the configured docs dir (`$CK_DOCS_PATH`) during implementation.
-- **[IMPORTANT]** Do not just simulate the implementation or mocking them, always implement the real code.
+- Follow the codebase structure and code standards in the docs path (`$CK_DOCS_PATH/code-standards.md`).
+- Implement the real code; do not simulate it or mock it out.
 
 ## Code Quality Guidelines
-- Read and follow codebase structure and code standards in the configured docs dir (`$CK_DOCS_PATH`)
 - Don't be too harsh on code linting, but **make sure there are no syntax errors and code are compilable**
 - Prioritize functionality and readability over strict style enforcement and code formatting
 - Use reasonable code quality standards that enhance developer productivity
 - Use try catch error handling & cover security standards
-- Use `code-reviewer` agent to review code after every implementation
 
 ## Pre-commit/Push Rules
 - Run linting before commit

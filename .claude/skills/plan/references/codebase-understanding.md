@@ -13,7 +13,7 @@
 ### Essential Documentation Review
 ALWAYS read these files first:
 
-1. **`./docs/development-rules.md`** (IMPORTANT)
+1. **`.claude/rules/development-rules.md`** (IMPORTANT)
    - File Name Conventions
    - Development rules and best practices
    - Code quality standards

@@ -132,25 +132,15 @@ Heavy directories are not a hook: `permissions.deny` in `.claude/settings.json` 
 
 **Primary Workflows** (`.claude/rules/`):
 1. **primary-workflow.md**: Core development cycle
-   - Code implementation
-   - Testing
-   - Code quality
-   - Integration
-   - Debugging
+   - Plan, implement (delegated to `fullstack-developer`, test-first), test, review, docs
+   - Debugging flow
+   - Delegation context for subagent prompts
 
-2. **orchestration-protocol.md**: Agent coordination patterns
-   - Sequential chaining
-   - Parallel execution
-
-3. **development-rules.md**: Development standards
+2. **development-rules.md**: Development standards
    - YAGNI, KISS, DRY principles
+   - Naming
    - Code quality guidelines
    - Pre-commit/push rules
-
-4. **documentation-management.md**: Doc maintenance
-   - Roadmap and changelog updates
-   - Automatic update triggers
-   - Documentation protocols
 
 ## Entry Points
 
@@ -273,8 +263,6 @@ Features: Branch protection rules
 ### Workflows
 - `.claude/rules/primary-workflow.md`
 - `.claude/rules/development-rules.md`
-- `.claude/rules/orchestration-protocol.md`
-- `.claude/rules/documentation-management.md`
 
 ## External References
 
