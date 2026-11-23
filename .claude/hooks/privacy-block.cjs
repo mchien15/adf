@@ -2,7 +2,7 @@
 /**
  * privacy-block.cjs - Block access to sensitive files unless user-approved
  *
- * PRIVACY-based blocking (separate from SIZE-based scout-block)
+ * PRIVACY-based blocking
  * Blocks sensitive files. LLM must get user approval and use APPROVED: prefix.
  *
  * Flow:

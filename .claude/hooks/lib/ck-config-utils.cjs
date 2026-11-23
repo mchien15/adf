@@ -50,24 +50,13 @@ const DEFAULT_CONFIG = {
     passphrase: null,
     enabled: false
   },
-  project: {
-    type: 'auto',
-    packageManager: 'auto',
-    framework: 'auto'
-  },
   skills: {},
-  assertions: [],
   statusline: 'full',
   hooks: {
     'session-init': true,
     'subagent-init': true,
     'dev-rules-reminder': true,
-    'usage-context-awareness': true,
-    'context-tracking': true,
-    'scout-block': true,
-    'privacy-block': true,
-    'task-completed-handler': true,
-    'teammate-idle-handler': true
+    'privacy-block': true
   }
 };
 
@@ -444,7 +433,7 @@ function resolvePlanPath(sessionId, config, cwd) {
 /**
  * Plan explicitly activated for a session (set-active-plan), ignoring branch matching.
  * Null when there is no session, no active plan, or its dir no longer exists.
- * Shared by the statusline and cook-after-plan-reminder so none of them show an archived plan.
+ * Shared by the statusline and plan resolution so none of them show an archived plan.
  *
  * @param {string|null} sessionId - Session identifier
  * @returns {string|null} Absolute (or legacy relative) plan dir, or null
@@ -573,12 +562,10 @@ function sanitizeConfig(config, projectRoot) {
  *   3. Local config (./.claude/config/adf-config.json) - project-specific overrides
  *
  * @param {Object} options - Options for config loading
- * @param {boolean} options.includeProject - Include project section (default: true)
- * @param {boolean} options.includeAssertions - Include assertions (default: true)
  * @param {boolean} options.includeLocale - Include locale section (default: true)
  */
 function loadConfig(options = {}) {
-  const { includeProject = true, includeAssertions = true, includeLocale = true } = options;
+  const { includeLocale = true } = options;
   const projectRoot = process.cwd();
 
   // Load configs from both locations
@@ -587,7 +574,7 @@ function loadConfig(options = {}) {
 
   // No config files found - use defaults
   if (!globalConfig && !localConfig) {
-    return getDefaultConfig(includeProject, includeAssertions, includeLocale);
+    return getDefaultConfig(includeLocale);
   }
 
   try {
@@ -608,12 +595,6 @@ function loadConfig(options = {}) {
     }
     // Always include trust config for verification
     result.trust = merged.trust || DEFAULT_CONFIG.trust;
-    if (includeProject) {
-      result.project = merged.project || DEFAULT_CONFIG.project;
-    }
-    if (includeAssertions) {
-      result.assertions = merged.assertions || [];
-    }
     // Skills configuration
     result.skills = merged.skills || DEFAULT_CONFIG.skills;
     // Hooks configuration
@@ -623,14 +604,14 @@ function loadConfig(options = {}) {
 
     return sanitizeConfig(result, projectRoot);
   } catch (e) {
-    return getDefaultConfig(includeProject, includeAssertions, includeLocale);
+    return getDefaultConfig(includeLocale);
   }
 }
 
 /**
  * Get default config with optional sections
  */
-function getDefaultConfig(includeProject = true, includeAssertions = true, includeLocale = true) {
+function getDefaultConfig(includeLocale = true) {
   const result = {
     plan: { ...DEFAULT_CONFIG.plan },
     paths: { ...DEFAULT_CONFIG.paths },
@@ -641,12 +622,6 @@ function getDefaultConfig(includeProject = true, includeAssertions = true, inclu
   };
   if (includeLocale) {
     result.locale = { ...DEFAULT_CONFIG.locale };
-  }
-  if (includeProject) {
-    result.project = { ...DEFAULT_CONFIG.project };
-  }
-  if (includeAssertions) {
-    result.assertions = [];
   }
   return result;
 }
@@ -721,7 +696,7 @@ function getReportsPath(planPath, resolvedBy, planConfig, pathsConfig, baseDir =
  * @returns {string} Absolute reports path (no trailing slash)
  */
 function resolveCurrentReportsPath(sessionId, cwd = process.cwd()) {
-  const config = loadConfig({ includeProject: false, includeAssertions: false, includeLocale: false });
+  const config = loadConfig({ includeLocale: false });
   const resolved = resolvePlanPath(sessionId, config, cwd);
   return getReportsPath(resolved.path, resolved.resolvedBy, config.plan, config.paths, resolvePlansBaseDir(cwd));
 }
@@ -905,7 +880,7 @@ function extractTaskListId(resolved) {
  * @returns {boolean} Whether hook is enabled
  */
 function isHookEnabled(hookName) {
-  const config = loadConfig({ includeProject: false, includeAssertions: false, includeLocale: false });
+  const config = loadConfig({ includeLocale: false });
   const hooks = config.hooks || {};
   // Return true if undefined (default enabled), otherwise return the boolean value
   return hooks[hookName] !== false;

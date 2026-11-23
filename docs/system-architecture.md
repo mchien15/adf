@@ -57,7 +57,7 @@ Agentic Development Framework implements a multi-agent AI orchestration architec
 - Agent definitions (`.md` with YAML frontmatter)
 - Skill modules (knowledge bases)
 - Workflow templates
-- Hook scripts (performance, context, security)
+- Hook scripts (context, security)
 
 **Cross-Platform Design**:
 - Source repo canonical tree: `.claude/`
@@ -305,101 +305,58 @@ Planner incorporates into plan
 
 ### 6. Integration Layer
 
-#### 6.1 Hook System (13 Core Hooks)
+#### 6.1 Hook System (4 Hooks)
 
-**Purpose**: Intercept and control Claude Code operations for performance, context management, and security
+**Purpose**: Inject context into sessions and subagents, and gate access to sensitive files
 
-**Hook Architecture**:
-All hooks located in `.claude/hooks/` with consistent patterns - fail-safe exit code 0 (non-blocking)
-
-**Additional Hooks**:
-- `privacy-block.cjs` - Sensitive file access control
-- `descriptive-name.cjs` - Naming conventions enforcement
-- `usage-context-awareness.cjs` - Context-aware usage patterns
-- `cook-after-plan-reminder.cjs` - Cook workflow guidance
-- `skill-dedup.cjs` - Skill deduplication
-- `team-context-inject.cjs` - Team coordination context
-- `task-completed-handler.cjs` - Task completion monitoring
-- `teammate-idle-handler.cjs` - Teammate idle state detection
+**Location**: `.claude/hooks/`, registered in `.claude/settings.json`. All hooks are Node.js (`.cjs`) and fail open (exit 0 on error).
 
 **1. Session-Init Hook** (`session-init.cjs`)
-- **Trigger**: Session startup
-- **Purpose**: Initialize session state and context
+- **Trigger**: SessionStart (`startup|resume|clear|compact`)
 - **Functionality**:
-  - Detects project type (monorepo vs library)
-  - Identifies package manager (pnpm/npm/yarn)
-  - Detects framework (Next.js, React, etc.)
-  - Writes 25+ environment variables for context cascade
-  - Enables efficient context reuse across agents
+  - Writes `CK_*` environment variables (session, docs/plans/reports paths, naming, active plan, git branch, project root)
+  - Prints a one-line banner
+  - After a compact, prints the approval-state check
 
 **2. Dev-Rules-Reminder Hook** (`dev-rules-reminder.cjs`)
-- **Trigger**: Every user prompt
-- **Purpose**: Inject development context and rules
+- **Trigger**: UserPromptSubmit (every prompt)
 - **Functionality**:
-  - Injects current development rules from `.claude/rules/`
-  - Smart deduplication prevents redundant context
-  - Suggests branch-matched workflows
-  - Optimized for minimal token overhead
-  - Enables consistent behavior across team
+  - Injects `## Paths`, `## Plan Context`, `## Naming`
+  - Skips when the reminder already appears in the last 150 transcript lines
 
 **3. Subagent-Init Hook** (`subagent-init.cjs`)
-- **Trigger**: When spawning subagents
-- **Purpose**: Provide minimal context to subagents
+- **Trigger**: SubagentStart (all subagents)
 - **Functionality**:
-  - Injects ~200 tokens of essential context
-  - Eliminates need for full context retransmission
-  - Enables efficient agent-to-agent communication
-  - Reduces token consumption for delegation patterns
-  - Optimized for token efficiency
+  - Injects `## Subagent`, `## Context` (plan, reports, paths), `## Rules`, `## Naming`
+  - Adds `## Language`, `## Trust Verification`, `## Agent Instructions` only when configured
 
-**4. Scout-Block Hook** (`scout-block.cjs` - Cross-Platform)
-- **Trigger**: Before bash/command execution
-- **Purpose**: Block access to heavy directories for performance
-- **Architecture**:
-  - Node.js dispatcher with platform-specific implementations
-  - Windows: PowerShell implementation (`scout-block.ps1`)
-  - Unix (Linux/macOS/WSL): Bash implementation (`scout-block.sh`)
-  - Platform Detection: Automatic via `process.platform`
-  - Zero-config setup
+**4. Privacy-Block Hook** (`privacy-block.cjs`)
+- **Trigger**: PreToolUse (`Bash|Glob|Grep|Read|Edit|Write`)
+- **Functionality**: Gates access to sensitive files; exit 2 blocks the call
 
-**Functionality**:
-- Blocks access to heavy directories (node_modules, __pycache__, .git/, dist/, build/)
-- Input validation (JSON structure, command presence)
-- Error handling with exit codes (0 = allow, 2 = block/error)
-- Security: sanitized error messages, input validation
-- Performance: Reduces AI token usage and improves response time
+**Heavy Directories** (not a hook): `permissions.deny` in `.claude/settings.json` blocks reads of `node_modules`, `.venv`, `venv`, `__pycache__`, `.next`, `.nuxt`. Bash commands are not covered.
 
-**Testing**:
-- Cross-platform test suites (`test-scout-block.sh`, `test-scout-block.ps1`)
-- Comprehensive coverage (11 Unix tests, 7 Windows tests)
-- Validates: blocked/allowed patterns, error handling, edge cases, JSON validation
-
-**Hook Configuration** (`.claude/settings.json`):
+**Hook Configuration** (`.claude/settings.json`, excerpt):
 ```json
 {
   "hooks": {
-    "SubagentStart": [{
-      "matcher": "*",
-      "hooks": [{
-        "type": "command",
-        "command": "node ${CLAUDE_PROJECT_DIR}/.claude/hooks/subagent-init.cjs"
-      }]
-    }],
-    "BeforeBash": [{
-      "type": "command",
-      "command": "node ${CLAUDE_PROJECT_DIR}/.claude/hooks/scout-block.js"
-    }]
+    "SessionStart": [{ "matcher": "startup|resume|clear|compact",
+      "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-init.cjs\"" }] }],
+    "SubagentStart": [{ "matcher": "*",
+      "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/subagent-init.cjs\"" }] }],
+    "UserPromptSubmit": [{
+      "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/dev-rules-reminder.cjs\"" }] }],
+    "PreToolUse": [{ "matcher": "Bash|Glob|Grep|Read|Edit|Write",
+      "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/privacy-block.cjs\"" }] }]
   }
 }
 ```
 
 **Hook Features Summary**:
-- Fail-Safe: All hooks exit 0 (non-blocking) - graceful degradation
-- Performance: Optimized token consumption
-- Cross-Platform: Windows (PowerShell) & Unix (Bash) support
-- Context Cascade: Environment variables flow from session to agents
-- Smart Dedup: Prevent redundant context injection
-- Comprehensive Testing: Cross-platform test coverage
+- Fail-open: errors exit 0
+- Context cascade: `CK_*` environment variables flow from session to agents
+- Dedup: dev-rules-reminder skips repeat injection
+- Tests: `.claude/hooks/__tests__/`, `.claude/hooks/lib/__tests__/`
 
 #### 6.2 External Service Integration
 
@@ -407,11 +364,6 @@ All hooks located in `.claude/hooks/` with consistent patterns - fail-safe exit 
 - Actions (CI/CD automation)
 - Releases (semantic versioning)
 - Issues and PRs (project management)
-
-**Discord**:
-- Webhook notifications
-- Project updates
-- Team communication
 
 ### 7. Data Layer
 
@@ -543,7 +495,7 @@ plans/<plan-name>/reports/251026-from-tester-to-main-test-results-report.md
 
 **Runtime Environment**:
 - Node.js >= 18.0.0
-- Bash scripting (hooks)
+- Bash scripting (installer and setup scripts)
 
 **AI Platforms**:
 - Anthropic Claude (Sonnet 4, Opus 4)

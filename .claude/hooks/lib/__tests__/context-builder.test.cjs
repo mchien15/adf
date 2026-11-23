@@ -1,14 +1,7 @@
 #!/usr/bin/env node
 /**
- * Tests for context-builder.cjs - rules/workflows backward compatibility
+ * Tests for context-builder.cjs - paths, plan context and naming sections
  * Run: node --test .claude/hooks/lib/__tests__/context-builder.test.cjs
- *
- * Issue #337: Rename workflows/ to rules/ with backward compatibility
- * Key scenarios:
- * - resolveRulesPath() checks rules/ first
- * - Falls back to workflows/ if rules/ not found
- * - resolveWorkflowPath alias works
- * - Both directories: rules/ wins
  */
 
 const { describe, it, before, after, afterEach } = require('node:test');
@@ -72,147 +65,6 @@ describe('context-builder.cjs', () => {
     cleanupTempDir(fakeHome);
   });
 
-  describe('resolveRulesPath()', () => {
-    let originalCwd;
-    let tempDir;
-
-    before(() => {
-      originalCwd = process.cwd();
-    });
-
-    afterEach(() => {
-      process.chdir(originalCwd);
-      if (tempDir) cleanupTempDir(tempDir);
-      tempDir = undefined;
-    });
-
-    it('returns null when file does not exist anywhere', () => {
-      tempDir = createTempDir(['.claude']);
-      process.chdir(tempDir);
-
-      // Use a unique filename that won't exist in global ~/.claude/
-      const uniqueFilename = `nonexistent-${Date.now()}-${Math.random().toString(36).slice(2)}.md`;
-      const result = contextBuilder.resolveRulesPath(uniqueFilename);
-      assert.strictEqual(result, null, 'Should return null when file does not exist');
-    });
-
-    it('finds file in rules/ directory (new location)', () => {
-      tempDir = createTempDir(['.claude/rules']);
-      createTestFile(path.join(tempDir, '.claude/rules'), 'development-rules.md');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.resolveRulesPath('development-rules.md');
-      assert.strictEqual(result, '.claude/rules/development-rules.md',
-        'Should find file in rules/ directory');
-    });
-
-    it('falls back to workflows/ when rules/ does not exist', () => {
-      tempDir = createTempDir(['.claude/workflows']);
-      createTestFile(path.join(tempDir, '.claude/workflows'), 'development-rules.md');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.resolveRulesPath('development-rules.md');
-      assert.strictEqual(result, '.claude/workflows/development-rules.md',
-        'Should fall back to workflows/ directory');
-    });
-
-    it('prefers rules/ over workflows/ when both exist', () => {
-      tempDir = createTempDir(['.claude/rules', '.claude/workflows']);
-      createTestFile(path.join(tempDir, '.claude/rules'), 'development-rules.md', '# Rules version\n');
-      createTestFile(path.join(tempDir, '.claude/workflows'), 'development-rules.md', '# Workflows version\n');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.resolveRulesPath('development-rules.md');
-      assert.strictEqual(result, '.claude/rules/development-rules.md',
-        'Should prefer rules/ over workflows/');
-    });
-
-    it('finds file in workflows/ when rules/ exists but file is only in workflows/', () => {
-      tempDir = createTempDir(['.claude/rules', '.claude/workflows']);
-      // rules/ exists but file is only in workflows/
-      createTestFile(path.join(tempDir, '.claude/workflows'), 'legacy-file.md');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.resolveRulesPath('legacy-file.md');
-      assert.strictEqual(result, '.claude/workflows/legacy-file.md',
-        'Should find file in workflows/ when not in rules/');
-    });
-
-
-  });
-
-  describe('resolveWorkflowPath alias', () => {
-
-    it('resolveWorkflowPath is exported and callable', () => {
-      assert.ok(typeof contextBuilder.resolveWorkflowPath === 'function',
-        'resolveWorkflowPath should be exported');
-    });
-
-    it('resolveWorkflowPath is alias for resolveRulesPath', () => {
-      assert.strictEqual(contextBuilder.resolveWorkflowPath, contextBuilder.resolveRulesPath,
-        'resolveWorkflowPath should be same function as resolveRulesPath');
-    });
-
-    it('resolveWorkflowPath works identically to resolveRulesPath', () => {
-      const tempDir = createTempDir(['.claude/rules']);
-      createTestFile(path.join(tempDir, '.claude/rules'), 'test.md');
-      const originalCwd = process.cwd();
-      process.chdir(tempDir);
-
-      try {
-        const rulesResult = contextBuilder.resolveRulesPath('test.md');
-        const workflowResult = contextBuilder.resolveWorkflowPath('test.md');
-        assert.strictEqual(rulesResult, workflowResult,
-          'Both functions should return same result');
-      } finally {
-        process.chdir(originalCwd);
-        cleanupTempDir(tempDir);
-      }
-    });
-
-  });
-
-  describe('Global path resolution', () => {
-
-    it('checks global ~/.claude/rules/ path', () => {
-      // Verifies the function handles missing global paths gracefully (HOME is an empty dir)
-      const tempDir = createTempDir(['.claude']);
-      const originalCwd = process.cwd();
-      process.chdir(tempDir);
-
-      try {
-        // Neither local nor the (empty) global ~/.claude has it
-        const result = contextBuilder.resolveRulesPath('nonexistent-file.md');
-        assert.strictEqual(result, null, 'Should return null when file exists nowhere');
-      } finally {
-        process.chdir(originalCwd);
-        cleanupTempDir(tempDir);
-      }
-    });
-
-    // Also the positive control for the HOME isolation above: it only resolves if os.homedir()
-    // really points at fakeHome.
-    it('resolves a file from global ~/.claude/rules/ when it is not local', () => {
-      const tempDir = createTempDir(['.claude']);
-      const originalCwd = process.cwd();
-      const globalRules = path.join(fakeHome, '.claude', 'rules');
-      fs.mkdirSync(globalRules, { recursive: true });
-      createTestFile(globalRules, 'global-only.md');
-      process.chdir(tempDir);
-
-      try {
-        const result = contextBuilder.resolveRulesPath('global-only.md');
-        assert.strictEqual(result, '~/.claude/rules/global-only.md',
-          'Should resolve from the global rules directory');
-      } finally {
-        process.chdir(originalCwd);
-        cleanupTempDir(tempDir);
-        cleanupTempDir(path.join(fakeHome, '.claude'));
-      }
-    });
-
-  });
-
   describe('buildReminderContext()', () => {
     let tempDir;
     let originalCwd;
@@ -237,6 +89,8 @@ describe('context-builder.cjs', () => {
       assert.ok(result.content, 'Should have content');
       assert.ok(Array.isArray(result.lines), 'Should have lines array');
       assert.ok(result.sections, 'Should have sections object');
+      assert.deepStrictEqual(Object.keys(result.sections), ['paths', 'planContext', 'naming']);
+      assert.doesNotMatch(result.content, /## (Language|Session|Usage Limits|Rules)|Current Session's Context/);
     });
 
     // Regression: every other case here omits baseDir, so the absolute-path branch went
@@ -296,69 +150,15 @@ describe('context-builder.cjs', () => {
       );
     });
 
-    it('includes devRulesPath when rules/ exists', () => {
-      tempDir = createTempDir(['.claude/rules']);
-      createTestFile(path.join(tempDir, '.claude/rules'), 'development-rules.md');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.buildReminderContext({});
-
-      assert.ok(result.content.includes('rules/development-rules.md') ||
-                result.content.includes('development-rules'),
-        'Should reference dev rules file');
-    });
-
-    it('includes devRulesPath when only workflows/ exists (backward compat)', () => {
-      tempDir = createTempDir(['.claude/workflows']);
-      createTestFile(path.join(tempDir, '.claude/workflows'), 'development-rules.md');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.buildReminderContext({});
-
-      assert.ok(result.content.includes('workflows/development-rules.md') ||
-                result.content.includes('development-rules'),
-        'Should reference dev rules file from workflows/');
-    });
-
   });
 
   describe('Section builders', () => {
 
-    it('buildSessionSection returns array of lines', () => {
-      const lines = contextBuilder.buildSessionSection({});
-      assert.ok(Array.isArray(lines), 'Should return array');
-      assert.ok(lines.some(l => l.includes('Session')), 'Should include Session header');
-    });
-
-    it('buildRulesSection returns array with Rules header', () => {
-      const lines = contextBuilder.buildRulesSection({});
-      assert.ok(Array.isArray(lines), 'Should return array');
-      assert.ok(lines.some(l => l.includes('Rules')), 'Should include Rules header');
-    });
-
-    it('buildRulesSection uses absolute paths when provided (Issue #476)', () => {
-      const lines = contextBuilder.buildRulesSection({
-        plansPath: '/Users/test/project/plans',
-        docsPath: '/Users/test/project/docs'
-      });
-      const joined = lines.join('\n');
-      assert.ok(joined.includes('/Users/test/project/plans'), 'Should include absolute plans path');
-      assert.ok(joined.includes('/Users/test/project/docs'), 'Should include absolute docs path');
-      assert.ok(!joined.includes('Plans → "plans/"'), 'Should NOT use bare relative "plans/" when absolute path provided');
-    });
-
-    it('buildRulesSection falls back to relative when no paths provided (Issue #476)', () => {
-      const lines = contextBuilder.buildRulesSection({});
-      const joined = lines.join('\n');
-      assert.ok(joined.includes('"plans"'), 'Should fall back to relative plans');
-      assert.ok(joined.includes('"docs"'), 'Should fall back to relative docs');
-    });
-
-    it('wasRecentlyInjected detects the marker emitted by buildRulesSection', () => {
+    it('wasRecentlyInjected detects the marker emitted by buildNamingSection', () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ck-dedup-'));
       const transcript = path.join(tmpDir, 'transcript.jsonl');
       try {
-        fs.writeFileSync(transcript, ['prior line', ...contextBuilder.buildRulesSection({})].join('\n'));
+        fs.writeFileSync(transcript, ['prior line', ...contextBuilder.buildNamingSection({ reportsPath: '/r/', plansPath: '/p', namePattern: '{slug}' })].join('\n'));
         assert.strictEqual(contextBuilder.wasRecentlyInjected(transcript), true);
 
         fs.writeFileSync(transcript, Array(10).fill('unrelated content').join('\n'));
@@ -403,161 +203,23 @@ describe('context-builder.cjs', () => {
 
   });
 
-  describe('Hooks config behavior (Issue #413)', () => {
-    let tempDir;
-    let originalCwd;
-
-    before(() => {
-      originalCwd = process.cwd();
-    });
-
-    afterEach(() => {
-      process.chdir(originalCwd);
-      if (tempDir) cleanupTempDir(tempDir);
-      tempDir = undefined;
-    });
-
-    it('disables context section when context-tracking: false', () => {
-      tempDir = createTempDir(['.claude']);
-      const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      fs.writeFileSync(settingsPath, JSON.stringify({
-        hooks: {
-          'context-tracking': false
-        }
-      }));
-      process.chdir(tempDir);
-
-      const result = contextBuilder.buildReminderContext({});
-
-      assert.ok(Array.isArray(result.sections.context), 'context should be array');
-      assert.strictEqual(result.sections.context.length, 0, 'context section should be empty');
-    });
-
-    it('disables usage section when usage-context-awareness: false', () => {
-      tempDir = createTempDir(['.claude']);
-      const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      fs.writeFileSync(settingsPath, JSON.stringify({
-        hooks: {
-          'usage-context-awareness': false
-        }
-      }));
-      process.chdir(tempDir);
-
-      const result = contextBuilder.buildReminderContext({});
-
-      assert.ok(Array.isArray(result.sections.usage), 'usage should be array');
-      assert.strictEqual(result.sections.usage.length, 0, 'usage section should be empty');
-    });
-
-    it('disables both sections when both hooks false', () => {
-      tempDir = createTempDir(['.claude']);
-      const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      fs.writeFileSync(settingsPath, JSON.stringify({
-        hooks: {
-          'context-tracking': false,
-          'usage-context-awareness': false
-        }
-      }));
-      process.chdir(tempDir);
-
-      const result = contextBuilder.buildReminderContext({});
-
-      assert.strictEqual(result.sections.context.length, 0, 'context section should be empty');
-      assert.strictEqual(result.sections.usage.length, 0, 'usage section should be empty');
-    });
-
-    it('enables sections by default when hooks undefined', () => {
-      tempDir = createTempDir(['.claude']);
-      const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      fs.writeFileSync(settingsPath, JSON.stringify({}));
-      process.chdir(tempDir);
-
-      const result = contextBuilder.buildReminderContext({});
-
-      assert.ok(Array.isArray(result.sections.context), 'context should be array');
-      assert.ok(Array.isArray(result.sections.usage), 'usage should be array');
-      // Enabled sections may be empty or populated - just verify they exist
-    });
-
-  });
-
   describe('Export completeness', () => {
 
     it('exports all required functions', () => {
       const requiredExports = [
         'buildReminderContext',
         'buildReminder',
-        'buildLanguageSection',
-        'buildSessionSection',
-        'buildRulesSection',
         'buildPathsSection',
         'buildPlanContextSection',
         'buildNamingSection',
-        'execSafe',
-        'resolveRulesPath',
-        'resolveScriptPath',
-        'resolveSkillsVenv',
         'buildPlanContext',
-        'wasRecentlyInjected',
-        'resolveWorkflowPath' // Backward compat alias
+        'wasRecentlyInjected'
       ];
 
       for (const exportName of requiredExports) {
         assert.ok(typeof contextBuilder[exportName] === 'function',
           `Should export ${exportName}`);
       }
-    });
-
-  });
-
-  describe('CLAUDE.md reference resolution', () => {
-    let tempDir;
-    let originalCwd;
-
-    before(() => {
-      originalCwd = process.cwd();
-    });
-
-    afterEach(() => {
-      process.chdir(originalCwd);
-      if (tempDir) cleanupTempDir(tempDir);
-      tempDir = undefined;
-    });
-
-    it('resolves @rules/ references correctly', () => {
-      // This test verifies that the rules path resolution works
-      // which is used by CLAUDE.md @references
-      tempDir = createTempDir(['.claude/rules']);
-      createTestFile(path.join(tempDir, '.claude/rules'), 'primary-workflow.md');
-      createTestFile(path.join(tempDir, '.claude/rules'), 'development-rules.md');
-      createTestFile(path.join(tempDir, '.claude/rules'), 'orchestration-protocol.md');
-      createTestFile(path.join(tempDir, '.claude/rules'), 'documentation-management.md');
-      process.chdir(tempDir);
-
-      // All files referenced in CLAUDE.md should resolve
-      const files = [
-        'primary-workflow.md',
-        'development-rules.md',
-        'orchestration-protocol.md',
-        'documentation-management.md'
-      ];
-
-      for (const file of files) {
-        const result = contextBuilder.resolveRulesPath(file);
-        assert.ok(result !== null, `Should resolve ${file}`);
-        assert.ok(result.includes('rules/'), `${file} should be in rules/`);
-      }
-    });
-
-    it('resolves legacy @workflows/ references via fallback', () => {
-      // Test that legacy references still work
-      tempDir = createTempDir(['.claude/workflows']);
-      createTestFile(path.join(tempDir, '.claude/workflows'), 'primary-workflow.md');
-      process.chdir(tempDir);
-
-      const result = contextBuilder.resolveRulesPath('primary-workflow.md');
-      assert.ok(result !== null, 'Should resolve legacy workflow file');
-      assert.ok(result.includes('workflows/'), 'Should find in workflows/');
     });
 
   });

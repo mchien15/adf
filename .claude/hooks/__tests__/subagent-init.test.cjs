@@ -368,6 +368,7 @@ describe('subagent-init.cjs', () => {
       assert.ok(context.includes('## Context'), 'Should have Context section');
       assert.ok(context.includes('## Rules'), 'Should have Rules section');
       assert.ok(context.includes('## Naming'), 'Should have Naming section');
+      assert.ok(!/\.ven[v]|pip install/.test(context), 'No skills python rule');
     });
 
     it('includes absolute paths for reports and plans', async () => {

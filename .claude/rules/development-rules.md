@@ -3,7 +3,7 @@
 **IMPORTANT:** Analyze the skills catalog and activate the skills that are needed for the task during the process.
 **IMPORTANT:** You ALWAYS follow these principles: **YAGNI (You Aren't Gonna Need It) - KISS (Keep It Simple, Stupid) - DRY (Don't Repeat Yourself)**
 
-**IMPORTANT — Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected each session as `Docs → <path>` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
+**IMPORTANT — Docs path:** Every `docs/` reference in this framework resolves to the **configured docs directory**, injected with each prompt as `Docs: <path>` under `## Paths` (env `$CK_DOCS_PATH`). Default profile → `docs/`; `cmc` git-profile → `.adf/docs/`. When reading or writing project docs, use that injected path, not a literal `./docs`.
 
 ## General
 - **Naming** (files, identifiers, tests, branches, ADRs, and terms in plans/reports — plan words end up in code):
@@ -12,6 +12,7 @@
   - No metaphors, invented jargon or sentence-shaped identifiers, files or branches (`stamp_ids`, `reads-its-own-record`); things are nouns, actions are verbs
   - Tests: the behavior in about 8 words or fewer. Branch, plan and ADR slugs: 2–4 plain words (formats: `git` and `adr` skills)
   - Casing follows the language: kebab-case for JS/TS/shell, snake_case for Python (a kebab-case module cannot be imported), PascalCase for C#/Java/Kotlin/Swift, snake_case for Go/Rust. A short name for what the module holds beats a long one. Add a new file only for a new concept, never to keep another file short.
+- Write markdown files only under the plans or docs paths (`$CK_PLANS_PATH`, `$CK_DOCS_PATH`) unless the user asks for another location
 - Use `gh` bash command to interact with Github features if needed
 - Use `psql` bash command to query Postgres database for debugging if needed
 - **[IMPORTANT]** Follow the codebase structure and code standards in the configured docs dir (`$CK_DOCS_PATH`) during implementation.

@@ -94,45 +94,24 @@ agentic-development-framework/
 - Setup wizard: stack-aware — infers exclude patterns, selects nuclei tags, composes gitleaks.toml + sonar-project.properties per detected stack
 - Removed: profiles feature, config validate/doctor, zombie config fields (nuclei block, dast.severity, sonar.sources/exclusions)
 
-### 4. Hook System (13 Core Hooks)
+### 4. Hook System (4 Hooks)
 
-**Location**: `.claude/hooks/`
+**Location**: `.claude/hooks/` (Node.js `.cjs`, registered in `.claude/settings.json`)
 
-**Core Hooks:**
+| Hook | Event | Behavior |
+|------|-------|----------|
+| `session-init.cjs` | SessionStart | Writes `CK_*` env vars (session, paths, naming, active plan, git branch, project root). Prints a one-line banner; after a compact, also prints the approval-state check |
+| `dev-rules-reminder.cjs` | UserPromptSubmit | Injects `## Paths`, `## Plan Context`, `## Naming`. Skipped if already injected in the last 150 transcript lines |
+| `subagent-init.cjs` | SubagentStart | Injects `## Subagent`, `## Context`, `## Rules`, `## Naming`. Adds `## Language`, `## Trust Verification` or `## Agent Instructions` only when configured |
+| `privacy-block.cjs` | PreToolUse (`Bash\|Glob\|Grep\|Read\|Edit\|Write`) | Gates access to sensitive files. Exit 2 blocks the call |
 
-1. **session-init.cjs** - Session Initialization
-   - Detects project type (monorepo/library)
-   - Identifies package manager (pnpm/npm/yarn)
-   - Detects framework (Next/React/etc)
-   - Writes 25+ environment variables for context cascade
+Heavy directories are not a hook: `permissions.deny` in `.claude/settings.json` blocks reads of `node_modules`, `.venv`, `venv`, `__pycache__`, `.next`, `.nuxt`. Bash commands are not covered.
 
-2. **dev-rules-reminder.cjs** - Development Context Injection
-   - Injects dev rules & context on every prompt
-   - Smart deduplication prevents redundancy
-   - Provides branch-matched workflow suggestions
-   - Optimized for token efficiency
-
-3. **subagent-init.cjs** - Subagent Context Injection
-   - Injects compact context (~200 tokens) when spawning subagents
-   - Minimizes token overhead during delegation
-   - Enables efficient agent-to-agent communication
-
-4. **scout-block.cjs** - Cross-Platform Performance Optimization
-   - Blocks access to heavy directories (node_modules, .git, __pycache__, dist/, build/)
-   - Node.js dispatcher with platform-specific implementations
-   - Unix (Bash): scout-block.sh
-   - Windows (PowerShell): scout-block.ps1
-   - Automatic platform detection via `process.platform`
-   - Improves AI response time and token efficiency
-
-5. **privacy-block.cjs** - Sensitive File Access Control
-6. **descriptive-name.cjs** - Naming conventions enforcement
-7. **usage-context-awareness.cjs** - Context-aware usage patterns
-8. **cook-after-plan-reminder.cjs** - Cook workflow guidance
-9. **skill-dedup.cjs** - Skill deduplication
-10. **team-context-inject.cjs** - Team coordination context
-11. **task-completed-handler.cjs** - Task completion monitoring
-12. **teammate-idle-handler.cjs** - Teammate idle state detection
+**Hook Behavior:**
+- Fail-open: errors exit 0. Only `privacy-block.cjs` exits 2, and only to block
+- Cross-platform: plain Node.js, no shell or PowerShell variants
+- Dedup: `dev-rules-reminder.cjs` skips repeat injection
+- Tests: `.claude/hooks/__tests__/` and `.claude/hooks/lib/__tests__/`
 
 ### 6. Installer Profile System
 
@@ -148,12 +127,6 @@ agentic-development-framework/
 - `--git-profile cmc` overlays CMC git branch and merge guidance
 - Overlay surface is intentionally narrow to minimize maintenance
 - Installed repos now keep payload in `./.adf/payload/` and track generated compatibility outputs in `./.adf/manifest.json`
-
-**Hook Features:**
-- Fail-Safe: All hooks exit 0 (non-blocking) - graceful degradation
-- Performance: Optimized token consumption
-- Cross-Platform: Windows (PowerShell) & Unix (Bash) via Node.js dispatcher
-- Comprehensive Test Coverage: test-scout-block.sh (11 tests), test-scout-block.ps1 (7 tests)
 
 ### 5. Workflows
 
@@ -273,7 +246,7 @@ Types:
 **Framework Components**:
 - 16 specialized agent definitions
 - 12 skills
-- 13 core hooks with cross-platform support
+- 4 hooks (Node.js, cross-platform)
 - Complete documentation system
 
 **Languages**: JavaScript/Node.js, Bash, Markdown
@@ -281,10 +254,6 @@ Types:
 **License**: MIT
 
 ## Integration Capabilities
-
-### Discord Notifications
-Script: `.claude/hooks/send-discord.sh`
-Purpose: Send project updates to Discord channels
 
 ### GitHub Actions
 Workflow: `.github/workflows/branch-protection.yml`
@@ -323,7 +292,7 @@ Features: Branch protection rules
 
 - In this source repo, `.claude/` is canonical; in installed repos, `.adf/payload/` is canonical
 - Version management: update `.claude/metadata.json` for releases
-- Hook system is cross-platform (Node.js dispatcher + platform-specific scripts)
+- Hooks are plain Node.js scripts (`.cjs`), no platform-specific variants
 
 ## Unresolved Questions
 

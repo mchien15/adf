@@ -169,26 +169,10 @@ describe('dev-rules-reminder.cjs', () => {
 
   describe('Output Sections Validation', () => {
 
-    it('includes Session section', async () => {
+    it('has only Paths, Plan Context and Naming sections', async () => {
       const result = await runHook({ user_prompt: 'test' });
 
-      if (result.stdout) {
-        assert.ok(
-          result.stdout.includes('## Session') || result.stdout.includes('Session'),
-          'Should include Session section'
-        );
-      }
-    });
-
-    it('includes Rules section', async () => {
-      const result = await runHook({ user_prompt: 'test' });
-
-      if (result.stdout) {
-        assert.ok(
-          result.stdout.includes('## Rules') || result.stdout.includes('Rules'),
-          'Should include Rules section'
-        );
-      }
+      assert.deepStrictEqual(result.stdout.match(/^## .+$/gm), ['## Paths', '## Plan Context', '## Naming']);
     });
 
     it('includes Naming section', async () => {
@@ -215,7 +199,7 @@ describe('dev-rules-reminder.cjs', () => {
       try {
         // Write transcript with the reminder marker (last 150 lines)
         const lines = Array(200).fill('some content');
-        lines[180] = '- Markdown files are organized in: Plans → "plans" directory, Docs → "docs" directory';
+        lines[180] = '- Replace `{slug}` in pattern with: short-kebab-slug';
         fs.writeFileSync(transcriptPath, lines.join('\n'));
 
         const result = await runHook({

@@ -74,10 +74,8 @@ Provide a production-ready template that:
 - **Query Fan-Out**: Simultaneous investigation of technical solutions
 
 **Performance Optimization**:
-- **Scout Block Hook**: Cross-platform hook system blocking heavy directories
-  - Automatic platform detection (Windows/Unix/WSL)
-  - Zero-configuration setup
-  - Blocks: node_modules, __pycache__, .git/, dist/, build/
+- **Heavy directory denial**: `permissions.deny` in `.claude/settings.json` blocks reads of node_modules, .venv, venv, __pycache__, .next and .nuxt
+  - Bash commands are not covered
   - Improves AI agent response time and token efficiency
 
 ### 2. Comprehensive Slash Commands
@@ -274,18 +272,14 @@ Why this matters:
 
 **Runtime**:
 - Node.js >= 18.0.0
-- Bash scripting (Unix hooks)
-- PowerShell scripting (Windows hooks)
-- Cross-platform hook dispatcher (Node.js)
+- Bash scripting (installer and setup scripts)
+- Node.js hook scripts (`.claude/hooks/*.cjs`)
 
 **AI Platforms**:
 - Anthropic Claude (Sonnet 4, Opus 4)
 - OpenRouter integration
 - Google Gemini (for docs-manager)
 - Grok Code (for git-manager)
-
-**Development Tools**:
-- Scout Block Hook (performance optimization)
 
 **CI/CD**:
 - GitHub Actions
@@ -302,7 +296,6 @@ Why this matters:
 
 **External Services**:
 - GitHub (Actions, Releases, PRs)
-- Discord (notifications)
 
 ## Use Cases
 
@@ -450,7 +443,6 @@ Why this matters:
 - API keys for AI platforms
 
 ### Optional Dependencies
-- Discord webhook for notifications
 - GitHub repository for CI/CD
 
 ### Integrations

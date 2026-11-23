@@ -195,16 +195,6 @@ describe('session-init.cjs', () => {
       );
     });
 
-    it('includes project detection context', async () => {
-      const result = await runHook({ source: 'startup' });
-
-      // Should include project type detection
-      assert.ok(
-        result.stdout.includes('Project:'),
-        'Should include Project detection'
-      );
-    });
-
   });
 
   describe('Exit Code Behavior', () => {
@@ -289,14 +279,11 @@ describe('session-init.cjs', () => {
       );
     });
 
-    it('context output includes project info', async () => {
+    it('context output has plan naming, no project', async () => {
       const result = await runHook({ source: 'startup' });
 
       assert.strictEqual(result.exitCode, 0, 'Hook should exit with code 0');
-      assert.ok(
-        result.stdout.includes('Project:'),
-        'Should include Project in context'
-      );
+      assert.ok(!result.stdout.includes('Project:'), 'Project detection is gone');
       assert.ok(
         result.stdout.includes('Plan naming:'),
         'Should include Plan naming in context'

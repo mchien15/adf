@@ -84,7 +84,7 @@ An earlier design tried to discover an existing ADR directory anywhere in the re
 
 | Attempt | Why it failed |
 |---|---|
-| `find` with a prune list | ADF's own `scout-block.cjs` hook rejects any Bash command containing `node_modules`, `dist`, `build`, `venv`, `vendor`, `target`, `coverage` or `.git` — the prune list *is* those tokens. Unrunnable in any ADF repo |
+| `find` with a prune list | ADF's `scout-block.cjs` hook (since removed) rejected any Bash command containing `node_modules`, `dist`, `build`, `venv`, `vendor`, `target`, `coverage` or `.git` — the prune list *is* those tokens, so it could not run. Even without that hook, the rows below still rule discovery out |
 | Glob for candidate directories | Glob returns **file paths**. An empty `adr/` is not representable in the result at all — so the one case adoption existed for, `adr-tools` creating `doc/adr/` before the first record, could never be detected |
 | Judge candidates by file shape | A record and a numbered docs chapter are the same shape. `decision-tables/01-pricing.md` passes every test you can write |
 | Judge candidates by directory name | Rejects `arch-decisions`, `adr_records`, `decision-log`, `design-decisions`; Glob is case-sensitive so `ADR/` never even becomes a candidate; dependency trees ship their own `adr/` and nothing prunes them |

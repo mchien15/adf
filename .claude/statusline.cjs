@@ -93,17 +93,6 @@ async function readStdin() {
 // ============================================================================
 
 /**
- * Build usage time string with optional percentage
- * @returns {string|null} Formatted usage string or null if unavailable
- */
-function buildUsageString(ctx) {
-  if (!ctx.sessionText || ctx.sessionText === 'N/A') return null;
-  let str = ctx.sessionText.replace(' until reset', ' left');
-  if (ctx.usagePercent != null) str += ` (${Math.round(ctx.usagePercent)}%)`;
-  return str;
-}
-
-/**
  * Render session lines with multi-level responsive wrapping
  * Combines parts based on content length vs terminal width
  * Tries to minimize lines while keeping content readable
@@ -138,17 +127,11 @@ function renderSessionLines(ctx) {
   let locationPart = branchPart ? `${dirPart}  ${branchPart}` : dirPart;
   if (planPart) locationPart += `  ${planPart}`;
 
-  // Build session part: 🤖 model  contextBar%  ⌛ time left (usage%)
+  // Build session part: 🤖 model  contextBar%
   let sessionPart = `🤖 ${ctx.modelName}`;
   if (ctx.contextPercent > 0) {
     sessionPart += `  ${coloredBar(ctx.contextPercent, 12)} ${ctx.contextPercent}%`;
   }
-  // Add usage/reset info to session part (stays on line 1 with model - Claude Code only reads line 1)
-  const usageStr = buildUsageString(ctx);
-  if (usageStr) {
-    sessionPart += `  ⌛ ${usageStr.replace(/\)$/, ' used)')}`;
-  }
-
   // Build stats part (only lines changed now)
   const statsItems = [];
   // if (ctx.costText) statsItems.push(`💵 ${ctx.costText.replace(/(\.\d{2})\d+/, '$1')}`);
@@ -163,7 +146,7 @@ function renderSessionLines(ctx) {
   const statsLen = visibleLength(statsPart);
 
   // Layout priority: SESSION FIRST (Claude Code only reads line 1)
-  // Line 1: model + context + usage (most important for Claude Code)
+  // Line 1: model + context (most important for Claude Code)
   // Line 2+: location, git, stats
   const allOneLine = `${sessionPart}  ${locationPart}  ${statsPart}`;
   const sessionLocation = `${sessionPart}  ${locationPart}`;
@@ -307,14 +290,12 @@ function renderMinimal(ctx) {
   const out = s => console.log(s.replace(/ /g, '\u00A0'));
   // Line 1: Model (Claude Code reads line 1 for internal context)
   out(`🤖 Model: ${ctx.modelName}`);
-  // Line 2: Context + Window time
+  // Line 2: Context
   const line2Parts = [];
   if (ctx.contextPercent > 0) {
     const batteryIcon = ctx.contextPercent > 70 ? red('🔋') : '🔋';
     line2Parts.push(`${batteryIcon} Context: ${ctx.contextPercent}%`);
   }
-  const usageStr = buildUsageString(ctx);
-  if (usageStr) line2Parts.push(`⏰ Window: ${usageStr}`);
   if (line2Parts.length > 0) out(line2Parts.join('  '));
   // Line 3: Branch + Dir
   const line3Parts = [];
@@ -327,13 +308,11 @@ function renderMinimal(ctx) {
  * Render compact mode - 2 lines: session info + location (branch + dir)
  */
 function renderCompact(ctx) {
-  // Line 1: Session info (model + context + usage)
+  // Line 1: Session info (model + context)
   let line1 = `🤖 ${ctx.modelName}`;
   if (ctx.contextPercent > 0) {
     line1 += `  ${coloredBar(ctx.contextPercent, 12)} ${ctx.contextPercent}%`;
   }
-  const usageStr = buildUsageString(ctx);
-  if (usageStr) line1 += `  ⌛ ${usageStr}`;
   console.log(line1.replace(/ /g, '\u00A0'));
 
   // Line 2: Location (branch + directory)
@@ -425,54 +404,10 @@ async function main() {
       contextPercent = Math.min(100, Math.round(((totalTokens + AUTOCOMPACT_BUFFER) / contextSize) * 100));
     }
 
-    // Write context data to temp file for hooks to read
-    const sessionId = data.session_id;
-    if (sessionId && contextSize > 0) {
-      try {
-        const contextDataPath = path.join(os.tmpdir(), `ck-context-${sessionId}.json`);
-        fs.writeFileSync(contextDataPath, JSON.stringify({
-          percent: contextPercent,
-          tokens: totalTokens,
-          size: contextSize,
-          usage: usage,
-          timestamp: Date.now()
-        }));
-      } catch {}
-    }
-
-    // Session timer - read actual reset time from usage limits cache
-    let sessionText = '';
     const transcriptPath = data.transcript_path;
 
     // Parse transcript for tools/agents/todos
     const transcript = transcriptPath ? await parseTranscript(transcriptPath) : { tools: [], agents: [], todos: [], sessionStart: null };
-
-    // Read actual reset time and utilization from usage limits cache (written by usage-context-awareness hook)
-    let usagePercent = null;
-    try {
-      const usageCachePath = path.join(os.tmpdir(), 'ck-usage-limits-cache.json');
-      if (fs.existsSync(usageCachePath)) {
-        const cache = JSON.parse(fs.readFileSync(usageCachePath, 'utf8'));
-
-        // Check status flag for fallback (non-OAuth scenarios)
-        if (cache.status === 'unavailable') {
-          sessionText = 'N/A';
-        } else {
-          const fiveHour = cache.data?.five_hour;
-          usagePercent = fiveHour?.utilization ?? null;
-          const resetAt = fiveHour?.resets_at;
-          if (resetAt) {
-            const resetTime = new Date(resetAt);
-            const remaining = Math.floor(resetTime.getTime() / 1000) - Math.floor(Date.now() / 1000);
-            if (remaining > 0 && remaining < 18000) {
-              const rh = Math.floor(remaining / 3600);
-              const rm = Math.floor((remaining % 3600) / 60);
-              sessionText = `${rh}h ${rm}m until reset`;
-            }
-          }
-        }
-      }
-    } catch {}
 
     // Cost and lines changed
     const billingMode = env.CLAUDE_BILLING_MODE || 'api';
@@ -497,8 +432,6 @@ async function main() {
       gitBehind,
       activePlan,
       contextPercent,
-      sessionText,
-      usagePercent,
       costText,
       linesAdded,
       linesRemoved,
@@ -507,7 +440,7 @@ async function main() {
     };
 
     // Load config and get statusline mode
-    const config = loadConfig({ includeProject: false, includeAssertions: false, includeLocale: false });
+    const config = loadConfig({ includeLocale: false });
     const statuslineMode = config.statusline || 'full';
 
     // Render based on mode

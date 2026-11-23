@@ -700,59 +700,25 @@ Mistakes to avoid
 
 ## Hook Implementation Standards
 
-### Scout Block Hook Architecture
+Applies to `.claude/hooks/` (see `system-architecture.md` §6.1).
 
-**Cross-Platform Design Pattern**:
-- **Dispatcher Pattern**: Single Node.js entry point delegates to platform-specific implementations
-- **Platform Detection**: Use `process.platform` for automatic selection
-- **Security-First**: Input validation, sanitized errors, safe execution
-
-**File Organization**:
+**Layout**:
 ```
 .claude/hooks/
-├── scout-block.js        # Node.js dispatcher (cross-platform entry)
-├── scout-block.sh        # Bash implementation (Unix)
-├── scout-block.ps1       # PowerShell implementation (Windows)
-├── test-scout-block.sh   # Unix test suite
-└── test-scout-block.ps1  # Windows test suite
+├── session-init.cjs          # SessionStart entry point
+├── dev-rules-reminder.cjs    # UserPromptSubmit entry point
+├── subagent-init.cjs         # SubagentStart entry point
+├── privacy-block.cjs         # PreToolUse entry point
+├── lib/                      # Shared logic (context builder, config utils, privacy checker)
+└── __tests__/                # Hook tests
 ```
 
-**Implementation Requirements**:
-- **Node.js Dispatcher**:
-  - Read stdin synchronously
-  - Validate JSON structure before parsing
-  - Check platform via `process.platform`
-  - Execute platform-specific script with piped input
-  - Handle errors with exit codes (0 = success, 2 = error)
-
-- **Platform-Specific Scripts**:
-  - Parse JSON input (use Node.js for consistency, avoid jq dependency)
-  - Validate command structure and content
-  - Apply pattern matching for blocked paths
-  - Return appropriate exit codes
-  - Provide clear error messages
-
-**Security Standards**:
-```javascript
-// Input validation
-if (!hookInput || hookInput.trim().length === 0) {
-  console.error('ERROR: Empty input');
-  process.exit(2);
-}
-
-// JSON structure validation
-const data = JSON.parse(hookInput);
-if (!data.tool_input || typeof data.tool_input.command !== 'string') {
-  console.error('ERROR: Invalid JSON structure');
-  process.exit(2);
-}
-```
-
-**Testing Standards**:
-- Test both allowed and blocked patterns
-- Validate error handling (invalid JSON, empty input, missing fields)
-- Cross-platform test coverage
-- Clear pass/fail indicators
+**Standards**:
+- Node.js built-ins only; no npm dependencies
+- Keep hook entry files thin; shared logic goes in `lib/`
+- Read stdin synchronously; invalid or empty input is allowed through, not blocked
+- Fail open: unexpected errors exit 0. Exit 2 only to block a tool call (`privacy-block.cjs`)
+- Add a test in `__tests__/` for each new behavior
 
 ## Configuration File Standards
 

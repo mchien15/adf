@@ -374,29 +374,6 @@ describe('resolvePlansBaseDir memoization', () => {
   });
 });
 
-describe('buildContextOutput plan label (session-init banner)', () => {
-  const { buildContextOutput } = require('../lib/project-detector.cjs');
-  const detections = { type: 'single-repo', pm: null };
-  const cfg = { plan: { namingFormat: '{date}-{slug}' } };
-
-  it('shows a session plan as Plan: <path>', () => {
-    const out = buildContextOutput(cfg, detections, { path: '/p/plans/x', resolvedBy: 'session' }, null);
-    assert.ok(out.includes('Plan: /p/plans/x'), out);
-    assert.ok(!out.includes('matched from branch'), out);
-  });
-
-  it('shows a branch-matched plan as <path> (matched from branch), not Suggested', () => {
-    const out = buildContextOutput(cfg, detections, { path: '/p/plans/x', resolvedBy: 'branch' }, null);
-    assert.ok(out.includes('Plan: /p/plans/x (matched from branch)'), out);
-    assert.ok(!out.includes('Suggested'), out);
-  });
-
-  it('shows nothing when no plan resolved', () => {
-    const out = buildContextOutput(cfg, detections, { path: null, resolvedBy: null }, null);
-    assert.ok(!out.includes('Plan:'), out);
-  });
-});
-
 describe('fixed report types', () => {
   const expected = [
     'researcher', 'brainstormer', 'scout', 'planner', 'tester',
@@ -438,7 +415,6 @@ describe('buildReminderContext inside a linked worktree', () => {
     const plans = path.join(linked.main, 'plans');
     const docs = path.join(linked.worktree, 'docs');
 
-    assert.ok(ctx.content.includes(`Plans → "${plans}" directory, Docs → "${docs}" directory`), ctx.content);
     assertOneOfBuckets(
       ctx.sections.paths[1],
       buckets,
@@ -451,7 +427,7 @@ describe('buildReminderContext inside a linked worktree', () => {
     process.chdir(linked.worktree);
     const ctx = buildReminderContext({ config: DEFAULT_CONFIG });
     assert.ok(
-      ctx.content.includes(`Plans → "${path.join(linked.main, 'plans')}" directory`),
+      ctx.content.includes(`Plans: ${path.join(linked.main, 'plans')}/`),
       ctx.content
     );
   });
@@ -469,8 +445,8 @@ describe('buildReminderContext inside a linked worktree', () => {
     }
   });
 
-  it('keeps the dedup marker in the rules section', () => {
+  it('keeps the dedup marker in the naming section', () => {
     const ctx = buildReminderContext({ config: DEFAULT_CONFIG, baseDir: linked.worktree });
-    assert.ok(ctx.content.includes('Markdown files are organized in: Plans →'));
+    assert.ok(ctx.content.includes('Replace `{slug}` in pattern with:'));
   });
 });

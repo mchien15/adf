@@ -41,15 +41,9 @@
     "passphrase": null,
     "enabled": false
   },
-  "project": {
-    "type": "auto",
-    "packageManager": "auto",
-    "framework": "auto"
-  },
   "gemini": {
     "model": "gemini-3-flash-preview"
   },
   "skills": {},
-  "hooks": {},
-  "assertions": []
+  "hooks": {}
 }

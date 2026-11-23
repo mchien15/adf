@@ -109,7 +109,7 @@ describe('hooks inside a linked git worktree', () => {
       cwd: repo.worktree
     });
     assert.strictEqual(res.exitCode, 0, res.stderr);
-    assert.ok(res.stdout.includes(`Plans → "${plans}" directory, Docs → "${docs}" directory`), res.stdout);
+    assert.ok(res.stdout.includes(`Plans: ${plans}/ | Docs: ${docs}/`), res.stdout);
     assertIncludesMonthBucket(res.stdout, `Reports: ${plans}/reports/`, '/');
     assert.ok(res.stdout.includes('with one of: researcher, brainstormer'), 'fixed report types listed');
   });
